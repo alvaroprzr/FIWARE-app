@@ -252,3 +252,47 @@ FIWARE-app/
 - ✅ Todas las entidades (Employee, Store, Product, Shelf, InventoryItem) validadas
 
 ---
+
+## 6. Restricciones y Soluciones Orion 4.1.0 (Issue #3)
+
+### Restricciones Identificadas
+
+1. **UTF-8 Literal en Valores String**
+   - Problema: Caracteres acentuados (á, é, ñ, ô) rechazados
+   - Solución: Usar solo ASCII en valores
+   - Implementación: Búsqueda y reemplazo de acentos en import-data.sh
+
+2. **Parámetros Query en URLs**
+   - Problema: URLs como `https://example.com/image?w=400` rechazadas
+   - Solución: Usar URLs simples sin parámetros
+   - Implementación: Remover parámetros de todas las URLs
+
+### DEBUG Mode - Diagnóstico
+
+El script import-data.sh ahora incluye modo DEBUG para diagnosticar problemas:
+
+```bash
+DEBUG=1 bash import-data.sh 2>&1 | tee debug.log
+```
+
+**Archivos generados:**
+- `/tmp/orion_debug_PID/request_N_*.json` - JSON original
+- `/tmp/orion_debug_PID/request_N_*_compact.json` - JSON compactado
+- `/tmp/orion_debug_PID/response_N_*.txt` - Respuesta de Orion
+
+**Características:**
+- Captura JSON exacto enviado
+- Registra HTTP code y body de error
+- Identifica campos problemáticos
+- Preserva historia completa para análisis
+
+### Compactación JSON
+
+El script compacta JSON multilinea:
+```bash
+printf '%s' "$entity" | tr -d '\n' | sed 's/  */ /g'
+```
+
+Esto permite que JSON definido en variables bash multilinea se envíe correctamente.
+
+---

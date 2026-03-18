@@ -155,3 +155,36 @@ Conjunto de vistas HTML + CSS + JavaScript que proporcionan:
 - ✅ import-data.sh ejecutable sin errores
 
 ---
+
+## 11. Optimización Orion 4.1.0 - Restricciones de Datos (Issue #3)
+
+### Restricciones Identificadas y Solucionadas
+
+**Restricción 1: Caracteres Acentuados en Valores de String**
+- Orion 4.1.0 rechaza caracteres UTF-8 literales no escapados (á, é, í, ó, ú, ñ, ô, etc.)
+- Implementación: Todos los valores de string usan solo ASCII (acentos removidos)
+- Ejemplos:
+  - ❌ "Almacén" → ✅ "Almacen"
+  - ❌ "María" → ✅ "Maria"
+  - ❌ "Entrepôt" → ✅ "Entrepot"
+
+**Restricción 2: Parámetros Query en URLs**
+- URLs con parámetros query (p.e., `?w=400`) son rechazadas como "invalid characters"
+- Implementación: Todas las URLs son simples sin parámetros
+- Ejemplos:
+  - ❌ "https://images.unsplash.com/...?w=400" → ✅ "https://images.unsplash.com/..."
+
+### DEBUG Mode en import-data.sh
+
+El script ahora soporta `DEBUG=1` para diagnosticar problemas:
+```bash
+DEBUG=1 bash import-data.sh 2>&1 | tee debug_output.log
+```
+
+En modo DEBUG:
+- Guarda JSON exacto antes de enviar (request_N_*.json)
+- Guarda JSON compactado (request_N_*_compact.json)
+- Captura respuesta de Orion (response_N_*.txt)
+- Muestra body de error si falla (HTTP != 201)
+
+---

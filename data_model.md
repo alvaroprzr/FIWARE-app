@@ -261,3 +261,95 @@ En respuesta a Issue #2, el modelo de datos ha sido actualizado para compatibili
 | `relativeHumidity` | `Number` | Porcentaje de humedad |
 
 ---
+
+## 10. Restricciones Prácticas - Orion 4.1.0 (Issue #3)
+
+### Valores de String - Solo ASCII
+
+**Restricción:** Orion 4.1.0 rechaza caracteres acentuados en valores.
+
+**Ejemplos:**
+```json
+// ❌ RECHAZADO - HTTP 400 "Invalid characters"
+{
+  "name": { "value": "María", "type": "Text" },      // Acentuado
+  "address": { "value": "Almacén", "type": "Text" }  // Acentuado
+}
+
+// ✅ ACEPTADO - HTTP 422 (o 201 si no exista)
+{
+  "name": { "value": "Maria", "type": "Text" },      // ASCII
+  "address": { "value": "Almacen", "type": "Text" }  // ASCII
+}
+```
+
+**Mapeo de caracteres españoles:**
+| Carácter | Reemplazo |
+|----------|-----------|
+| á | a |
+| é | e |
+| í | i |
+| ó | o |
+| ú | u |
+| ñ | n |
+| ô | o |
+| ü | u |
+| ç | c |
+
+### URLs - Sin parámetros Query
+
+**Restricción:** URLs con parámetros (`?param=value`) rechazadas.
+
+**Ejemplos:**
+```json
+// ❌ RECHAZADO - HTTP 400 "Invalid characters"
+{
+  "image": { 
+    "value": "https://images.unsplash.com/photo-123?w=400&q=80",
+    "type": "URL"
+  }
+}
+
+// ✅ ACEPTADO - HTTP 422 (o 201 si no exista)
+{
+  "image": { 
+    "value": "https://images.unsplash.com/photo-123",
+    "type": "URL"
+  }
+}
+```
+
+### Otras Restricciones Observadas
+
+1. **Type "Integer" → "Number"**
+   - Orion 4.1.0 usa "Number" para valores numéricos
+   - Cambiar todos los "Integer" a "Number"
+
+2. **Pattern Matching: "isPattern" → "idPattern"**
+   - Orion 4.1.0 usa "idPattern": ".*" en lugar de "isPattern": true
+   - Cambiar en context_providers y subscriptions
+
+### Validación de Datos
+
+Use DEBUG mode para validar nuevos datos:
+
+```bash
+# 1. Crear archivo JSON correctamente formado
+cat > new_data.json << 'JSON'
+{
+  "id": "Store:001",
+  "type": "Store",
+  "name": { "value": "Nueva Tienda", "type": "Text" },
+  "image": { "value": "https://example.com/store.jpg", "type": "URL" }
+}
+JSON
+
+# 2. Ejecutar con DEBUG=1 para capturar errores
+DEBUG=1 curl -H "Content-Type: application/json" \
+  -d @new_data.json \
+  http://localhost:1026/v2/entities
+
+# 3. Revisar /tmp/orion_debug_*/response_*.txt para detalles de error
+```
+
+---
