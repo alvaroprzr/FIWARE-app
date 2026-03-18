@@ -234,3 +234,53 @@ entities = orion.get_entities(
 - Mejora performance (menos entidades en memoria)
 
 ---
+
+## 13. Visualización y Experiencia de Usuario - Store Detail (Issue #5)
+
+### Animación de Foto Hero
+
+La imagen principal del almacén ahora ejecuta una transformación simultánea al pasar el cursor:
+- **Scale**: 1.0 → 1.1 (ampliación del 10%)
+- **Rotate**: 0° → 360° (rotación completa)
+- **Duration**: 0.8s con easing cubic-bezier personalizado
+
+Proporciona retroalimentación visual interactiva sin interrumpir la navegación.
+
+### Context Providers - Temperature & Humidity
+
+**Problema Original**: Los atributos `temperature` y `relativeHumidity` siempre mostraban "No disponible"
+
+**Solución Implementada**:
+- Aumentar timeout de `get_entity()` de 5s a 15s
+- Incluir parámetro `include_attrs` para solicitar específicamente atributos del proveedor
+- Si el servicio `tutorial:3000` está disponible, los valores se muestran con colores dinámicos
+
+**Colores Dinámicos**:
+- Temperatura: Azul (<10°C) | Verde (10-25°C) | Rojo (>25°C)
+- Humedad: Amarillo (<30%) | Verde (30-70%) | Azul (>70%)
+
+**Fallback**: Si el proveedor no está disponible, se muestra "ℹ️ No disponible"
+
+### Capacidad de Estantería - Progreso Visual
+
+Cada estantería ahora muestra:
+- **Barra de progreso** que indica % de llenado
+- **Color**: Verde (<50%) | Naranja (50-80%) | Rojo (≥80%)
+- **Contador dinámico**: Artículos = suma de InventoryItems en esa estantería
+
+Esto reemplaza el valor estático `numberOfItems` de Orion con cálculo local preciso.
+
+### Tabla de Inventario Detallado
+
+Nueva sección que agrupa productos por estantería:
+- Vista tabular de cada producto
+- Columnas: Imagen, Nombre, Precio, Tamaño, Color, Stock, Cantidad en Estantería
+- Responsive: scroll horizontal en mobile
+
+### Visualización Three.js Mejorada
+
+- **Labels mejorados**: Nombre de estantería + Cantidad de productos + Stock total
+- **Producto boxes**: Cajas 3D individuales para cada producto con colores distintos
+- **Interactividad**: Mouse drag para rotar vista 360°
+
+---

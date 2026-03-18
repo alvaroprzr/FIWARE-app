@@ -348,3 +348,67 @@ Sin this filtering:
 - **routes/employees.py**: Ya correctly especified entity_type='Employee'
 
 ---
+
+## 8. Context Providers y Atributos Dinámicos (Issue #5)
+
+### Problem: Context Providers Timeout
+
+Orion Context Broker permite registrar proveedores externos para suministrar atributos dinámicos.
+El tutorial de FIWARE proporciona `temperature` y `relativeHumidity` para Store entities.
+
+**Desafío**: GET /v2/entities/{id} sin parámetros especiales puede timeout antes de que el provider responda.
+
+### Solución: get_entity() Mejorado
+
+```python
+# modules/orion.py
+def get_entity(entity_id: str, include_attrs: Optional[str] = None) -> Optional[Dict]:
+    params = {}
+    timeout = 5
+    
+    if include_attrs:
+        params['attrs'] = include_attrs
+        timeout = 15  # Dar tiempo a providers
+    
+    response = requests.get(url, params=params, timeout=timeout)
+    return response.json()
+```
+
+**Uso**:
+```python
+# routes/stores.py
+store = orion.get_entity(store_id, include_attrs='temperature,relativeHumidity,tweets')
+```
+
+### Dynamic numberOfItems Calculation
+
+**En lugar de confiar en Orion**:
+```python
+# ❌ INCORRECTO - Valor stale en Orion
+shelf.numberOfItems  # Podría ser 0 aunque hay items
+```
+
+**Calcular localmente**:
+```python
+# ✅ CORRECTO - Suma dinámica en Python
+for shelf in shelves:
+    items_in_shelf = inventory_by_shelf.get(shelf['id'], [])
+    shelf['calculated_item_count'] = len(items_in_shelf)
+    
+    # Calcular fill percentage
+    fill_percent = (item_count / max_capacity) * 100
+    shelf['capacity_fill'] = {'percent': fill_percent, 'status': 'low|medium|high'}
+```
+
+### Frontend Data Layer
+
+**window.inventoryData** - Estructura JavaScript para Three.js:
+```javascript
+{
+    shelves: [...],             // Array de estantes con calculated_item_count
+    inventory_by_shelf: {...},  // Dict: shelf_id → [items]
+    inventory_items: [...]      // Array completo de InventoryItems
+}
+```
+
+---

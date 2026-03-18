@@ -425,3 +425,78 @@ items = orion.get_entities(
 | Queries sin limit | Alto uso de memoria en Orion |
 
 ---
+
+## 12. UI/UX Visualización - Store Detail View (Issue #5)
+
+### Dynamic Capacity Visualization
+
+Cada Shelf muestra barra de progreso basada en fill percentage:
+
+```
+Status  | Fill%   | RGB Color | Meaning
+--------|---------|-----------|--------
+low     | 0-50%   | #34a853   | Verde - Mucho espacio
+medium  | 50-80%  | #fbbc04   | Naranja - Capaci normal
+high    | 80-100% | #ea4335   | Rojo - Casi lleno
+```
+
+**Cálculo**:
+```javascript
+filled_items = len(inventory_items where refShelf == shelf_id)
+fill_percent = (filled_items / shelf.maxCapacity) * 100
+```
+
+**En Template**:
+```html
+<div class="capacity-bar {{ shelf.capacity_fill.status }}" 
+     style="width: {{ shelf.capacity_fill.percent }}%"></div>
+```
+
+### Hero Image Animation
+
+```css
+.store-detail-hero:hover img {
+    transform: scale(1.1) rotate(360deg);
+    transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+```
+
+**Resultado**: Rotation y Scale ocurren SIMULTANEAMENTE (no secuencial)
+
+### Temperature/Humidity Color Coding
+
+```
+Attribute   | Class          | Range      | Color
+------------|----------------|------------|--------
+temperature | cold           | < 10°C     | #4285f4 (azul)
+temperature | normal         | 10-25°C    | #34a853 (verde)
+temperature | hot            | > 25°C     | #ea4335 (rojo)
+humidity    | humidity-low   | < 30%      | #fbbc04 (amarillo)
+humidity    | normal         | 30-70%     | #34a853 (verde)
+humidity    | humidity-high  | > 70%      | #4285f4 (azul)
+```
+
+### Three.js Inventory Labels
+
+Cada estantería muestra Canvas texture con:
+```
+Example:
+┌──────────────────────────┐
+│  Estantería A1           │
+│  Productos: 5            │
+│  Stock: 23               │
+└──────────────────────────┘
+```
+
+**Generado con Canvas 2D**, convertido a THREE.CanvasTexture con tint color #1f73db
+
+### Responsive Considerations
+
+| Viewport | Change |
+|----------|--------|
+| < 600px  | Hero image apilado (no grid 2 col) |
+| < 600px  | Inventory table scroll horizontal |
+| < 600px  | Three.js canvas altura reducida |
+| < 600px  | Employees list: full width items |
+
+---
