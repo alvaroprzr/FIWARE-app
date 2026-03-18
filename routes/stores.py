@@ -58,10 +58,14 @@ def store_detail(store_id):
         if not store_id.startswith('urn:'):
             store_id = f"urn:ngsi-ld:Store:{store_id}"
         
-        store = orion.get_entity(store_id)
+        # Get store with context provider attributes (temperature, humidity)
+        store = orion.get_entity(store_id, include_attrs='temperature,relativeHumidity,tweets')
         if not store:
             return render_template('error.html',
                                  error='Almacén no encontrado'), 404
+        
+        # Log retrieved attributes for debugging
+        logger.info(f"Store {store_id}: temperature={store.get('temperature')}, humidity={store.get('relativeHumidity')}")
         
         # Get shelves in this store
         shelves = orion.get_entities(
@@ -88,6 +92,32 @@ def store_detail(store_id):
             if shelf_id not in inventory_by_shelf:
                 inventory_by_shelf[shelf_id] = []
             inventory_by_shelf[shelf_id].append(item)
+        
+        # Calculate dynamic numberOfItems and capacity for each shelf
+        for shelf in shelves:
+            shelf_id = shelf.get('id')
+            items_in_shelf = inventory_by_shelf.get(shelf_id, [])
+            
+            # Calculate actual item count from inventory
+            shelf['calculated_item_count'] = len(items_in_shelf)
+            
+            # Calculate capacity fill percentage
+            max_capacity = shelf.get('maxCapacity', {}).get('value', 1)
+            item_count = shelf['calculated_item_count']
+            fill_percent = int((item_count / max_capacity) * 100) if max_capacity > 0 else 0
+            
+            # Determine capacity status: low (0-50%), medium (50-80%), high (80-100%)
+            if fill_percent < 50:
+                capacity_status = 'low'
+            elif fill_percent < 80:
+                capacity_status = 'medium'
+            else:
+                capacity_status = 'high'
+            
+            shelf['capacity_fill'] = {
+                'percent': min(fill_percent, 100),
+                'status': capacity_status
+            }
         
         return render_template('store_detail.html',
                              store=store,
