@@ -28,6 +28,7 @@ def list_products():
         for product in products:
             product_id = product.get('id')
             inventory = orion.get_entities(
+                entity_type='InventoryItem',
                 query=f"refProduct=='{product_id}'"
             )
             product['inventory_count'] = len(inventory)
@@ -59,6 +60,7 @@ def product_detail(product_id):
         
         # Get all inventory items for this product
         inventory_items = orion.get_entities(
+            entity_type='InventoryItem',
             query=f"refProduct=='{product_id}'"
         )
         

@@ -27,6 +27,7 @@ def list_stores():
         for store in stores:
             store_id = store.get('id')
             shelves = orion.get_entities(
+                entity_type='Shelf',
                 query=f"refStore=='{store_id}'"
             )
             store['shelf_count'] = len(shelves)
@@ -64,16 +65,19 @@ def store_detail(store_id):
         
         # Get shelves in this store
         shelves = orion.get_entities(
+            entity_type='Shelf',
             query=f"refStore=='{store_id}'"
         )
         
         # Get employees in this store
         employees = orion.get_entities(
+            entity_type='Employee',
             query=f"refStore=='{store_id}'"
         )
         
         # Get all inventory items for this store
         inventory_items = orion.get_entities(
+            entity_type='InventoryItem',
             query=f"refStore=='{store_id}'"
         )
         
@@ -109,6 +113,7 @@ def get_store_shelves(store_id):
             store_id = f"urn:ngsi-ld:Store:{store_id}"
         
         shelves = orion.get_entities(
+            entity_type='Shelf',
             query=f"refStore=='{store_id}'"
         )
         
@@ -138,6 +143,7 @@ def get_available_products_for_shelf(shelf_id):
         
         # Get inventory items for this shelf
         shelf_inventory = orion.get_entities(
+            entity_type='InventoryItem',
             query=f"refShelf=='{shelf_id}'"
         )
         
@@ -177,11 +183,13 @@ def get_available_shelves(store_id, product_id):
         
         # Get all shelves in store
         all_shelves = orion.get_entities(
+            entity_type='Shelf',
             query=f"refStore=='{store_id}'"
         )
         
         # Get inventory items for this product in this store
         product_items = orion.get_entities(
+            entity_type='InventoryItem',
             query=f"refProduct=='{product_id}' AND refStore=='{store_id}'"
         )
         
