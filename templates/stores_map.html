@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Mapa Global - FIWARE Almacén{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 data-i18n="map.title">Mapa Global de Almacenes</h1>
+    <div id="global-map" class="global-map-container"></div>
+</div>
+
+<script src="{{ url_for('static', filename='maps.js') }}"></script>
+<script>
+    const stores = {{ stores | tojson }};
+    initializeGlobalMap(stores);
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.global-map-container {
+    width: 100%;
+    height: 600px;
+    border-radius: 12px;
+    margin-top: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+</style>
+{% endblock %}

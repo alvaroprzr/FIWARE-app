@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}FIWARE Almacén Inteligente{% endblock %}</title>
+    
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Mermaid.js for data model diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    
+    <!-- Leaflet for maps -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    
+    <!-- Three.js for 3D visualization -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
+    <!-- Socket.IO client -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    
+    <!-- Custom styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <!-- Logo -->
+            <div class="navbar-brand">
+                <a href="/" class="logo">
+                    <i class="fas fa-warehouse"></i>
+                    <span>FIWARE Almacén</span>
+                </a>
+            </div>
+            
+            <!-- Navigation links -->
+            <ul class="nav-links">
+                <li><a href="/" data-i18n="nav.home">Inicio</a></li>
+                <li><a href="/stores" data-i18n="nav.stores">Almacenes</a></li>
+                <li><a href="/products" data-i18n="nav.products">Productos</a></li>
+                <li><a href="/employees" data-i18n="nav.employees">Empleados</a></li>
+            </ul>
+            
+            <!-- Right side controls -->
+            <div class="navbar-controls">
+                <!-- Notification badge -->
+                <div class="notification-badge">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge-count" id="notification-count">0</span>
+                </div>
+                
+                <!-- Language selector -->
+                <select id="language-selector" class="language-selector">
+                    <option value="es" data-i18n="lang.spanish">Español</option>
+                    <option value="en" data-i18n="lang.english">English</option>
+                </select>
+                
+                <!-- Dark/Light mode toggle -->
+                <button id="theme-toggle" class="theme-toggle" title="Toggle dark/light mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main content area -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Notifications panel -->
+    <div id="notifications-panel" class="notifications-panel">
+        <div class="notifications-header">
+            <h3 data-i18n="notifications.title">Notificaciones</h3>
+            <button id="close-notifications" class="close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div id="notifications-list" class="notifications-list">
+            <!-- Populated dynamically by JavaScript -->
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <p data-i18n="footer.text">Almacén Inteligente FIWARE &copy; 2024</p>
+        <p class="status">
+            <span id="orion-status" class="status-indicator">
+                <i class="fas fa-circle"></i> <span data-i18n="footer.connecting">Conectando...</span>
+            </span>
+        </p>
+    </footer>
+    
+    <!-- Main script -->
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Initialize Socket.IO connection
+        const socket = io();
+        
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            document.getElementById('orion-status').className = 'status-indicator connected';
+            document.querySelector('#orion-status span').textContent = 'Conectado';
+        });
+        
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            document.getElementById('orion-status').className = 'status-indicator disconnected';
+        });
+        
+        // Listen for price change notifications
+        socket.on('price_change', (data) => {
+            console.log('Price change event:', data);
+            addNotification({
+                type: 'price_change',
+                title: 'Cambio de Precio',
+                message: `Producto ${data.product_id} - Nuevo precio: €${data.new_price}`,
+                icon: 'fa-tag'
+            });
+        });
+        
+        // Listen for low stock notifications
+        socket.on('low_stock', (data) => {
+            console.log('Low stock event:', data);
+            addNotification({
+                type: 'low_stock',
+                title: 'Stock Bajo',
+                message: `Apenas ${data.shelf_count} unidades en ${data.shelf_id}`,
+                icon: 'fa-exclamation-triangle',
+                level: 'warning'
+            });
+        });
+        
+        // Helper function to add notification
+        function addNotification(notif) {
+            const list = document.getElementById('notifications-list');
+            const item = document.createElement('div');
+            item.className = `notification-item ${notif.level || 'info'}`;
+            item.innerHTML = `
+                <i class="fas ${notif.icon}"></i>
+                <div>
+                    <strong>${notif.title}</strong>
+                    <p>${notif.message}</p>
+                </div>
+                <small>${new Date().toLocaleTimeString()}</small>
+            `;
+            list.prepend(item);
+            
+            // Update badge count
+            let count = parseInt(document.getElementById('notification-count').textContent) || 0;
+            document.getElementById('notification-count').textContent = count + 1;
+        }
+    </script>
+</body>
+</html>
