@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}{{ product.name.value }} - FIWARE Almacén{% endblock %}
+{% block title %}{{ product.name.value if product and product.name else 'Producto' }} - FIWARE Almacén{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="product-detail-page">
         <div class="product-hero">
-            <img src="{{ product.image.value }}" alt="{{ product.name.value }}">
+            <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/400x300' }}" alt="{{ product.name.value if product and product.name else 'Unknown' }}">
             <div class="product-header">
-                <h1>{{ product.name.value }}</h1>
-                <p class="price">€{{ product.price.value }}</p>
+                <h1>{{ product.name.value if product and product.name else 'Sin nombre' }}</h1>
+                <p class="price">€{{ product.price.value if product and product.price else '-' }}</p>
                 <p class="specs">
-                    <span class="size">Tamaño: {{ product.size.value }}</span>
-                    <span class="color">Color: <div class="swatch" style="background-color: {{ product.color.value }}"></div></span>
+                    <span class="size">Tamaño: {{ product.size.value if product and product.size else '-' }}</span>
+                    <span class="color">Color: <div class="swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}"></div></span>
                 </p>
             </div>
         </div>
@@ -26,17 +26,25 @@
                             <th data-i18n="product.store">Almacén</th>
                             <th data-i18n="product.shelf">Estantería</th>
                             <th data-i18n="product.shelf_count">Cantidad Estante</th>
-                            <th data-i18n="product.stock_count">Stock Total</th>
+                            <th data-i18n="product.stock_count">Stock</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in inventory_items %}
-                        <tr>
-                            <td>{{ item.refStore.value.split(':')[-1] }}</td>
-                            <td>{{ item.refShelf.value.split(':')[-1] }}</td>
-                            <td><span class="badge">{{ item.shelfCount.value }}</span></td>
-                            <td>{{ item.stockCount.value }}</td>
+                        {% for store_id, store_data in inventory_by_store.items() %}
+                        <tr class="store-header">
+                            <td colspan="4">
+                                <strong>{{ store_data.store_name }}</strong> 
+                                <span class="badge">Stock Total: {{ store_data.totalStock }}</span>
+                            </td>
                         </tr>
+                        {% for item in store_data.shelves %}
+                        <tr class="shelf-row">
+                            <td></td>
+                            <td>{{ (item.refShelf.value.split(':')[-1] if item.refShelf and item.refShelf.value else 'Unknown') }}</td>
+                            <td><span class="badge">{{ item.shelfCount.value if item.shelfCount else 0 }}</span></td>
+                            <td>{{ item.stockCount.value if item.stockCount else 0 }}</td>
+                        </tr>
+                        {% endfor %}
                         {% endfor %}
                     </tbody>
                 </table>

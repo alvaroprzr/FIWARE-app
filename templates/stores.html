@@ -18,19 +18,23 @@
     <div class="stores-grid">
         {% for store in stores %}
         <div class="store-card">
-            <img src="{{ store.image.value }}" alt="{{ store.name.value }}" class="store-image">
+            <img src="{{ store.image.value if store and store.image else 'https://via.placeholder.com/300x200' }}" alt="{{ store.name.value if store and store.name else 'Unknown' }}" class="store-image">
             <div class="store-content">
-                <h3><a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value }}</a></h3>
+                <h3><a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value if store and store.name else 'Sin nombre' }}</a></h3>
                 <p class="location">
                     <i class="fas fa-location-dot"></i>
-                    {{ store.address.value.addressLocality }}, {{ store.address.value.addressCountry }}
+                    {% if store and store.address and store.address.value and store.address.value.addressLocality %}
+                        {{ store.address.value.addressLocality }}, {{ store.address.value.addressCountry }}
+                    {% else %}
+                        <span class="na">N/A</span>
+                    {% endif %}
                 </p>
                 <p class="contact">
-                    <i class="fas fa-phone"></i> {{ store.telephone.value }}
+                    <i class="fas fa-phone"></i> {{ store.telephone.value if store and store.telephone else '-' }}
                 </p>
                 <p class="capacity">
                     <i class="fas fa-cube"></i>
-                    Capacidad: {{ store.capacity.value }} m²
+                    Capacidad: {{ store.capacity.value if store and store.capacity else '-' }} m²
                 </p>
                 <p class="shelves">
                     <i class="fas fa-layer-group"></i>

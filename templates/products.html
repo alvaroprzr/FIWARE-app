@@ -6,7 +6,7 @@
 <div class="container">
     <div class="page-header">
         <h1 data-i18n="products.title">Catálogo de Productos</h1>
-        <a href="#" class="btn btn-primary" data-i18n="products.add">+ Añadir Producto</a>
+        <a href="/products/new" class="btn btn-primary" data-i18n="products.add">+ Añadir Producto</a>
     </div>
     
     {% if error %}
@@ -16,12 +16,12 @@
     <div class="products-grid">
         {% for product in products %}
         <div class="product-card">
-            <img src="{{ product.image.value }}" alt="{{ product.name.value }}" class="product-image">
+            <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/200x150' }}" alt="{{ product.name.value if product and product.name else 'Unknown' }}" class="product-image">
             <div class="product-info">
-                <h3>{{ product.name.value }}</h3>
-                <p class="price">€{{ product.price.value }}</p>
-                <p class="size">{{ product.size.value }}</p>
-                <div class="color-swatch" style="background-color: {{ product.color.value }}"></div>
+                <h3>{{ product.name.value if product and product.name else 'Sin nombre' }}</h3>
+                <p class="price">€{{ product.price.value if product and product.price else '-' }}</p>
+                <p class="size">{{ product.size.value if product and product.size else '-' }}</p>
+                <div class="color-swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}"></div>
                 <p class="inventory">{{ product.inventory_count }} ubicaciones</p>
                 <a href="/products/{{ product.id.split(':')[-1] }}" class="btn btn-small" data-i18n="products.view">Ver</a>
             </div>

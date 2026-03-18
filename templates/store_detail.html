@@ -99,11 +99,12 @@
     <div class="section inventory-table">
         <h2 data-i18n="store.inventory_details">Detalles de Inventario</h2>
         {% for shelf_id, items in inventory_by_shelf.items() %}
-        {% set shelf = shelves | selectattr('id', 'equalto', shelf_id) | list | first %}
-        {% if shelf %}
-        <div class="inventory-section">
-            <h4>{{ shelf.name.value }} ({{ items | length }} productos)</h4>
-            <div class="capacity-bar {{ shelf.capacity_fill.status }}" style="width: {{ shelf.capacity_fill.percent }}%; height: 12px;"></div>
+        {% if shelf_id and shelves %}
+            {% set shelf = shelves | selectattr('id', 'equalto', shelf_id) | list | first %}
+            {% if shelf %}
+            <div class="inventory-section">
+                <h4>{{ shelf.name.value }} ({{ items | length }} productos)</h4>
+                <div class="capacity-bar {{ shelf.capacity_fill.status }}" style="width: {{ shelf.capacity_fill.percent }}%; height: 12px;"></div>
             <div class="inventory-items">
                 <table>
                     <thead>
@@ -141,6 +142,7 @@
                 </table>
             </div>
         </div>
+        {% endif %}
         {% endif %}
         {% endfor %}
     </div>

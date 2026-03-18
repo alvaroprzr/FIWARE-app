@@ -14,17 +14,21 @@
         {% for emp in employees %}
         <div class="employee-card">
             <div class="employee-image">
-                <img src="{{ emp.image.value }}" alt="{{ emp.name.value }}">
+                <img src="{{ emp.image.value if emp and emp.image else 'https://via.placeholder.com/200x200' }}" alt="{{ emp.name.value if emp and emp.name else 'Unknown' }}" class="employee-photo">
             </div>
             <div class="employee-details">
-                <h3><a href="/employees/{{ emp.id.split(':')[-1] }}">{{ emp.name.value }}</a></h3>
-                <p class="category">{{ emp.category.value }}</p>
-                <p class="store"><i class="fas fa-warehouse"></i> {{ emp.store_name }}</p>
-                <p class="email"><i class="fas fa-envelope"></i> {{ emp.email.value }}</p>
+                <h3><a href="/employees/{{ emp.id.split(':')[-1] }}">{{ emp.name.value if emp and emp.name else 'Sin nombre' }}</a></h3>
+                <p class="category">{{ emp.category.value if emp and emp.category else '-' }}</p>
+                <p class="store"><i class="fas fa-warehouse"></i> {{ emp.store_name if emp.store_name else '-' }}</p>
+                <p class="email"><i class="fas fa-envelope"></i> {{ emp.email.value if emp and emp.email else '-' }}</p>
                 <div class="skills">
-                    {% for skill in emp.skills.value %}
-                    <span class="skill-tag">{{ skill }}</span>
-                    {% endfor %}
+                    {% if emp.skills and emp.skills.value %}
+                        {% for skill in emp.skills.value %}
+                        <span class="skill-tag">{{ skill }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="na">Sin competencias</span>
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}{{ employee.name.value }} - FIWARE Almacén{% endblock %}
+{% block title %}{{ employee.name.value if employee and employee.name else 'Empleado' }} - FIWARE Almacén{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="employee-detail">
         <div class="employee-hero">
-            <img src="{{ employee.image.value }}" alt="{{ employee.name.value }}">
+            <img src="{{ employee.image.value if employee and employee.image else 'https://via.placeholder.com/300x300' }}" alt="{{ employee.name.value if employee and employee.name else 'Unknown' }}" class="employee-photo">
             <div class="employee-info">
-                <h1>{{ employee.name.value }}</h1>
-                <p class="category">{{ employee.category.value }}</p>
-                <p class="username"><i class="fas fa-user"></i> {{ employee.username.value }}</p>
-                <p class="email"><i class="fas fa-envelope"></i> {{ employee.email.value }}</p>
+                <h1>{{ employee.name.value if employee and employee.name else 'Unknown' }}</h1>
+                <p class="category">{{ employee.category.value if employee and employee.category else '-' }}</p>
+                <p class="username"><i class="fas fa-user"></i> {{ employee.username.value if employee and employee.username else '-' }}</p>
+                <p class="email"><i class="fas fa-envelope"></i> {{ employee.email.value if employee and employee.email else '-' }}</p>
                 {% if store %}
                 <p class="store"><i class="fas fa-warehouse"></i> 
-                    <a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value }}</a>
+                    <a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value if store and store.name else 'Unknown' }}</a>
                 </p>
                 {% endif %}
             </div>
@@ -23,12 +23,16 @@
         <div class="section">
             <h2 data-i18n="employee.skills">Competencias</h2>
             <div class="skills-list">
-                {% for skill in employee.skills.value %}
-                <div class="skill-item">
-                    <i class="fas fa-check-circle"></i>
-                    <span>{{ skill }}</span>
-                </div>
-                {% endfor %}
+                {% if employee.skills and employee.skills.value %}
+                    {% for skill in employee.skills.value %}
+                    <div class="skill-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ skill }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <span class="na">Sin competencias</span>
+                {% endif %}
             </div>
         </div>
         
@@ -37,11 +41,11 @@
             <div class="details-grid">
                 <div class="detail-item">
                     <span class="label" data-i18n="employee.hire_date">Fecha de Contratación</span>
-                    <span class="value">{{ employee.dateOfContract.value }}</span>
+                    <span class="value">{{ employee.dateOfContract.value if employee and employee.dateOfContract else 'N/A' }}</span>
                 </div>
                 <div class="detail-item">
                     <span class="label" data-i18n="employee.category">Categoría</span>
-                    <span class="value">{{ employee.category.value }}</span>
+                    <span class="value">{{ employee.category.value if employee and employee.category else '-' }}</span>
                 </div>
             </div>
         </div>
