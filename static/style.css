@@ -523,6 +523,343 @@ label {
 }
 
 /* ============================================================================
+   Store Detail Styles
+   ============================================================================ */
+
+.store-detail-hero {
+    position: relative;
+    height: 300px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: var(--spacing-xl);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.store-detail-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.store-detail-hero:hover img {
+    transform: scale(1.1) rotate(360deg);
+}
+
+.store-hero-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    color: white;
+    padding: var(--spacing-lg);
+}
+
+.store-hero-info h1 {
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.store-hero-info .description {
+    font-size: 0.95rem;
+    opacity: 0.95;
+    margin-bottom: var(--spacing-md);
+}
+
+.store-meta {
+    display: flex;
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    font-size: 0.9rem;
+}
+
+/* Climate Section */
+.climate-section {
+    background: var(--surface);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.climate-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.climate-card {
+    background: var(--bg);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border-top: 4px solid var(--primary);
+}
+
+.climate-card.temperature {
+    border-top-color: #fbbc04;
+}
+
+.climate-card.humidity {
+    border-top-color: #4285f4;
+}
+
+.climate-card i {
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-md);
+    color: var(--primary);
+}
+
+.climate-card h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text);
+}
+
+.climate-card .value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+/* Climate value color coding */
+.climate-value.cold {
+    color: #4285f4;  /* Blue */
+}
+
+.climate-value.normal {
+    color: #34a853;  /* Green */
+}
+
+.climate-value.hot {
+    color: #ea4335;  /* Red */
+}
+
+.climate-value.unavailable {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+/* Map Container */
+.map-container {
+    height: 400px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin: var(--spacing-xl) 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    z-index: 10;
+    position: relative;
+}
+
+.map-container #map {
+    width: 100%;
+    height: 100%;
+}
+
+/* Shelves Grid */
+.shelves-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin: var(--spacing-lg) 0;
+}
+
+.shelf-card {
+    background: var(--surface);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.shelf-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.shelf-card h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text);
+}
+
+.shelf-card p {
+    margin: var(--spacing-sm) 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Capacity Bar */
+.capacity-bar {
+    height: 8px;
+    background: var(--bg);
+    border-radius: 4px;
+    margin: var(--spacing-md) 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.capacity-bar.low {
+    background: linear-gradient(90deg, #34a853 0%, #34a853 100%);
+}
+
+.capacity-bar.medium {
+    background: linear-gradient(90deg, #fbbc04 0%, #fbbc04 100%);
+}
+
+.capacity-bar.high {
+    background: linear-gradient(90deg, #ea4335 0%, #ea4335 100%);
+}
+
+/* Employees List */
+.employees-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+.employee-item {
+    display: flex;
+    gap: var(--spacing-lg);
+    align-items: center;
+    background: var(--surface);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.employee-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.employee-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.employee-item div {
+    flex: 1;
+    min-width: 0;
+}
+
+.employee-item h4 {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--text);
+}
+
+.employee-item h4 a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.employee-item h4 a:hover {
+    color: #1765cc;
+    text-decoration: underline;
+}
+
+.employee-item p {
+    margin: var(--spacing-xs) 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    word-break: break-word;
+}
+
+.employee-item .email {
+    color: var(--primary);
+}
+
+/* Inventory Table */
+.inventory-table {
+    margin: var(--spacing-xl) 0;
+}
+
+.inventory-section {
+    background: var(--surface);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.inventory-section h4 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--text);
+}
+
+.inventory-items {
+    overflow-x: auto;
+}
+
+.inventory-items table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.inventory-items th {
+    background: var(--bg);
+    padding: var(--spacing-md);
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
+    color: var(--text);
+}
+
+.inventory-items td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+.inventory-items tr:hover {
+    background: var(--bg);
+}
+
+.product-image {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    object-fit: cover;
+}
+
+.shelf-products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+}
+
+.product-tag {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+/* Visualization Container */
+.visualization-container {
+    width: 100%;
+    min-height: 600px;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+/* ============================================================================
    Print Styles
    ============================================================================ */
 

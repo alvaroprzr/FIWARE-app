@@ -17,19 +17,29 @@ ORION_URL = os.getenv('ORION_URL', 'http://localhost:1026')
 # NGSIv2 Entity CRUD Operations
 # ============================================================================
 
-def get_entity(entity_id: str) -> Optional[Dict[str, Any]]:
+def get_entity(entity_id: str, include_attrs: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """
     Retrieve a single entity by ID from Orion Context Broker.
     
     Args:
         entity_id (str): The entity ID (e.g., 'urn:ngsi-ld:Store:madrid-centro')
+        include_attrs (str, optional): Comma-separated attributes to retrieve (e.g., 'temperature,relativeHumidity')
+                                      If set, increases timeout to allow context providers to respond.
     
     Returns:
         Dict with entity data or None if not found
     """
     try:
         url = f"{ORION_URL}/v2/entities/{entity_id}"
-        response = requests.get(url, timeout=5)
+        params = {}
+        
+        # If specific attributes requested, increase timeout for context provider response
+        timeout = 5
+        if include_attrs:
+            params['attrs'] = include_attrs
+            timeout = 15  # Give context providers time to respond
+        
+        response = requests.get(url, params=params if params else None, timeout=timeout)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:

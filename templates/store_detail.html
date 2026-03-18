@@ -33,22 +33,22 @@
             <div class="climate-card temperature">
                 <i class="fas fa-thermometer-half"></i>
                 <h3 data-i18n="store.temperature">Temperatura</h3>
-                <p class="value">
-                    {% if store.temperature %}
+                <p class="value climate-value {% if store.temperature and store.temperature.value is not none %}{% if store.temperature.value < 10 %}cold{% elif store.temperature.value < 25 %}normal{% else %}hot{% endif %}{% else %}unavailable{% endif %}">
+                    {% if store.temperature and store.temperature.value is not none %}
                         {{ store.temperature.value }}°C
                     {% else %}
-                        <span class="na">No disponible</span>
+                        <span class="na">ℹ️ No disponible</span>
                     {% endif %}
                 </p>
             </div>
             <div class="climate-card humidity">
                 <i class="fas fa-tint"></i>
                 <h3 data-i18n="store.humidity">Humedad Relativa</h3>
-                <p class="value">
-                    {% if store.relativeHumidity %}
+                <p class="value climate-value {% if store.relativeHumidity and store.relativeHumidity.value is not none %}{% if store.relativeHumidity.value < 30 %}humidity-low{% elif store.relativeHumidity.value < 70 %}normal{% else %}humidity-high{% endif %}{% else %}unavailable{% endif %}">
+                    {% if store.relativeHumidity and store.relativeHumidity.value is not none %}
                         {{ store.relativeHumidity.value }}%
                     {% else %}
-                        <span class="na">No disponible</span>
+                        <span class="na">ℹ️ No disponible</span>
                     {% endif %}
                 </p>
             </div>
@@ -74,18 +74,69 @@
             {% for shelf in shelves %}
             <div class="shelf-card">
                 <h3>{{ shelf.name.value }}</h3>
-                <p>Capacidad: {{ shelf.maxCapacity.value }}</p>
-                <p>Artículos: {{ shelf.numberOfItems.value }}</p>
+                <p>Capacidad máxima: {{ shelf.maxCapacity.value }}</p>
+                <div class="capacity-bar {{ shelf.capacity_fill.status }}" style="width: 100%; display: inline-block; position: relative;">
+                    <div style="width: {{ shelf.capacity_fill.percent }}%; height: 100%;">
+                        <div class="capacity-bar {{ shelf.capacity_fill.status }}">&nbsp;</div>
+                    </div>
+                </div>
+                <p>Artículos: <strong>{{ shelf.calculated_item_count }}</strong> / {{ shelf.maxCapacity.value }}</p>
                 <div class="shelf-products">
                     {% if shelf.id in inventory_by_shelf %}
                         {% for item in inventory_by_shelf[shelf.id] %}
                         <span class="product-tag">{{ item.refProduct.value.split(':')[-1] }}</span>
                         {% endfor %}
+                    {% else %}
+                        <p class="empty-state">Sin productos</p>
                     {% endif %}
                 </div>
             </div>
             {% endfor %}
         </div>
+    </div>
+    
+    <!-- Inventory Table -->
+    <div class="section inventory-table">
+        <h2 data-i18n="store.inventory_details">Detalles de Inventario</h2>
+        {% for shelf_id, items in inventory_by_shelf.items() %}
+        {% set shelf = shelves | selectattr('id', 'equalto', shelf_id) | list | first %}
+        {% if shelf %}
+        <div class="inventory-section">
+            <h4>{{ shelf.name.value }} ({{ items | length }} productos)</h4>
+            <div class="capacity-bar {{ shelf.capacity_fill.status }}" style="width: {{ shelf.capacity_fill.percent }}%; height: 12px;"></div>
+            <div class="inventory-items">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Nombre del Producto</th>
+                            <th>Precio</th>
+                            <th>Tamaño</th>
+                            <th>Color</th>
+                            <th>Stock</th>
+                            <th>Cantidad en Estantería</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        {% set product_id = item.refProduct.value %}
+                        {% set product = inventory_items | selectattr('id', 'equalto', product_id) | map(attribute='refProduct') | list | first %}
+                        <tr>
+                            <td><img src="{{ inventory_items | selectattr('refProduct', 'contains', product_id) | map(attribute='image') | list | first or 'https://via.placeholder.com/40' }}" class="product-image" alt=""></td>
+                            <td>{{ item.refProduct.value.split(':')[-1] }}</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>{{ item.stockCount.value if item.stockCount else 0 }}</td>
+                            <td>{{ item.shelfCount.value if item.shelfCount else 1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
     </div>
     
     <!-- Employees -->
@@ -109,15 +160,23 @@
 <script src="{{ url_for('static', filename='store_3d.js') }}"></script>
 <script src="{{ url_for('static', filename='maps.js') }}"></script>
 <script>
+    // Pass inventory data to frontend for Three.js visualization
+    window.inventoryData = {
+        shelves: {{ shelves | tojson | safe }},
+        inventory_by_shelf: {{ inventory_by_shelf | tojson | safe }},
+        inventory_items: {{ inventory_items | tojson | safe }}
+    };
+    
     // Initialize 3D scene for this store
     initializeStoreScene({
         storeId: "{{ store.id }}",
-        shelves: {{ shelves | tojson }}
+        shelves: window.inventoryData.shelves,
+        inventoryByShelf: window.inventoryData.inventory_by_shelf
     });
     
     // Initialize map
     initializeStoreMap({
-        center: {{ store.location.value.coordinates | tojson }},
+        center: {{ store.location.value.coordinates | tojson |safe }},
         storeName: "{{ store.name.value }}",
         storeImage: "{{ store.image.value }}"
     });

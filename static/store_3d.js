@@ -39,6 +39,9 @@ function initializeStoreScene(config) {
     floor.receiveShadow = true;
     scene.add(floor);
     
+    // Get inventory data if available
+    const inventoryByShelf = config.inventoryByShelf || {} ;
+    
     // Create shelves
     const shelves = config.shelves || [];
     const shelfSpacing = 6;
@@ -58,22 +61,25 @@ function initializeStoreScene(config) {
         
         scene.add(shelfMesh);
         
-        // Add label
-        const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 256;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 32px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(shelf.name?.value || `Shelf ${index + 1}`, 128, 128);
+        // Get products in this shelf for counts
+        const productsInShelf = inventoryByShelf[shelf.id] || [];
+        const productCount = productsInShelf.length;
+        const totalStock = productsInShelf.reduce((sum, item) => {
+            return sum + (item.stockCount?.value || 0);
+        }, 0);
         
-        const texture = new THREE.CanvasTexture(canvas);
-        const labelMaterial = new THREE.MeshBasicMaterial({ map: texture });
-        const labelGeometry = new THREE.PlaneGeometry(4, 2);
-        const label = new THREE.Mesh(labelGeometry, labelMaterial);
-        label.position.set(shelfMesh.position.x, shelfMesh.position.y + 2, shelfMesh.position.z + 1.1);
-        scene.add(label);
+        // Add enhanced label with name and counts
+        const labelText = `${shelf.name?.value || `Shelf ${index + 1}`}\nProductos: ${productCount}\nStock: ${totalStock}`;
+        createShelfLabel(shelfMesh.position, labelText);
+        
+        // Add product boxes inside shelf (visualization)
+        productsInShelf.forEach((product, prodIndex) => {
+            const productBox = createProductBox(prodIndex, productCount);
+            productBox.position.copy(shelfMesh.position);
+            productBox.position.y += 0.5;
+            productBox.position.x += (prodIndex - productCount / 2) * 0.5;
+            scene.add(productBox);
+        });
     });
     
     // Mouse controls (orbit)
@@ -84,6 +90,47 @@ function initializeStoreScene(config) {
     
     // Handle window resize
     window.addEventListener('resize', onWindowResize);
+}
+
+// Helper function to create enhanced shelf labels
+function createShelfLabel(position, text) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+    
+    // Background
+    ctx.fillStyle = '#1f73db';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Text
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 28px Arial';
+    ctx.textAlign = 'center';
+    
+    const lines = text.split('\n');
+    lines.forEach((line, i) => {
+        ctx.fillText(line, 256, 80 + i * 50);
+    });
+    
+    const texture = new THREE.CanvasTexture(canvas);
+    const labelMaterial = new THREE.MeshBasicMaterial({ map: texture });
+    const labelGeometry = new THREE.PlaneGeometry(4, 2);
+    const label = new THREE.Mesh(labelGeometry, labelMaterial);
+    label.position.set(position.x, position.y + 2, position.z + 1.1);
+    scene.add(label);
+}
+
+// Helper function to create product boxes
+function createProductBox(index, totalProducts) {
+    const geometry = new THREE.BoxGeometry(0.4, 0.4, 0.4);
+    const colors = [0xff6b6b, 0x4ecdc4, 0x45b7d1, 0xf7b731, 0x5f27cd];
+    const color = colors[index % colors.length];
+    const material = new THREE.MeshLambertMaterial({ color: color });
+    const box = new THREE.Mesh(geometry, material);
+    box.castShadow = true;
+    box.receiveShadow = true;
+    return box;
 }
 
 function setupCameraControls() {
