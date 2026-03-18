@@ -120,13 +120,19 @@
                     <tbody>
                         {% for item in items %}
                         {% set product_id = item.refProduct.value %}
-                        {% set product = inventory_items | selectattr('id', 'equalto', product_id) | map(attribute='refProduct') | list | first %}
+                        {% set product = products_dict.get(product_id) %}
                         <tr>
-                            <td><img src="{{ inventory_items | selectattr('refProduct', 'contains', product_id) | map(attribute='image') | list | first or 'https://via.placeholder.com/40' }}" class="product-image" alt=""></td>
-                            <td>{{ item.refProduct.value.split(':')[-1] }}</td>
-                            <td>-</td>
-                            <td>-</td>
-                            <td>-</td>
+                            <td>
+                                {% if product and product.image and product.image.value %}
+                                    <img src="{{ product.image.value }}" class="product-image" alt="">
+                                {% else %}
+                                    <img src="https://via.placeholder.com/40" class="product-image" alt="">
+                                {% endif %}
+                            </td>
+                            <td>{{ product.name.value if product and product.name else item.refProduct.value.split(':')[-1] }}</td>
+                            <td>{{ product.price.value if product and product.price else '-' }}</td>
+                            <td>{{ product.size.value if product and product.size else '-' }}</td>
+                            <td>{{ product.color.value if product and product.color else '-' }}</td>
                             <td>{{ item.stockCount.value if item.stockCount else 0 }}</td>
                             <td>{{ item.shelfCount.value if item.shelfCount else 1 }}</td>
                         </tr>
