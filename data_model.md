@@ -500,3 +500,111 @@ Example:
 | < 600px  | Employees list: full width items |
 
 ---
+
+## 12. Relationship Bridges: Products in Inventory Context (Issue #6)
+
+### Problema: Entidades Desconectadas en Display
+
+**Estructura de entidades:**
+```
+InventoryItem {
+    id: "urn:ngsi-ld:InventoryItem:item-001-madrid-prod1",
+    refProduct: { value: "urn:ngsi-ld:Product:laptop-asus" },    ← Reference, no datos
+    refShelf: { value: "urn:ngsi-ld:Shelf:shelf-A1" },           ← Reference, no datos
+    shelfCount: { value: 5 },
+    stockCount: { value: 23 }
+}
+
+Product {
+    id: "urn:ngsi-ld:Product:laptop-asus",
+    name: { value: "Laptop Asus VivoBook" },
+    image: { value: "https://example.com/laptop.jpg" },
+    price: { value: 1299.99 },
+    size: { value: "15.6 pulgadas" },
+    color: { value: "Gris" }
+}
+```
+
+**❌ INCORRECTO - Intentar resolver en template:**
+```jinja2
+{# En template, intentar buscar Product dentro de InventoryItem array #}
+{% set product = inventory_items | selectattr('id', 'equalto', product_id) %}
+{# Falla: product_id es URN de Product, pero busca en IDs de InventoryItem #}
+```
+
+### Solución: Relationship Bridge
+
+**✅ CORRECTO - Pre-fetch y bridge en Python:**
+
+#### 1. Fetch Stage (routes/stores.py)
+```python
+# Las 5 llamadas GET a Orion:
+stores = orion.get_entities(entity_type='Store')           # [Store entities]
+shelves = orion.get_entities(entity_type='Shelf', q=...)   # [Shelf entities]
+employees = orion.get_entities(entity_type='Employee', q=...)  # [Employee entities]
+inventory_items = orion.get_entities(entity_type='InventoryItem', q=...)  # [InventoryItem]
+products = orion.get_entities(entity_type='Product')       # [Product entities] ← NEW
+
+# Build relationship bridge
+products_dict = {}
+for product in products:
+    products_dict[product['id']] = product
+```
+
+#### 2. Bridge Consumer (templates/store_detail.html)
+```jinja2
+{# En tabla de inventario #}
+{% for item in inventory_items %}
+    {% set product_id = item.refProduct.value %}
+    {% set product = products_dict.get(product_id) %}
+    
+    {# Acceso seguro a datos de Product #}
+    {% if product and product.image and product.image.value %}
+        <img src="{{ product.image.value }}" alt="">
+    {% endif %}
+    
+    <td>{{ product.name.value if product and product.name else 'N/A' }}</td>
+    <td>{{ product.price.value if product and product.price else '-' }}</td>
+{% endfor %}
+```
+
+### Template Context Expansion
+
+| Phase | Antes | Después | Razón |
+|-------|-------|---------|-------|
+| Issue #5 | 5 vars | 5 vars | store, shelves, employees, inventory_items, inventory_by_shelf |
+| Issue #6 | 5 vars | 6 vars | ↑ + **products_dict** ← NEW |
+
+### NGSIv2 Pattern: Safe Attribute Access
+
+**En Python:**
+```python
+# ✅ CORRECTO - Chained .get()
+ref_product = item.get('refProduct', {}).get('value')
+max_capacity = shelf.get('maxCapacity', {}).get('value', 1)
+
+# ❌ INCORRECTO - Object notation
+name = item.name              # AttributeError si no existe
+```
+
+**En Jinja2 Templates:**
+```jinja2
+{# ✅ CORRECTO - Conditional guards + .value #}
+{{ product.name.value if product and product.name else 'N/A' }}
+
+{# ❌ INCORRECTO - Direct attribute access #}
+{{ product.name }}           {# Retorna dict, no string #}
+{{ inventory_items[0].image }}  {# Falla si image es None #}
+```
+
+### Performance Implications
+
+| Approach | Time | Calls | Notes |
+|----------|------|-------|-------|
+| Template selectattr | O(n·m) | 1 Orion call | Iteración en cada fila × n items |
+| Python pre-build | O(n+m) | 2 Orion calls | 1× fetch Products, 1× build dict |
+| Dict lookup | O(1) | 0 (cached) | Instantáneo en template |
+
+**Resultado:** Pasar de búsquedas O(n) por fila a O(1) lookups.
+
+---

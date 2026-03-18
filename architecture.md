@@ -412,3 +412,63 @@ for shelf in shelves:
 ```
 
 ---
+
+## 8. Product Dictionary Lookup Pattern (Issue #6)
+
+### Problema: Búsquedas de Entidades Ineficientes en Templates
+
+**❌ INCORRECTO - Búsquedas iterativas en Jinja2:**
+```jinja2
+{% set product = inventory_items | selectattr('id', 'equalto', product_id) | list | first %}
+{# Esta búsqueda es O(n) en cada iteración #}
+```
+
+**Causaba errores cuando:**
+- Los IDs no coincidían entre tipos de entidades (InventoryItem ID ≠ Product ID)
+- Se intentaba acceder a atributos inexistentes en el tipo de entidad equivocado
+
+### Solución: Python-Side Dictionary Pre-computation
+
+**✅ CORRECTO - Dict keyed by ID:**
+
+**1. En routes/stores.py:**
+```python
+# Extraer IDs únicos de productos
+product_ids = set()
+for item in inventory_items:
+    ref_product = item.get('refProduct', {}).get('value')
+    if ref_product:
+        product_ids.add(ref_product)
+
+# Fetch todos los productos (O(1) llamada a Orion)
+products = orion.get_entities(entity_type='Product', limit=1000)
+
+# Crear diccionario para O(1) lookups
+products_dict = {}
+for product in products:
+    product_id = product.get('id')
+    if product_id:
+        products_dict[product_id] = product
+
+# Pasar al template
+render_template('store_detail.html', products_dict=products_dict)
+```
+
+**2. En template:**
+```jinja2
+{% set product = products_dict.get(product_id) %}
+{# O(1) lookup - instantáneo #}
+
+{% if product and product.image and product.image.value %}
+    <img src="{{ product.image.value }}" alt="">
+{% endif %}
+```
+
+### Ventajas
+
+- **Performance**: O(1) lookups vs O(n) selectattr
+- **Correctitud**: Acceso directo a entidades de tipo correcto
+- **Robustez**: Defensas condicionales contra datos faltantes
+- **Escalabilidad**: No degrada con tamaño de inventory_items
+
+---
