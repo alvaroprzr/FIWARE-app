@@ -26,7 +26,7 @@ def register_temperature_humidity_provider():
             'entities': [
                 {
                     'type': 'Store',
-                    'isPattern': True
+                    'idPattern': '.*'
                 }
             ],
             'attrs': ['temperature', 'relativeHumidity']
@@ -61,7 +61,7 @@ def register_tweets_provider():
             'entities': [
                 {
                     'type': 'Store',
-                    'isPattern': True
+                    'idPattern': '.*'
                 }
             ],
             'attrs': ['tweets']

@@ -298,8 +298,8 @@ for i in 1 2 3 4; do
   "id": "urn:ngsi-ld:Shelf:madrid-shelf-a${i}",
   "type": "Shelf",
   "name": {"type": "Text", "value": "Estantería Sector A${i}"},
-  "maxCapacity": {"type": "Integer", "value": $((15 + i * 2))},
-  "numberOfItems": {"type": "Integer", "value": 0},
+  "maxCapacity": {"type": "Number", "value": $((15 + i * 2))},
+  "numberOfItems": {"type": "Number", "value": 0},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"}
 }
 EOF
@@ -314,8 +314,8 @@ for i in 1 2 3 4; do
   "id": "urn:ngsi-ld:Shelf:barcelona-shelf-b${i}",
   "type": "Shelf",
   "name": {"type": "Text", "value": "Estantería Sector B${i}"},
-  "maxCapacity": {"type": "Integer", "value": $((16 + i * 2))},
-  "numberOfItems": {"type": "Integer", "value": 0},
+  "maxCapacity": {"type": "Number", "value": $((16 + i * 2))},
+  "numberOfItems": {"type": "Number", "value": 0},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:barcelona-port"}
 }
 EOF
@@ -330,8 +330,8 @@ for i in 1 2 3 4; do
   "id": "urn:ngsi-ld:Shelf:paris-shelf-c${i}",
   "type": "Shelf",
   "name": {"type": "Text", "value": "Étagère Secteur C${i}"},
-  "maxCapacity": {"type": "Integer", "value": $((14 + i * 2))},
-  "numberOfItems": {"type": "Integer", "value": 0},
+  "maxCapacity": {"type": "Number", "value": $((14 + i * 2))},
+  "numberOfItems": {"type": "Number", "value": 0},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:paris-nord"}
 }
 EOF
@@ -346,8 +346,8 @@ for i in 1 2 3 4; do
   "id": "urn:ngsi-ld:Shelf:milano-shelf-d${i}",
   "type": "Shelf",
   "name": {"type": "Text", "value": "Scaffale Settore D${i}"},
-  "maxCapacity": {"type": "Integer", "value": $((15 + i * 2))},
-  "numberOfItems": {"type": "Integer", "value": 0},
+  "maxCapacity": {"type": "Number", "value": $((15 + i * 2))},
+  "numberOfItems": {"type": "Number", "value": 0},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:milano-sud"}
 }
 EOF
@@ -392,8 +392,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:laptop-asus"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a1"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 5},
-  "stockCount": {"type": "Integer", "value": 5}
+  "shelfCount": {"type": "Number", "value": 5},
+  "stockCount": {"type": "Number", "value": 5}
 }
 EOF
 )
@@ -406,8 +406,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:monitor-lg"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a1"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 4},
-  "stockCount": {"type": "Integer", "value": 4}
+  "shelfCount": {"type": "Number", "value": 4},
+  "stockCount": {"type": "Number", "value": 4}
 }
 EOF
 )
@@ -420,8 +420,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:mouse-logitech"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a1"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 3},
-  "stockCount": {"type": "Integer", "value": 3}
+  "shelfCount": {"type": "Number", "value": 3},
+  "stockCount": {"type": "Number", "value": 3}
 }
 EOF
 )
@@ -434,8 +434,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:keyboard-mechanical"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a1"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 4},
-  "stockCount": {"type": "Integer", "value": 4}
+  "shelfCount": {"type": "Number", "value": 4},
+  "stockCount": {"type": "Number", "value": 4}
 }
 EOF
 )
@@ -449,8 +449,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:laptop-asus"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a2"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 3},
-  "stockCount": {"type": "Integer", "value": 8}
+  "shelfCount": {"type": "Number", "value": 3},
+  "stockCount": {"type": "Number", "value": 8}
 }
 EOF
 )
@@ -463,8 +463,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:headphones-sony"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a2"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 2},
-  "stockCount": {"type": "Integer", "value": 2}
+  "shelfCount": {"type": "Number", "value": 2},
+  "stockCount": {"type": "Number", "value": 2}
 }
 EOF
 )
@@ -477,8 +477,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:webcam-logitech"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a2"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 4},
-  "stockCount": {"type": "Integer", "value": 4}
+  "shelfCount": {"type": "Number", "value": 4},
+  "stockCount": {"type": "Number", "value": 4}
 }
 EOF
 )
@@ -491,8 +491,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:usb-dock"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a2"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 3},
-  "stockCount": {"type": "Integer", "value": 3}
+  "shelfCount": {"type": "Number", "value": 3},
+  "stockCount": {"type": "Number", "value": 3}
 }
 EOF
 )
@@ -506,8 +506,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:monitor-lg"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a3"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 2},
-  "stockCount": {"type": "Integer", "value": 6}
+  "shelfCount": {"type": "Number", "value": 2},
+  "stockCount": {"type": "Number", "value": 6}
 }
 EOF
 )
@@ -520,8 +520,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:keyboard-mechanical"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a3"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 3},
-  "stockCount": {"type": "Integer", "value": 7}
+  "shelfCount": {"type": "Number", "value": 3},
+  "stockCount": {"type": "Number", "value": 7}
 }
 EOF
 )
@@ -534,8 +534,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:ssd-samsung"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a3"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 4},
-  "stockCount": {"type": "Integer", "value": 4}
+  "shelfCount": {"type": "Number", "value": 4},
+  "stockCount": {"type": "Number", "value": 4}
 }
 EOF
 )
@@ -548,8 +548,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:ram-corsair"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a3"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 5},
-  "stockCount": {"type": "Integer", "value": 5}
+  "shelfCount": {"type": "Number", "value": 5},
+  "stockCount": {"type": "Number", "value": 5}
 }
 EOF
 )
@@ -563,8 +563,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:mouse-logitech"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a4"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 6},
-  "stockCount": {"type": "Integer", "value": 9}
+  "shelfCount": {"type": "Number", "value": 6},
+  "stockCount": {"type": "Number", "value": 9}
 }
 EOF
 )
@@ -577,8 +577,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:headphones-sony"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a4"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 1},
-  "stockCount": {"type": "Integer", "value": 3}
+  "shelfCount": {"type": "Number", "value": 1},
+  "stockCount": {"type": "Number", "value": 3}
 }
 EOF
 )
@@ -591,8 +591,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:ram-corsair"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a4"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 3},
-  "stockCount": {"type": "Integer", "value": 8}
+  "shelfCount": {"type": "Number", "value": 3},
+  "stockCount": {"type": "Number", "value": 8}
 }
 EOF
 )
@@ -605,8 +605,8 @@ ITEM=$(cat <<'EOF'
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:power-supply"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:madrid-shelf-a4"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:madrid-centro"},
-  "shelfCount": {"type": "Integer", "value": 2},
-  "stockCount": {"type": "Integer", "value": 2}
+  "shelfCount": {"type": "Number", "value": 2},
+  "stockCount": {"type": "Number", "value": 2}
 }
 EOF
 )
@@ -623,20 +623,20 @@ INVENTORY_BARCELONA='
   "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:laptop-asus"},
   "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:barcelona-shelf-b1"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:barcelona-port"},
-  "shelfCount": {"type": "Integer", "value": 4},
-  "stockCount": {"type": "Integer", "value": 4}
+  "shelfCount": {"type": "Number", "value": 4},
+  "stockCount": {"type": "Number", "value": 4}
 }
 '
 post_entity "$INVENTORY_BARCELONA"
 
 # [Más items Barcelona B1...]
-INVENTORY_BARCELONA='{"id": "urn:ngsi-ld:InventoryItem:barcelona-b1-prod4", "type": "InventoryItem", "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:keyboard-mechanical"}, "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:barcelona-shelf-b1"}, "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:barcelona-port"}, "shelfCount": {"type": "Integer", "value": 3}, "stockCount": {"type": "Integer", "value": 3}}'
+INVENTORY_BARCELONA='{"id": "urn:ngsi-ld:InventoryItem:barcelona-b1-prod4", "type": "InventoryItem", "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:keyboard-mechanical"}, "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:barcelona-shelf-b1"}, "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:barcelona-port"}, "shelfCount": {"type": "Number", "value": 3}, "stockCount": {"type": "Number", "value": 3}}'
 post_entity "$INVENTORY_BARCELONA"
 
-INVENTORY_BARCELONA='{"id": "urn:ngsi-ld:InventoryItem:barcelona-b1-prod6", "type": "InventoryItem", "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:webcam-logitech"}, "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:barcelona-shelf-b1"}, "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:barcelona-port"}, "shelfCount": {"type": "Integer", "value": 5}, "stockCount": {"type": "Integer", "value": 5}}'
+INVENTORY_BARCELONA='{"id": "urn:ngsi-ld:InventoryItem:barcelona-b1-prod6", "type": "InventoryItem", "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:webcam-logitech"}, "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:barcelona-shelf-b1"}, "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:barcelona-port"}, "shelfCount": {"type": "Number", "value": 5}, "stockCount": {"type": "Number", "value": 5}}'
 post_entity "$INVENTORY_BARCELONA"
 
-INVENTORY_BARCELONA='{"id": "urn:ngsi-ld:InventoryItem:barcelona-b1-prod8", "type": "InventoryItem", "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:ssd-samsung"}, "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:barcelona-shelf-b1"}, "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:barcelona-port"}, "shelfCount": {"type": "Integer", "value": 2}, "stockCount": {"type": "Integer", "value": 2}}'
+INVENTORY_BARCELONA='{"id": "urn:ngsi-ld:InventoryItem:barcelona-b1-prod8", "type": "InventoryItem", "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:ssd-samsung"}, "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:barcelona-shelf-b1"}, "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:barcelona-port"}, "shelfCount": {"type": "Number", "value": 2}, "stockCount": {"type": "Number", "value": 2}}'
 post_entity "$INVENTORY_BARCELONA"
 
 # [Resto de Barcelona B2-B4 y París y Milán - simplicidad: 1 item por Shelf como placeholder]

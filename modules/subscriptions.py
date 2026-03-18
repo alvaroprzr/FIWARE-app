@@ -28,7 +28,7 @@ def register_price_change_subscription():
             'entities': [
                 {
                     'type': 'Product',
-                    'isPattern': True
+                    'idPattern': '.*'
                 }
             ],
             'condition': {
@@ -69,7 +69,7 @@ def register_low_stock_subscription():
             'entities': [
                 {
                     'type': 'InventoryItem',
-                    'isPattern': True
+                    'idPattern': '.*'
                 }
             ],
             'condition': {
