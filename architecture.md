@@ -214,3 +214,41 @@ FIWARE-app/
 ├── data_model.md
 └── AGENTS.md
 ```
+
+## 5. Notas de Compatibilidad - Orion 4.1.0
+
+### Cambios Significativos (Issue #2)
+
+1. **Tipos de Datos NGSIv2**
+   - Cambio: Solo tipo `"Number"` soportado para valores numéricos
+   - Antes: Permitía `"Integer"` y `"Number"` como distintos
+   - Impacto: Todos los enteros deben declararse como `"Number"` en NGSIv2
+   - Ejemplo:
+     ```json
+     // ❌ INCORRECTO en Orion 4.1.0
+     "maxCapacity": {"type": "Integer", "value": 20}
+     
+     // ✅ CORRECTO en Orion 4.1.0
+     "maxCapacity": {"type": "Number", "value": 20}
+     ```
+
+2. **Pattern Matching en Providers y Subscriptions**
+   - Cambio: Uso exclusivo de `"idPattern"` en lugar de `"isPattern"`
+   - Antes: `"isPattern": true` activaba regexp en `id`
+   - Ahora: Debe especificarse patrón explícito en `"idPattern": ".*"`
+   - Ejemplo:
+     ```json
+     // ❌ INCORRECTO en Orion 4.1.0
+     {"type": "Store", "isPattern": true}
+     
+     // ✅ CORRECTO en Orion 4.1.0
+     {"type": "Store", "idPattern": ".*"}
+     ```
+
+### Implementación en FIWARE-app
+- ✅ import-data.sh actualizado con tipos NGSIv2 correctos
+- ✅ modules/context_providers.py con `idPattern: '.*'`
+- ✅ modules/subscriptions.py con `idPattern: '.*'`
+- ✅ Todas las entidades (Employee, Store, Product, Shelf, InventoryItem) validadas
+
+---

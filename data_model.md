@@ -225,3 +225,39 @@ erDiagram
 | Store → InventoryItem | 1:N |
 | Product → InventoryItem | 1:N |
 | Shelf → InventoryItem | 1:N |
+
+---
+
+## 9. Compatibilidad Orion 4.1.0 - Actualización de Tipos de Datos
+
+En respuesta a Issue #2, el modelo de datos ha sido actualizado para compatibilidad total con Orion Context Broker 4.1.0.
+
+### Cambios Principales
+
+**Tipos de Datos (Issue #2)**
+- Todos los valores numéricos usan `"type": "Number"` (no más `"Integer"`)
+- Esto afecta principalmente a atributos como:
+  - `maxCapacity` (Shelf)
+  - `numberOfItems` (Shelf)
+  - `shelfCount` (InventoryItem)
+  - `stockCount` (InventoryItem)
+  - `capacity` (Store)
+  - `price` (Product)
+
+**Pattern Matching en Providers/Subscriptions**
+- Cambio de `"isPattern": true` a `"idPattern": ".*"`
+- Esto permite que los proveedores de contexto y las suscripciones funcionen correctamente con todas las entidades
+
+### Validación de Tipos
+| Atributo | Tipo NGSIv2 (4.1.0) | Descripción |
+|---|---|---|
+| `price` | `Number` | Precio en euros |
+| `shelfCount` | `Number` | Cantidad en estantería |
+| `stockCount` | `Number` | Cantidad en almacén |
+| `capacity` | `Number` | Capacidad en metros cúbicos |
+| `maxCapacity` | `Number` | Capacidad máxima de estantería |
+| `numberOfItems` | `Number` | Número de items actuales |
+| `temperature` | `Number` | Temperatura en Celsius |
+| `relativeHumidity` | `Number` | Porcentaje de humedad |
+
+---

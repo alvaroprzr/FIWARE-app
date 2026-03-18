@@ -133,3 +133,25 @@ Conjunto de vistas HTML + CSS + JavaScript que proporcionan:
 | Orion Context Broker | 3.x | API NGSIv2 |
 | MongoDB | 4.4+ | Base de datos Orion |
 | FIWARE tutorial | Última | Proveedores externos |
+
+## 10. Notas de Compatibilidad - Orion 4.1.0
+
+### Cambios Implementados (Issue #2)
+
+**Problema 1: Tipos de Datos NGSIv2**
+- Orion 4.1.0 requiere tipo `"Number"` para todos los valores numéricos (enteros y decimales)
+- Cambio: `"type": "Integer"` → `"type": "Number"` en import-data.sh (59 ocurrencias)
+- Entidades afectadas: Shelves (maxCapacity, numberOfItems), InventoryItems (shelfCount, stockCount)
+
+**Problema 2: Context Providers y Subscriptions**
+- Orion 4.1.0 utiliza `"idPattern"` en lugar de `"isPattern"` para pattern matching
+- Cambio: `"isPattern": true` → `"idPattern": ".*"` (4 ubicaciones)
+- Archivos: modules/context_providers.py (2 proveedores), modules/subscriptions.py (2 suscripciones)
+
+### Validación
+- ✅ Tipos de datos validados contra NGSIv2 4.1.0
+- ✅ Context providers registrados exitosamente
+- ✅ Subscripciones activas para eventos en tiempo real
+- ✅ import-data.sh ejecutable sin errores
+
+---
