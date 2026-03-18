@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block title %}{{ store.name.value }} - FIWARE Almacén{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="store-detail-hero">
+        <img src="{{ store.image.value }}" alt="{{ store.name.value }}">
+        <div class="store-hero-info">
+            <h1>{{ store.name.value }}</h1>
+            <p class="description">{{ store.description.value }}</p>
+            <div class="store-meta">
+                <span class="meta-item">
+                    <i class="fas fa-map-marker"></i>
+                    {{ store.address.value.addressLocality }}, {{ store.address.value.addressCountry }}
+                </span>
+                <span class="meta-item">
+                    <i class="fas fa-phone"></i>
+                    {{ store.telephone.value }}
+                </span>
+                <span class="meta-item">
+                    <i class="fas fa-cube"></i>
+                    {{ store.capacity.value }} m²
+                </span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Temperature & Humidity Section -->
+    <div class="climate-section">
+        <h2 data-i18n="store.climate">Clima del Almacén</h2>
+        <div class="climate-cards">
+            <div class="climate-card temperature">
+                <i class="fas fa-thermometer-half"></i>
+                <h3 data-i18n="store.temperature">Temperatura</h3>
+                <p class="value">
+                    {% if store.temperature %}
+                        {{ store.temperature.value }}°C
+                    {% else %}
+                        <span class="na">No disponible</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="climate-card humidity">
+                <i class="fas fa-tint"></i>
+                <h3 data-i18n="store.humidity">Humedad Relativa</h3>
+                <p class="value">
+                    {% if store.relativeHumidity %}
+                        {{ store.relativeHumidity.value }}%
+                    {% else %}
+                        <span class="na">No disponible</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 3D Visualization -->
+    <div class="section">
+        <h2 data-i18n="store.visualization">Visualización 3D</h2>
+        <div id="three-container" class="visualization-container"></div>
+    </div>
+    
+    <!-- Map -->
+    <div class="section">
+        <h2 data-i18n="store.location">Ubicación</h2>
+        <div id="map-container" class="map-container"></div>
+    </div>
+    
+    <!-- Shelves & Inventory -->
+    <div class="section">
+        <h2 data-i18n="store.inventory">Inventario</h2>
+        <div class="shelves-grid">
+            {% for shelf in shelves %}
+            <div class="shelf-card">
+                <h3>{{ shelf.name.value }}</h3>
+                <p>Capacidad: {{ shelf.maxCapacity.value }}</p>
+                <p>Artículos: {{ shelf.numberOfItems.value }}</p>
+                <div class="shelf-products">
+                    {% if shelf.id in inventory_by_shelf %}
+                        {% for item in inventory_by_shelf[shelf.id] %}
+                        <span class="product-tag">{{ item.refProduct.value.split(':')[-1] }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Employees -->
+    <div class="section">
+        <h2 data-i18n="store.employees">Personal</h2>
+        <div class="employees-list">
+            {% for emp in employees %}
+            <div class="employee-item">
+                <img src="{{ emp.image.value }}" alt="{{ emp.name.value }}">
+                <div>
+                    <h4><a href="/employees/{{ emp.id.split(':')[-1] }}">{{ emp.name.value }}</a></h4>
+                    <p>{{ emp.category.value }}</p>
+                    <p class="email">{{ emp.email.value }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='store_3d.js') }}"></script>
+<script src="{{ url_for('static', filename='maps.js') }}"></script>
+<script>
+    // Initialize 3D scene for this store
+    initializeStoreScene({
+        storeId: "{{ store.id }}",
+        shelves: {{ shelves | tojson }}
+    });
+    
+    // Initialize map
+    initializeStoreMap({
+        center: {{ store.location.value.coordinates | tojson }},
+        storeName: "{{ store.name.value }}",
+        storeImage: "{{ store.image.value }}"
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.store-detail-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    align-items: center;
+}
+
+.store-detail-hero img {
+    width: 100%;
+    border-radius: 12px;
+}
+
+.store-hero-info h1 {
+    margin: 0 0 1rem;
+}
+
+.store-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Climate Cards */
+.climate-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.climate-card {
+    background: var(--surface);
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.climate-card i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.climate-card.temperature i {
+    color: #ff6b6b;
+}
+
+.climate-card.humidity i {
+    color: #4ecdc4;
+}
+
+.climate-card .value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary);
+}
+
+/* Visualization */
+.visualization-container {
+    width: 100%;
+    height: 400px;
+    background: var(--surface);
+    border-radius: 12px;
+    margin-top: 1.5rem;
+}
+
+.map-container {
+    width: 100%;
+    height: 400px;
+    border-radius: 12px;
+    margin-top: 1.5rem;
+}
+
+.shelves-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.shelf-card {
+    background: var(--surface);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--accent);
+}
+
+.shelf-products {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.product-tag {
+    background: var(--accent);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
+.employees-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.employee-item {
+    background: var(--surface);
+    padding: 1.5rem;
+    border-radius: 12px;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.employee-item img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+@media (max-width: 768px) {
+    .store-detail-hero {
+        grid-template-columns: 1fr;
+    }
+    
+    .climate-cards {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

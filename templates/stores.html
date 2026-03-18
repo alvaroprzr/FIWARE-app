@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Almacenes - FIWARE{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 data-i18n="stores.title">Almacenes</h1>
+        <a href="/stores/map" class="btn btn-primary">
+            <i class="fas fa-map"></i> <span data-i18n="stores.view_map">Ver Mapa</span>
+        </a>
+    </div>
+    
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+    
+    <div class="stores-grid">
+        {% for store in stores %}
+        <div class="store-card">
+            <img src="{{ store.image.value }}" alt="{{ store.name.value }}" class="store-image">
+            <div class="store-content">
+                <h3><a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value }}</a></h3>
+                <p class="location">
+                    <i class="fas fa-location-dot"></i>
+                    {{ store.address.value.addressLocality }}, {{ store.address.value.addressCountry }}
+                </p>
+                <p class="contact">
+                    <i class="fas fa-phone"></i> {{ store.telephone.value }}
+                </p>
+                <p class="capacity">
+                    <i class="fas fa-cube"></i>
+                    Capacidad: {{ store.capacity.value }} m²
+                </p>
+                <p class="shelves">
+                    <i class="fas fa-layer-group"></i>
+                    {{ store.shelf_count }} estanterías
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.stores-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.store-card {
+    background: var(--surface);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.store-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.store-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.store-content {
+    padding: 1.5rem;
+}
+
+.store-content h3 {
+    margin: 0 0 1rem;
+}
+
+.store-content a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.store-content p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.store-content i {
+    color: var(--accent);
+    margin-right: 0.5rem;
+}
+</style>
+{% endblock %}

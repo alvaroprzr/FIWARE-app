@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name.value }} - FIWARE Almacén{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="product-detail-page">
+        <div class="product-hero">
+            <img src="{{ product.image.value }}" alt="{{ product.name.value }}">
+            <div class="product-header">
+                <h1>{{ product.name.value }}</h1>
+                <p class="price">€{{ product.price.value }}</p>
+                <p class="specs">
+                    <span class="size">Tamaño: {{ product.size.value }}</span>
+                    <span class="color">Color: <div class="swatch" style="background-color: {{ product.color.value }}"></div></span>
+                </p>
+            </div>
+        </div>
+        
+        <div class="inventory-section">
+            <h2 data-i18n="product.inventory_distribution">Distribución de Inventario</h2>
+            <div class="inventory-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n="product.store">Almacén</th>
+                            <th data-i18n="product.shelf">Estantería</th>
+                            <th data-i18n="product.shelf_count">Cantidad Estante</th>
+                            <th data-i18n="product.stock_count">Stock Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory_items %}
+                        <tr>
+                            <td>{{ item.refStore.value.split(':')[-1] }}</td>
+                            <td>{{ item.refShelf.value.split(':')[-1] }}</td>
+                            <td><span class="badge">{{ item.shelfCount.value }}</span></td>
+                            <td>{{ item.stockCount.value }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.product-detail-page {
+    margin: 2rem 0;
+}
+
+.product-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+.product-hero img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.product-header h1 {
+    margin: 0 0 1rem;
+}
+
+.price {
+    font-size: 2.5rem;
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.specs {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.inventory-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.inventory-table th {
+    background: var(--surface);
+    padding: 1rem;
+    text-align: left;
+}
+
+.inventory-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.badge {
+    background: var(--accent);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .product-hero {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
