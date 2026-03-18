@@ -119,12 +119,33 @@ def store_detail(store_id):
                 'status': capacity_status
             }
         
+        # Extract unique product IDs from inventory items
+        product_ids = set()
+        for item in inventory_items:
+            ref_product = item.get('refProduct', {}).get('value')
+            if ref_product:
+                product_ids.add(ref_product)
+        
+        # Fetch Product entities from Orion
+        products = []
+        if product_ids:
+            # Fetch all products (using query with OR for each ID)
+            products = orion.get_entities(entity_type='Product', limit=1000)
+        
+        # Create products dictionary keyed by ID for quick lookup
+        products_dict = {}
+        for product in products:
+            product_id = product.get('id')
+            if product_id:
+                products_dict[product_id] = product
+        
         return render_template('store_detail.html',
                              store=store,
                              shelves=shelves,
                              employees=employees,
                              inventory_items=inventory_items,
-                             inventory_by_shelf=inventory_by_shelf)
+                             inventory_by_shelf=inventory_by_shelf,
+                             products_dict=products_dict)
     except Exception as e:
         logger.error(f"Error fetching store detail: {e}")
         return render_template('error.html', error=str(e)), 500
