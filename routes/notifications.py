@@ -5,15 +5,11 @@ Receives real-time events and broadcasts them via Socket.IO to connected clients
 """
 
 import logging
-from flask import Blueprint, request, jsonify
-from flask_socketio import emit, broadcast
+from flask import Blueprint, request, jsonify, current_app
 
 logger = logging.getLogger(__name__)
 
 bp = Blueprint('notifications', __name__, url_prefix='')
-
-# Importamos app y socketio desde aquí mismo para evitar circular imports
-from app import socketio
 
 # ============================================================================
 # POST /notify/price-change - Price change webhook
@@ -34,6 +30,12 @@ def notify_price_change():
         payload = request.get_json()
         
         logger.info(f"Price change notification received: {payload}")
+        
+        # Get socketio instance from current app
+        socketio = current_app.extensions.get('socketio')
+        if socketio is None:
+            logger.warning("SocketIO not initialized, cannot emit events")
+            return {'status': 'ok'}, 200
         
         # Extract price change data
         if payload and 'data' in payload:
@@ -77,6 +79,12 @@ def notify_low_stock():
         
         logger.info(f"Low stock notification received: {payload}")
         
+        # Get socketio instance from current app
+        socketio = current_app.extensions.get('socketio')
+        if socketio is None:
+            logger.warning("SocketIO not initialized, cannot emit events")
+            return {'status': 'ok'}, 200
+        
         # Extract low stock data
         if payload and 'data' in payload:
             for data_item in payload['data']:
@@ -97,6 +105,11 @@ def notify_low_stock():
                 }, broadcast=True)
                 
                 logger.warning(f"Low stock alert: {item_id} (count={shelf_count})")
+        
+        return {'status': 'ok'}, 200
+    except Exception as e:
+        logger.error(f"Error handling low stock notification: {e}")
+        return {'error': str(e)}, 500
         
         return {'status': 'ok'}, 200
     except Exception as e:

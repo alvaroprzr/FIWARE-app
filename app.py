@@ -10,7 +10,7 @@ import logging
 from datetime import datetime
 from flask import Flask, request
 from flask_socketio import SocketIO
-from python_dotenv import load_dotenv
+from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
@@ -27,8 +27,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
 app.config['JSON_SORT_KEYS'] = False
 
-# Initialize Socket.IO with eventlet
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+# Initialize Socket.IO with threading (more reliable than eventlet)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # ============================================================================
 # Orion Configuration
@@ -64,7 +64,6 @@ app.register_blueprint(notifications.bp)
 # Application startup - Initialize Orion integration
 # ============================================================================
 
-@app.before_first_request
 def initialize_orion_integration():
     """Register context providers and subscriptions on application startup."""
     logger.info("=== Inicializando integración con Orion ===")
@@ -88,6 +87,10 @@ def initialize_orion_integration():
         # Continue execution even if subscriptions fail
     
     logger.info("=== Inicialización completada ===")
+
+# Initialize Orion integration on first request
+with app.app_context():
+    initialize_orion_integration()
 
 # ============================================================================
 # Socket.IO event handlers
