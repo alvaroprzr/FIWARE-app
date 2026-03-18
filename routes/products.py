@@ -39,6 +39,20 @@ def list_products():
         return render_template('products.html', products=[], error=str(e))
 
 # ============================================================================
+# GET /products/new - New product form (placeholder)
+# ============================================================================
+
+@bp.route('/products/new', methods=['GET'])
+def new_product():
+    """
+    GET /products/new - Show form to create new product (placeholder redirects to list).
+    In future issues, this will render a product creation form.
+    """
+    # For now, redirect to product list
+    from flask import redirect
+    return redirect('/products')
+
+# ============================================================================
 # GET /products/<product_id> - Product detail page
 # ============================================================================
 
@@ -64,19 +78,33 @@ def product_detail(product_id):
             query=f"refProduct=='{product_id}'"
         )
         
-        # Organization by store/shelf
+        # Organization by store with totalStock calculation
         inventory_by_store = {}
+        store_names = {}  # Cache for store names
+        
         for item in inventory_items:
             store_id = item.get('refStore', {}).get('value', 'Unknown')
-            shelf_id = item.get('refShelf', {}).get('value', 'Unknown')
             
             if store_id not in inventory_by_store:
-                inventory_by_store[store_id] = {}
+                inventory_by_store[store_id] = {
+                    'shelves': [],
+                    'totalStock': 0,
+                    'store_name': ''
+                }
             
-            if shelf_id not in inventory_by_store[store_id]:
-                inventory_by_store[store_id][shelf_id] = []
-            
-            inventory_by_store[store_id][shelf_id].append(item)
+            # Track stock count
+            stock_count = item.get('stockCount', {}).get('value', 0)
+            inventory_by_store[store_id]['totalStock'] += stock_count
+            inventory_by_store[store_id]['shelves'].append(item)
+        
+        # Fetch store names to display
+        if store_names or inventory_by_store:
+            stores = orion.get_entities(entity_type='Store', limit=1000)
+            for store in stores:
+                for store_id in inventory_by_store:
+                    if store.get('id') == store_id:
+                        store_name = store.get('name', {}).get('value', store_id.split(':')[-1])
+                        inventory_by_store[store_id]['store_name'] = store_name
         
         return render_template('product_detail.html', 
                              product=product,
