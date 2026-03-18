@@ -188,3 +188,49 @@ En modo DEBUG:
 - Muestra body de error si falla (HTTP != 201)
 
 ---
+
+## 12. Entity Type Filtering en Queries (Issue #4)
+
+### Problema Identificado
+
+Las entidades en FIWARE comparten atributos de referencia comunes (ej: `refStore`, `refProduct`).
+Sin filtros de tipo, `get_entities()` retorna entidades de todos los tipos que coincidan con la query,
+causando "dict object has no attribute X" al acceder a atributos específicos del tipo.
+
+### Solución Implementada
+
+Agregar `entity_type` parameter a TODAS las queries en routes:
+
+**routes/stores.py:**
+- `list_stores()`: Filtro Shelf beim query de shelves
+- `store_detail()`: Filtros Shelf, Employee, InventoryItem
+- `get_store_shelves()`: Filtro Shelf
+- `get_available_products_for_shelf()`: Filtro InventoryItem
+- `get_available_shelves()`: Filtros Shelf e InventoryItem
+
+**routes/products.py:**
+- `list_products()`: Filtro InventoryItem beim inventory
+- `product_detail()`: Filtro InventoryItem
+
+### Patrón Correcto
+
+```python
+# ❌ INCORRECTO - Retorna múltiples tipos
+entities = orion.get_entities(
+    query=f"refStore=='{store_id}'"
+)
+
+# ✅ CORRECTO - Retorna solo Shelf
+entities = orion.get_entities(
+    entity_type='Shelf',
+    query=f"refStore=='{store_id}'"
+)
+```
+
+### Impacto
+
+- Elimina data contamination en listas
+- Previene AttributeError al acceder a atributos específicos del tipo
+- Mejora performance (menos entidades en memoria)
+
+---

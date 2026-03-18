@@ -296,3 +296,55 @@ printf '%s' "$entity" | tr -d '\n' | sed 's/  */ /g'
 Esto permite que JSON definido en variables bash multilinea se envíe correctamente.
 
 ---
+
+## 7. Query Patterns - Entity Type Filtering (Issue #4)
+
+### Problema: Data Contamination
+
+Cuando se hacen queries por atributos de referencia sin especificar entity_type:
+
+```python
+# ❌ PROBLEMA: Retorna Shelf + Employee + InventoryItem
+entities = orion.get_entities(query=f"refStore=='{store_id}'")
+```
+
+Orion retorna TODAS las entidades con ese atributo, sin importar tipo.
+
+### Solución: Entity Type Filtering
+
+Siempre especificar qué tipo de entidad buscas:
+
+```python
+# ✅ CORRECTO: Solo Shelf
+shelves = orion.get_entities(
+    entity_type='Shelf',
+    query=f"refStore=='{store_id}'"
+)
+
+# ✅ CORRECTO: Solo Employee
+employees = orion.get_entities(
+    entity_type='Employee',
+    query=f"refStore=='{store_id}'"
+)
+
+# ✅ CORRECTO: Solo InventoryItem
+inventory = orion.get_entities(
+    entity_type='InventoryItem',
+    query=f"refStore=='{store_id}'"
+)
+```
+
+### Impacto en Code
+
+Sin this filtering:
+- Acceso a `entity.maxCapacity` falla si es Employee
+- Acceso a `entity.category` falla si es Shelf
+- Performance degrada por entidades innecesarias en memoria
+
+### Implemented Locations
+
+- **routes/stores.py**: 5 queries con entity_type
+- **routes/products.py**: 2 queries con entity_type
+- **routes/employees.py**: Ya correctly especified entity_type='Employee'
+
+---

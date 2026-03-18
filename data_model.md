@@ -353,3 +353,75 @@ DEBUG=1 curl -H "Content-Type: application/json" \
 ```
 
 ---
+
+## 11. Query Examples - Correct Entity Type Usage (Issue #4)
+
+### Store Queries
+
+**Obtener SOLO estantes de un store:**
+```python
+# ✅ CORRECTO
+shelves = orion.get_entities(
+    entity_type='Shelf',
+    query=f"refStore=='{store_id}'"
+)
+
+# ❌ INCORRECTO - Retorna Shelf + Employee + InventoryItem
+shelves = orion.get_entities(
+    query=f"refStore=='{store_id}'"
+)
+```
+
+**Obtener SOLO empleados de un store:**
+```python
+# ✅ CORRECTO
+employees = orion.get_entities(
+    entity_type='Employee',
+    query=f"refStore=='{store_id}'"
+)
+```
+
+### Product Queries
+
+**Obtener SOLO items de inventario de un producto:**
+```python
+# ✅ CORRECTO
+items = orion.get_entities(
+    entity_type='InventoryItem',
+    query=f"refProduct=='{product_id}'"
+)
+
+# ❌ INCORRECTO - Retorna potencialmente otras entidades
+items = orion.get_entities(
+    query=f"refProduct=='{product_id}'"
+)
+```
+
+### Shelf Queries
+
+**Obtener SOLO items de inventario en una estantería:**
+```python
+# ✅ CORRECTO
+items = orion.get_entities(
+    entity_type='InventoryItem',
+    query=f"refShelf=='{shelf_id}'"
+)
+```
+
+### Best Practices
+
+1. **SIEMPRE usar entity_type** cuando hagas queries por referencias
+2. **Combinar entity_type + query** para máxima precisión
+3. **Documentar qué tipo esperas** en comentarios
+4. **Test con DEBUG mode** cuando agregues nuevas queries
+
+### Common Mistakes
+
+| Mistake | Impact |
+|---------|--------|
+| Query sin entity_type | 'dict object' has no attribute errors |
+| Asumir atributo existe | KeyError si tipo es incorrecto |
+| No usar .get() | Mismo problema anterior |
+| Queries sin limit | Alto uso de memoria en Orion |
+
+---
