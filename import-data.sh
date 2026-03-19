@@ -373,7 +373,7 @@ for i in 1 2 3 4; do
 {
   "id": "urn:ngsi-ld:Shelf:paris-shelf-c${i}",
   "type": "Shelf",
-  "name": {"type": "Text", "value": "Étagere Secteur C${i}"},
+  "name": {"type": "Text", "value": "Estantería Sector C${i}"},
   "maxCapacity": {"type": "Number", "value": $((14 + i * 2))},
   "numberOfItems": {"type": "Number", "value": 0},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:paris-nord"}
@@ -389,7 +389,7 @@ for i in 1 2 3 4; do
 {
   "id": "urn:ngsi-ld:Shelf:milano-shelf-d${i}",
   "type": "Shelf",
-  "name": {"type": "Text", "value": "Scaffale Settore D${i}"},
+  "name": {"type": "Text", "value": "Estantería Sector D${i}"},
   "maxCapacity": {"type": "Number", "value": $((15 + i * 2))},
   "numberOfItems": {"type": "Number", "value": 0},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:milano-sud"}

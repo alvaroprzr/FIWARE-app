@@ -52,11 +52,18 @@ def employee_detail(employee_id):
     - Employment details
     """
     try:
+        logger.debug(f"[employee_detail] Received employee_id: '{employee_id}'")
+        
         if not employee_id.startswith('urn:'):
             employee_id = f"urn:ngsi-ld:Employee:{employee_id}"
         
+        logger.debug(f"[employee_detail] Reconstructed URN: '{employee_id}'")
+        
         employee = orion.get_entity(employee_id)
+        logger.debug(f"[employee_detail] Orion returned: {employee is not None}")
+        
         if not employee:
+            logger.warning(f"[employee_detail] Employee NOT FOUND with URN: '{employee_id}'")
             return render_template('error.html',
                                  error='Empleado no encontrado'), 404
         
