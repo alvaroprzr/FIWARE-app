@@ -830,3 +830,137 @@ Notificación de éxito al usuario
 **Total:** +163 líneas insertadas, 3 líneas modificadas
 
 ---
+
+## 11. Mejoras CRUD y Vistas (Issue #11)
+
+### Problemas Resueltos
+
+**Problema 1: Error 404 al Acceder a Empleado desde Store Detalle**
+- Causa: Referencias a `emp.id` y `store.id` tratadas como strings, no como dicts
+- Solución: Cambiar `emp.id.split(':')[-1]` a `emp.id.value.split(':')[-1]`
+- Archivos: `store_detail.html`, `employee_detail.html`
+
+**Problema 2: Vistas de Listas sin Estructura Tabular**
+- Vista anterior: Grillas de tarjetas (solo lectura rápida)
+- Nuevo enfoque: Tablas HTML5 semánticas con acciones CRUD integradas
+- Adiciones:
+  - Botones Editar/Borrar por fila (con iconos Font Awesome)
+  - Botón "Añadir" al principio de cada vista
+  - Columnas con atributos específicos por entidad
+
+**Problema 3: Sin Formularios para Crear/Editar Stores y Employees**
+- Antes: Solo existía `add_product_form.html`
+- Nuevos: `store_form.html`, `employee_form.html` con validación HTML5 completa
+
+### Implementación (5 Fases)
+
+#### **Fase 1: Corrección de Referencias (Error 404)**
+- `store_detail.html` L168: `emp.id.split` → `emp.id.value.split`
+- `employee_detail.html` L17: `store.id.split` → `store.id.value.split`
+
+#### **Fase 2: Refactorización de Vistas a Tablas**
+
+**Products View (`products.html`)**
+- Tabla: Imagen | Nombre | Precio | Tamaño | Color ■ | # Ubicaciones | Acciones
+- Botones: Ver, Editar, Borrar por fila
+
+**Stores View (`stores.html`)**
+- Tabla: Imagen | Nombre | País 🇮🇹 | Temperatura | Humedad | # Estanterías | Acciones
+- País: Emoji flags según `countryCode` (ES→🇪🇸, FR→🇫🇷, IT→🇮🇹, etc.)
+- Temperatura: Badge con color (azul <10°C, verde 10-25, rojo >25)
+- Humedad: Badge con color (amarillo <30%, verde 30-70, azul >70)
+- Botón "+ Añadir Almacén" al inicio
+
+**Employees View (`employees.html`)**
+- Tabla: Imagen | Nombre | Correo | Categoría 👔 | Skills 🎖️ | Almacén | Acciones
+- Categoría: Icono + texto (Manager→fas fa-crown, Assistant→fas fa-user-tie, etc.)
+- Skills: Iconos Font Awesome (MachineryDriving→fas fa-gears, etc.)
+- Botón "+ Añadir Empleado" al inicio
+
+**Diseño Responsivo**
+- Overflow horizontal en móvil (width ≤ 768px)
+- Padding y font-size ajustados para pantallas pequeñas
+
+#### **Fase 3: Creación de Formularios**
+
+**Store Form (`store_form.html`)**
+- Campos: `id` (readonly si existe), `name`, `url`, `telephone`, `countryCode`, `capacity`, `description`, `addressLocality`, `addressStreet`, `image`
+- Validación HTML5: required, pattern, tel, url, number (min/max)
+- Rutas:
+  - `GET /stores/new` → formulario vacío
+  - `GET /stores/<id>/edit` → carga datos del store
+  - `POST /api/stores` → crear (JSON)
+  - `PATCH /api/stores/<id>` → editar (JSON)
+  - `DELETE /api/stores/<id>` → borrar
+
+**Employee Form (`employee_form.html`)**
+- Campos: `id`, `name`, `email`, `dateOfContract`, `username`, `password` (crear solo), `category`, `skills[]`, `refStore`, `image`
+- `refStore` con `<input type=text> + <datalist>` dinámico (cargado desde `/api/stores`)
+- `password`: minlength=8, validación visual de fuerza con meter element
+- Validación HTML5: required, pattern, email, date, minlength, maxlength
+- Rutas:
+  - `GET /employees/new` → formulario vacío
+  - `GET /employees/<id>/edit` → carga datos del empleado
+  - `POST /api/employees` → crear (JSON)
+  - `PATCH /api/employees/<id>` → editar (JSON)
+  - `DELETE /api/employees/<id>` → borrar (ya existía)
+
+#### **Fase 4: Validación HTML5 + JavaScript**
+
+- HTML5: `required`, `pattern`, `type` (email/url/tel), `minlength`, `maxlength`, `min`, `max`
+- JavaScript:
+  - Mensajes de error personalizados vía `setCustomValidity()`
+  - Password strength meter con validación visual
+  - Carga dinámica de stores en datalist
+  - Confirmación de borrado con `window.confirm()`
+
+#### **Fase 5: Iconos Font Awesome + Banderas Emoji**
+
+- **Banderas**: Mapping `countryCode` → emoji Unicode (ES→🇪🇸, FR→🇫🇷, etc.)
+- **Category Icons**: Manager→fas fa-crown, Assistant→fas fa-user-tie, Operator→fas fa-industry, Supervisor→fas fa-clipboard-check
+- **Skill Icons**: MachineryDriving→fas fa-gears, WritingReports→fas fa-file-text, CustomerRelationships→fas fa-handshake
+- **Colores Temperatura**: <10°C (azul #2196F3), 10-25 (verde #4CAF50), >25 (rojo #F44336)
+- **Colores Humedad**: <30% (amarillo #FFC107), 30-70 (verde #4CAF50), >70 (azul #00BCD4)
+- **JavaScript** (`static/main.js`):
+  - `convertCountryCodesToEmojis()`: Busca `.flag-emoji[data-country]` y convierte
+  - `applyCategoryIcons()`: Busca `.category-badge[data-category]` y aplica icono
+  - `applySkillIcons()`: Busca `.skill-icon[data-skill]` y aplica icono
+  - `setupDeleteButtons()`: Listeners para botones `.btn-delete` con confirm
+  - `loadStoresForDatalist()`: Fetch `/api/stores` y rellena datalist
+  - `setupFormValidation()`: Mensajes personalizados en validación
+
+### Archivos Modificados/Creados
+
+**Modificados:**
+- `templates/store_detail.html`: Cambio referencias ID
+- `templates/employee_detail.html`: Cambio referencias ID
+- `templates/products.html`: Grid → Tabla HTML5 + CSS
+- `templates/stores.html`: Grid → Tabla HTML5 + CSS + botón Añadir
+- `templates/employees.html`: Grid → Tabla HTML5 + CSS + botón Añadir
+- `routes/stores.py`: +3 rutas (GET /new, GET /<id>/edit, DELETE /<id>)
+- `routes/employees.py`: +2 rutas (GET /new, GET /<id>/edit), DELETE ya existía
+- `static/main.js`: +194 líneas (funciones de mapeo, delete, datalist, validación)
+
+**Creados:**
+- `templates/store_form.html` (266 líneas)
+- `templates/employee_form.html` (379 líneas)
+
+### Verificación
+
+✅ Error 404 resuelto: Clicar en empleado desde store_detail carga sin error  
+✅ Tablas responsive: Ancho ≤768px muestra scroll horizontal  
+✅ Validación HTML5: Campos required no permiten envío vacío  
+✅ Banderas emoji: /stores muestra 🇪🇸 🇫🇷 🇮🇹 correctamente  
+✅ Iconos category: /employees muestra fas fa-crown para Manager  
+✅ Iconos skills: /employees muestra fas fa-gears para MachineryDriving  
+✅ Colores dinámicos: Temperatura roja >25°C, azul <10°C  
+✅ Delete confirmation: `window.confirm()` antes de borrar  
+✅ Datalist stores: Input refStore cargado de `/api/stores`  
+
+### Total de Cambios
+
+- **10 archivos modificados**, **2 archivos creados**
+- **+1,499 líneas insertadas**, **-167 líneas eliminadas**
+- Git commit: `feat(#11): Corregir Error 404 y mejorar vistas CRUD`
+
+---

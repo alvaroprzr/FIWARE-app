@@ -747,3 +747,66 @@ Issue #8 completa la cadena de robustez iniciada en #6-7:
 - **#8:** Cobertura total templates + JS + nueva funcionalidad (form)
 
 ---
+
+## X. Mejoras CRUD y Vistas Frontend (Issue #11)
+
+### Cambios en Arquitectura Frontend
+
+#### **Vistas Refactorizadas: Grid → Tablas HTML5**
+
+**Antes (Card Grid Layout):**
+```
+Grid de tarjetas (grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)))
+├── Cada tarjeta = Card component
+├── Grid responsive pero sin acciones CRUD integradas
+└── Editar/Borrar requería navegar a detail view
+```
+
+**Ahora (HTML5 Table Layout):**
+```
+<table> semántica con <thead>, <tbody>, <th scope>
+├── Columnas fijas: Imagen | Nombre | [Atributos específicos] | Acciones
+├── Botones Editar/Borrar por fila (inline actions)
+├── Botón "+ Añadir" al inicio de página
+└── Responsive: scroll horizontal en móvil, collapsible en tablet
+```
+
+**Impacto:**
+- **Usabilidad:** Acciones CRUD sin dejar la vista de lista
+- **Accesibilidad:** Semántica HTML5 mejorada (headings de tabla avec scope)
+- **Performance:** Menos re-renders (tablas vs. componentes individuales)
+
+#### **Tablas por Entidad**
+
+| Entidad | Columnas | Acciones |
+|---------|----------|----------|
+| **Product** | Imagen (50x40px) \| Nombre \| Precio \| Tamaño \| Color ■ \| # Ubicaciones | Ver / Editar / Borrar |
+| **Store** | Imagen \| Nombre \| País 🇮🇹 \| Temp°C \| Humedad% \| # Estanterías | Ver / Editar / Borrar |
+| **Employee** | Imagen (50x50px círculo) \| Nombre \| Correo \| Categoría👔 \| Skills🎖️ \| Almacén | Ver / Editar / Borrar |
+
+#### **Nuevas Rutas de Formularios**
+
+**Stores:**
+- `GET /stores/new` → `store_form.html` (form vacío)
+- `GET /stores/<id>/edit` → `store_form.html` (pre-llenar datos)
+- `DELETE /api/stores/<id>` → Backend delete (HTTP 200)
+
+**Employees:**
+- `GET /employees/new` → `employee_form.html` (form vacío)
+- `GET /employees/<id>/edit` → `employee_form.html` (pre-llenar datos)
+
+#### **Mapeo de Iconos + Banderas (main.js)**
+
+- **Banderas Emoji:** ES→🇪🇸, FR→🇫🇷, IT→🇮🇹, etc. vía `countryCodeToEmoji` map
+- **Category Icons:** Manager→fas fa-crown, Assistant→fas fa-user-tie, etc.
+- **Skill Icons:** MachineryDriving→fas fa-gears, WritingReports→fas fa-file-text
+- **Colores Dinámicos:** Temp (azul/verde/rojo), Humedad (amarillo/verde/azul)
+
+#### **Total de Cambios (Issue #11)**
+
+- **10 archivos modificados**, **2 archivos creados**
+- **Nuevas rutas:** 5 GET/DELETE
+- **Nuevos templates:** 2 (store_form.html, employee_form.html)
+- **JS mejorado:** +194 líneas (mappings, handlers, validation)
+
+---

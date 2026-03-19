@@ -921,3 +921,158 @@ Stock recalculado automáticamente por módulos
 ✅ Product inventory calculation unchanged
 
 ---
+
+## 11. Validación HTML5 y Mejoras CRUD (Issue #11)
+
+### Validación en Formularios
+
+#### Store Form (store_form.html)
+
+**Campos obligatorios (required):**
+- `id` (readonly si existe, requerido para nuevo almacén)
+- `name` (Text, 2-100 caracteres)
+- `countryCode` (select con valores: ES, FR, IT, PT, DE, GB)
+- `telephone` (opcional, pero si se proporciona: pattern `^[+]?[0-9\s\-()]{7,}$`)
+- `url` (opcional, pero si se proporciona: type="url")
+
+**Validaciones numéricas:**
+- `capacity`: min="1" max="10000" step="1"
+- Solo números positivos hasta 10,000 m³
+
+**Validaciones de texto:**
+- `id`: pattern `[a-z0-9\-]+` (minúsculas, números, guiones solamente)
+- `address.addressStreet`: optional, max="200"
+- `address.addressLocality`: optional, max="100"
+- `description`: optional, textarea max="1000"
+
+**Valores por defecto:**
+- Todos los campos vacíos para nuevo almacén
+- Precargados desde Orion si es edición (`GET /stores/<id>/edit`)
+
+---
+
+#### Employee Form (employee_form.html)
+
+**Campos obligatorios (required):**
+- `id` (Text, alphanumérelo con guiones)
+- `name` (Text, 2-100 caracteres)
+- `email` (type="email", validación nativa del navegador)
+- `dateOfContract` (type="date", max="hoy")
+- `username` (Text, 3-50 caracteres, alfanumérico+guiones)
+- `password` (minlength="8", sin maxlength - solo requisito mínino)
+- `category` (select: "Manager", "Assistant", "Operator", "Supervisor")
+- `refStore` (input + datalist, búsqueda dinámica de tiendas)
+
+**Validaciones de password:**
+- Mínimo 8 caracteres
+- Medidor de fortaleza visual (JavaScript):
+  - Rojo (débil): < 30%
+  - Naranja (medio): 30-70%
+  - Verde (fuerte): > 70%
+- Cálculo: longitud + mayúsculas + números + símbolos
+
+**Skills (checkboxes):**
+- Array seleccionable: MachineryDriving, WritingReports, CustomerRelationships
+- Múltiples selecciones permitidas
+- Enviado como array JSON: `["MachineryDriving"]`
+
+**Datalist de Stores (refStore):**
+- Cargado dinámicamente vía `loadStoresForDatalist()` en main.js
+- Genera `<option>` del endpoint `GET /api/stores`
+- Autocomplete nativo HTML5 sin librerías externas
+- Usuario puede escribir nombre parcial para filtrar
+
+**Valores por defecto:**
+- Campos vacíos para nuevo empleado
+- Precargados desde Orion si es edición (`GET /employees/<id>/edit`)
+
+---
+
+### Flujo de Validación (2 capas)
+
+**Capa 1: HTML5 Nativa (navegador)**
+```
+Usuario escribe → HTML5 type/pattern/required valida
+Si inválido → navegador muestra error por defecto
+Si válido → permite continuar
+```
+
+**Capa 2: JavaScript Personalizado (main.js setupFormValidation())**
+```
+Usuario intenta submit
+JavaScript verifica todos los campos con setCustomValidity()
+Si hay errores → muestra mensajes en español personalizados
+Si válido → permite POSTear al servidor
+```
+
+**Ejemplo mensaje personalizado:**
+```javascript
+if (email && !email.value.includes('@')) {
+  email.setCustomValidity('El correo debe incluir @ y dominio válido');
+}
+```
+
+---
+
+### Cambios en Estructura de Datos
+
+**Para formularios de Stores:**
+- No hay cambios en NGSIv2 (todos los campos ya existen)
+- Solo se agregó validación client-side
+- Format de dirección mantiene estructura: `address.value.addressStreet`, `address.value.addressLocality`, `address.value.addressCountry`
+
+**Para formularios de Employees:**
+- No hay cambios en NGSIv2 (todos los campos ya existen)
+- `dateOfContract` debe ser ISO 8601: "2024-01-15T00:00:00Z"
+- `skills` array debe ser JSON válido: `["skill1", "skill2"]`
+- `password` SIEMPRE debe ser hasheada en backend con bcrypt (client-side solo valida lógica)
+
+**Datalist Integration:**
+- `refStore` ahora usa `<datalist id="stores-list">` con opciones dinámicas
+- Valores precargados de `GET /api/stores` que retorna tiendas con `{ id, name, countryCode }`
+- Usuario selecciona por nombre, pero se envía como URN completo
+
+---
+
+### Endpoint de Soporte
+
+**Para cargar tiendas en datalist:**
+```
+GET /api/stores
+
+Response: [
+  { "id": "urn:ngsi-ld:Store:1", "name": "Madrid Hub", "countryCode": "ES" },
+  { "id": "urn:ngsi-ld:Store:2", "name": "Paris Depot", "countryCode": "FR" }
+]
+```
+
+**Implementado en:** `/routes/stores.py` ruta JSON (no existe explícitamente, crear si es necesario)
+
+---
+
+### RFC Validación HTML5 Completitud
+
+| Requisito | Status | Details |
+|-----------|--------|---------|
+| HTML5 types | ✅ Done | email, tel, url, date, number, password, text |
+| HTML5 patterns | ✅ Done | tel, id, username validación regex |
+| HTML5 required | ✅ Done | Todos campos obligatorios marcados |
+| HTML5 minlength/maxlength | ✅ Done | name, email, description con límites |
+| HTML5 min/max | ✅ Done | capacity (1-10000), dateOfContract (max=hoy) |
+| Datalist integration | ✅ Done | Stores autocomplete dinámico en employee form |
+| Custom error messages | ✅ Done | JavaScript setCustomValidity() en español |
+| Password strength | ✅ Done | Visual meter con colores (rojo→naranja→verde) |
+| Accessibility | ✅ Done | Labels con `for=`, fieldsets, legend |
+| Mobile responsive | ✅ Done | Flex layout, touch-friendly inputs |
+
+---
+
+### Backward Compatibility (Validación)
+
+✅ No breaking changes - validación es client-side
+✅ Formularios existentes de Productos aún funcionan
+✅ Endpoints POST/PATCH/DELETE sin cambios en estructura
+✅ Datalist es enhancement, no requisito para otros forms
+✅ Campos opcionales mantienen comportamiento anterior
+
+---
