@@ -522,3 +522,98 @@ Nueva ruta en routes/products.py: `GET /products/new` (redirecciona a /products 
 - ✅ All endpoints funcionan sin errores de acceso a atributos
 
 ---
+
+## 13. Correcciones Críticas - Safe-Access a Atributos NGSIv2 (Issue #8)
+
+### Problema Identificado
+
+Error: `'dict object' has no attribute 'name'` al acceder a Store details, causado por acceso inseguro a atributos NGSIv2 en templates Jinja2 y JavaScript.
+
+### Soluciones Implementadas
+
+#### P1: Templates - Safe-Access Jinja2
+
+**Antes (Inseguro):**
+```jinja2
+{# Fallaba si store.name no existía #}
+<h1>{{ store.name.value }}</h1>
+```
+
+**Después (Seguro):**
+```jinja2
+{# Fallback si el atributo no existe #}
+<h1>{{ store.name.value if store.name else 'Sin nombre' }}</h1>
+```
+
+**Archivos modificados:**
+- `templates/store_detail.html`: 9 accesos protegidos (store, shelves, employees)
+- `templates/product_detail.html`: 3 accesos protegidos (price, color, size)
+
+#### P2: CSS - Mapa Global sin Solapamiento
+
+**Problema:** `.global-map-container` (height: 600px) solapaba navbar sticky (z-index: 100)
+
+**Solución en `templates/stores_map.html`:**
+```css
+.global-map-container {
+    margin-top: 80px;   /* Compensar altura navbar ~60px */
+    z-index: 50;        /* Debajo de navbar #100 */
+}
+```
+
+#### P3: URLs de Unsplash
+
+**Estado:** URLs ya estaban limpias (sin parámetros query como `?w=400`)
+- Todas las imágenes en `import-data.sh` usan URLs simples de Unsplash
+- Compatible con Orion 4.1.0 (no rechaza parámetros query)
+
+#### P4: Formulario "Añadir Producto"
+
+**Nuevo Template:** `templates/add_product_form.html` (294 líneas)
+
+**Características:**
+- Formulario HTML5 con validación nativa
+- Preview de imagen en tiempo real
+- Preview de color persistente
+- Respuesta POST a `/api/products` (ya funcional)
+- Redirección automática a `/products` en éxito
+- Mensajes de error/éxito con estilos
+
+**Ruta modificada en `routes/products.py`:**
+```python
+@bp.route('/products/new', methods=['GET'])
+def new_product():
+    return render_template('add_product_form.html')
+```
+
+#### P1 (Complemento): JavaScript - Optional Chaining
+
+**Archivo:** `static/maps.js`
+
+**Mejoras:**
+```javascript
+// Antes: fallaba si store.image?.value era undefined
+<img src="${store.image?.value}"
+
+// Después: fallback a placeholder
+<img src="${store.image?.value || 'https://via.placeholder.com/250x150'}"
+```
+
+### Impacto
+
+✅ **Error Resolution:** Eliminadas todas las causas de `'dict object' has no attribute` de acceso inseguro en Jinja2
+✅ **UX Improvement:** 
+  - Mapa global visible sin solapamiento
+  - Formulario completo para crear productos
+  - Fallbacks visuales en imágenes/valores faltantes
+✅ **Robustness:** Templates y JS toleran atributos faltantes sin error 500
+
+### Archivos Modificados
+- `templates/store_detail.html` (44 líneas)
+- `templates/product_detail.html` (2 líneas)  
+- `templates/stores_map.html` (3 líneas)
+- `templates/add_product_form.html` (+294 líneas)
+- `routes/products.py` (8 líneas)
+- `static/maps.js` (12 líneas)
+
+---

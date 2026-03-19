@@ -799,3 +799,104 @@ Aplicado 30+ veces en la codebase:
 - ✅ Interfaz completamente navegable sin errores
 
 ---
+
+## 8. Nuevas Rutas y Formularios - RFC Issue #8
+
+### Formulario de Creación de Productos
+
+**Nueva Ruta:** `GET /products/new`
+**Template:** `templates/add_product_form.html`
+**Endpoint de Inserción:** `POST /api/products` (ya existente)
+
+#### Formulario HTML5 Especificación
+
+**Validaciones del lado cliente:**
+- ID: Pattern `[a-z0-9\-]+` (kebab-case: laptop-gaming-01)
+- Nombre: Required text field
+- Precio: Number >= 0.01 EUR, step 0.01
+- Tamaño: Select [XS, S, M, L, XL]
+- Color: Input type=color (hexadecimal #RRGGBB)
+- Imagen: Type=url (con preview en tiempo real)
+
+**Enhancements JavaScript:**
+- Color swatch preview en tiempo real
+- Image preview con error handling (fallback gray)
+- Loading state + success/error messaging
+- Auto-redirect a /products en éxito
+
+#### Integración Orion
+
+**Request POST /api/products:**
+```json
+{
+  "id": "laptop-gaming-asus-01",
+  "name": "Laptop Gaming ASUS ROG",
+  "price": 1299.99,
+  "size": "L",
+  "color": "#FF0000",
+  "image": "https://via.placeholder.com/300x200"
+}
+```
+
+**Transformación Flask a NGSIv2:**
+```json
+{
+  "id": "urn:ngsi-ld:Product:laptop-gaming-asus-01",
+  "type": "Product",
+  "name": {"type": "Text", "value": "Laptop Gaming ASUS ROG"},
+  "price": {"type": "Number", "value": 1299.99},
+  "size": {"type": "Text", "value": "L"},
+  "color": {"type": "Text", "value": "#FF0000"},
+  "image": {"type": "Text", "value": "https://via.placeholder.com/300x200"}
+}
+```
+
+**POST a Orion API:**
+`POST http://orion:1026/v2/entities` (vía modules/orion.py)
+
+### Usuario Flow
+
+```
+/products list
+  ↓
+  + Añadir Producto button
+  ↓
+GET /products/new
+  ↓
+Formulario render (add_product_form.html)
+  ↓
+Usuario completa datos
+  ↓
+Submit → POST /api/products
+  ↓
+Flask validation + transform to NGSIv2
+  ↓
+POST a Orion (HTTP 201 Created)
+  ↓
+JS recibe éxito
+  ↓
+setTimeout 1500ms → redirect /products
+  ↓
+Stock recalculado automáticamente por módulos
+```
+
+### RFC Completitud
+
+| Requisito | Status | Details |
+|-----------|--------|---------|
+| Form fields | ✅ Done | HTML5 input types with validation |
+| Styling | ✅ Done | CSS variables (dark/light mode compatible) |
+| Preview | ✅ Done | Image + color previews |
+| Error handling | ✅ Done | User-friendly error messages |
+| Accessibility | ✅ Done | Labels, semantic HTML, keyboard navigation |
+| Mobile | ✅ Done | Responsive flex layout |
+| i18n placeholders | ⏳ Future | data-i18n attributes ready for translation |
+
+### Backward Compatibility
+
+✅ No breaking changes - all new additions
+✅ Existing POST /api/products route unchanged
+✅ Existing navigation links still work
+✅ Product inventory calculation unchanged
+
+---

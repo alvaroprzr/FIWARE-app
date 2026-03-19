@@ -626,3 +626,102 @@ En `store_detail.html`, las operaciones `selectattr()` ahora están protegidas:
 ✅ Performance mejorado con acceso por clave en lugar de búsqueda lineal
 
 ---
+
+## 6. Safe-Access a Atributos NGSIv2 - Robustez de Templates (Issue #8)
+
+### Problema Identificado
+
+El acceso directo a atributos NGSIv2 sin verificación causaba errores:
+```python
+# ❌ INCORRECTO: Fallaba si attr no existía
+store.name.value
+
+# ✅ CORRECTO: Jinja2 protegido
+{{ store.name.value if store.name else 'Sin nombre' }}
+```
+
+### Estrategia Multi-Capa
+
+#### Capa 1: Python (routes/*)
+```python
+# Siempre usar .get() - NON NEGOTIABLE
+store_name = store.get('name', {}).get('value', 'Unknown')
+```
+**Status:** Ya implementado en Issues #6-7
+
+#### Capa 2: Jinja2 Templates
+```jinja2
+{# Condicional Jinja2 como guardia #}
+<h1>{{ store.name.value if store.name else 'Sin nombre' }}</h1>
+<img src="{{ emp.image.value if emp.image else 'placeholder.jpg' }}">
+```
+**Implementado en Issue #8 para:**
+- `store_detail.html` (9 instancias)
+- `product_detail.html` (3 instancias)
+- `stores_map.html` (CSS margin-top agregado)
+
+#### Capa 3: JavaScript (static/maps.js)
+```javascript
+// Optional chaining + fallback
+<h4>${store.name?.value || 'Tienda Desconocida'}</h4>
+<img src="${store.image?.value || 'https://via.placeholder.com/250x150'}">
+```
+**Beneficio:** Si Orion devuelve atributo sin `value`, JS maneja gracefully
+
+### Impacto en Flujo de Datos
+
+```
+Orion Response (NGSIv2)
+├── WITH attribute: {"name": {"type": "Text", "value": "Madrid"}}
+│   └─→ Jinja2 renderiza: ✅ "Madrid"
+└── WITHOUT attribute: {}
+    └─→ Jinja2 renderiza: ✅ "Sin nombre" (fallback)
+```
+
+### Cobertura
+
+| Archivo | Cambios | Protecciones |
+|---------|---------|--------------|
+| store_detail.html | 9 líneas | name, description, address, phone, capacity, shelves, employees |
+| product_detail.html | 3 líneas | price (formatted), color, size |
+| maps.js | 12 líneas | name, image, address, phone, capacity |
+| stores_map.html | +CSS | margin-top (mapa no solapado) |
+
+### Nuevas Rutas/Templates (Issue #8)
+
+| Ruta | Método | Template | Descripción |
+|------|--------|----------|------------|
+| /products/new | GET | add_product_form.html | Formulario crear producto |
+| /api/products | POST | - | Ya existente, ahora navegable |
+
+**Formulario `add_product_form.html` (294 líneas):**
+- HTML5 input validation (type, required, pattern, min, max)
+- Preview de imagen en tiempo real
+- Preview de color interactivo
+- Mensaje de estado (loading, success, error)
+- Auto-redirect a /products en éxito
+
+### Validación
+
+```
+Escenario 1: Atributo existe y tiene valor
+  Input:  store.name = {"type": "Text", "value": "Madrid"}
+  Output: "Madrid" ✅
+
+Escenario 2: Atributo no existe
+  Input:  store.name = undefined (no retornado por Orion)
+  Output: "Sin nombre" ✅
+
+Escenario 3: Null/Empty value
+  Input:  store.name = {"type": "Text", "value": ""}  
+  Output: "" (empty string, no error) ✅
+```
+
+### Conclusión
+
+Issue #8 completa la cadena de robustez iniciada en #6-7:
+- **#6:** Protección Python (.get())
+- **#7:** Acceso seguro store_detail
+- **#8:** Cobertura total templates + JS + nueva funcionalidad (form)
+
+---
