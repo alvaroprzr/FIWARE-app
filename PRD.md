@@ -617,3 +617,71 @@ def new_product():
 - `static/maps.js` (12 líneas)
 
 ---
+
+## 14. Error Crítico al Acceder a Store Detalle - Raíz Causa (Issue #9)
+
+### Problema Identificado
+
+**Síntoma:** Error `'dict object' has no attribute 'name'` al acceder a `/stores/<store_id>`
+
+**Causa Raíz:** El parámetro `include_attrs` en la función `get_entity()` filtraba la respuesta de Orion, excluyendo atributos que no estaban explícitamente solicitados. Específicamente, en [routes/stores.py](routes/stores.py) línea 61:
+
+```python
+store = orion.get_entity(store_id, include_attrs='temperature,relativeHumidity,tweets')
+```
+
+**Problema:** Cuando se especifica `include_attrs`, Orion Context Broker devuelve **SOLO** esos atributos (+ `id` y `type`). Por lo tanto, el atributo `name` NO viene en la respuesta. Luego en el template `store_detail.html`, cuando intenta acceder a `store.name.value`, ocurre AttributeError porque `store['name']` no existe en el diccionario.
+
+### Solución Implementada
+
+#### Primaria: Incluir 'name' en include_attrs
+
+**Cambio en [routes/stores.py](routes/stores.py) línea 61:**
+
+**Antes:**
+```python
+store = orion.get_entity(store_id, include_attrs='temperature,relativeHumidity,tweets')
+```
+
+**Después:**
+```python
+store = orion.get_entity(store_id, include_attrs='name,temperature,relativeHumidity,tweets')
+```
+
+**Razón:** Asegurar que el atributo `name` siempre viene en la respuesta de Orion, independientemente de los filtros.
+
+#### Secundaria: Reforzar Guardias en Templates
+
+Aunque Issue #8 había agregado algunas guardias, se mejoraron para mayor robustez en [templates/store_detail.html](templates/store_detail.html):
+
+- **Bloque title (línea 3):** `{{ store.name.value if store and store.name else 'Almacén' }}`
+- **Imagen y descripción (línea 8):** Guardias para `store.image.value` y `store.description.value`
+- **Metadatos (línea 15-22):** Guardias para `address.value.addressLocality/Country`, `telephone.value`, `capacity.value`
+- **Script JavaScript (línea 187-189):** Guardias para `location.value.coordinates`, `name.value`, `image.value` con fallbacks
+
+### Diferencia con Issue #8
+
+| Aspecto | Issue #8 | Issue #9 |
+|---------|----------|----------|
+| **Enfoque** | Síntoma (template sin guardias) | Causa raíz (atributo ausente en respuesta) |
+| **Nivel** | Frontend (Jinja2, JS) | Backend (routes/stores.py → Orion) |
+| **Solución** | Agregar condicionales `if` en templates | Incluir 'name' en solicitud a Orion |
+| **Combinado** | Ambas soluciones = robustez completa | **Recomendado aplicar juntas** |
+
+### Impacto
+
+✅ **Root Cause Fixed:** El atributo `name` siempre viene en la respuesta de Orion
+✅ **Robustness Enhanced:** Guardias redundantes en template protegen contra otros atributos faltantes
+✅ **Error Eliminated:** No más `'dict object' has no attribute 'name'` al acceder a Store detalle
+✅ **Fallback Values:** Si por algún motivo un atributo falta, el template muestra valores por defecto
+
+### Archivos Modificados
+- `routes/stores.py` (1 línea: include_attrs)
+- `templates/store_detail.html` (19 líneas: guardias robustecidas)
+
+### Validación
+- ✅ GET /stores/<store_id> retorna Store con atributo `name`
+- ✅ Template renderiza sin AttributeError
+- ✅ Fallbacks de valor por defecto funcionan si otras atributos faltan
+
+---

@@ -56,6 +56,21 @@ Ubicación física de almacén con datos de contacto e integración con proveedo
 - temperature, relativeHumidity, tweets PROPORCIONADOS por proveedores (NO modificar desde cliente)
 - capacity positivo
 
+**⚠️ IMPORTANTE - Atributos Críticos en Queries (Issue #9):**
+
+El atributo `name` es **CRÍTICO** para la entidad Store:
+- Se utiliza en templates HTML para mostrar el nombre del almacén
+- Si se usa `include_attrs` en `get_entity()`, **DEBE** incluirse `'name'`
+- Omitir `'name'` causa `AttributeError: 'dict' object has no attribute 'name'` en templates
+
+**Ejemplo correcto:**
+```python
+# Obtener Store con atributos de providers + name (crítico)
+store = orion.get_entity(store_id, include_attrs='name,temperature,relativeHumidity,tweets')
+```
+
+Este patrón se aplica a todas las entidades: siempre incluir atributos básicos (`name`, `id`, `type`) junto con atributos de providers/filtrados.
+
 ---
 
 ## 3. Entidad: Product

@@ -137,6 +137,24 @@ Cliente GET /stores/store123
         → Cliente recibe HTML
 ```
 
+**⚠️ IMPORTANTE - Comportamiento de `include_attrs` (Issue #9):**
+
+Cuando se especifica el parámetro `include_attrs` en `get_entity()`, Orion Context Broker devuelve **SOLO** esos atributos (+ `id` y `type`). Ejemplo:
+
+```python
+# ❌ INCORRECTO - Excluye 'name' aunque sea atributo crítico
+store = orion.get_entity(store_id, include_attrs='temperature,relativeHumidity,tweets')
+# Respuesta: {id, type, temperature, relativeHumidity, tweets} ← SIN 'name'
+
+# ✅ CORRECTO - Incluye atributos críticos + providers
+store = orion.get_entity(store_id, include_attrs='name,temperature,relativeHumidity,tweets')
+# Respuesta: {id, type, name, temperature, relativeHumidity, tweets}
+```
+
+**Consecuencia:** Si el template accede a `store.name.value` pero `name` no viene en la respuesta, ocurre `AttributeError`. 
+
+**Mitigación:** Siempre incluir en `include_attrs` todos los atributos críticos que el template va a usar, además de los atributos de proveedores.
+
 ### 3.2 Modificación de datos y notificaciones
 
 ```
