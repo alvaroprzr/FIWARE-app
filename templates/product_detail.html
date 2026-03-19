@@ -9,7 +9,7 @@
             <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/400x300' }}" alt="{{ product.name.value if product and product.name else 'Unknown' }}">
             <div class="product-header">
                 <h1>{{ product.name.value if product and product.name else 'Sin nombre' }}</h1>
-                <p class="price">€{{ product.price.value if product and product.price else '-' }}</p>
+                <p class=\"price\">€{{ '%.2f' | format(product.price.value) if product and product.price and product.price.value else '-' }}</p>
                 <p class="specs">
                     <span class="size">Tamaño: {{ product.size.value if product and product.size else '-' }}</span>
                     <span class="color">Color: <div class="swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}"></div></span>
