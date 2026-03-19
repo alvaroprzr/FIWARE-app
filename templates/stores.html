@@ -38,7 +38,7 @@
                         <img src="{{ store.image.value if store and store.image else 'https://via.placeholder.com/50x40' }}" alt="{{ store.name.value if store and store.name else 'Unknown' }}" class="store-thumb">
                     </td>
                     <td class="name-cell">
-                        <a href="/stores/{{ store.id.value.split(':')[-1] }}">{{ store.name.value if store and store.name else 'Sin nombre' }}</a>
+                        <a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value if store and store.name else 'Sin nombre' }}</a>
                     </td>
                     <td class="country-cell">
                         <span class="flag-emoji" data-country="{{ store.address.value.addressCountry if store and store.address and store.address.value and store.address.value.addressCountry else 'XX' }}"></span>
@@ -64,13 +64,13 @@
                     </td>
                     <td class="shelves-cell">{{ store.shelf_count }}</td>
                     <td class="actions-cell">
-                        <a href="/stores/{{ store.id.value.split(':')[-1] }}" class="btn btn-sm btn-info" title="Ver detalles">
+                        <a href="/stores/{{ store.id.split(':')[-1] }}" class="btn btn-sm btn-info" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="/stores/{{ store.id.value.split(':')[-1] }}/edit" class="btn btn-sm btn-warning" title="Editar">
+                        <a href="/stores/{{ store.id.split(':')[-1] }}/edit" class="btn btn-sm btn-warning" title="Editar">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <button class="btn btn-sm btn-danger btn-delete" data-id="{{ store.id.value }}" title="Borrar">
+                        <button class="btn btn-sm btn-danger btn-delete" data-id="{{ store.id }}" title="Borrar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>

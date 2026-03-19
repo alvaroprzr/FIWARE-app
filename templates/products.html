@@ -40,13 +40,13 @@
                     </td>
                     <td class="inventory-cell">{{ product.inventory_count }} ubicaciones</td>
                     <td class="actions-cell">
-                        <a href="/products/{{ product.id.value.split(':')[-1] }}" class="btn btn-sm btn-info" title="Ver detalles">
+                        <a href="/products/{{ product.id.split(':')[-1] }}" class="btn btn-sm btn-info" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="/products/{{ product.id.value.split(':')[-1] }}/edit" class="btn btn-sm btn-warning" title="Editar">
+                        <a href="/products/{{ product.id.split(':')[-1] }}/edit" class="btn btn-sm btn-warning" title="Editar">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <button class="btn btn-sm btn-danger btn-delete" data-id="{{ product.id.value }}" title="Borrar">
+                        <button class="btn btn-sm btn-danger btn-delete" data-id="{{ product.id }}" title="Borrar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>

@@ -14,7 +14,7 @@
                 <p class="email"><i class="fas fa-envelope"></i> {{ employee.email.value if employee and employee.email else '-' }}</p>
                 {% if store %}
                 <p class="store"><i class="fas fa-warehouse"></i> 
-                    <a href="/stores/{{ store.id.value.split(':')[-1] }}">{{ store.name.value if store and store.name else 'Unknown' }}</a>
+                    <a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value if store and store.name else 'Unknown' }}</a>
                 </p>
                 {% endif %}
             </div>
