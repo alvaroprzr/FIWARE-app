@@ -964,3 +964,65 @@ Notificación de éxito al usuario
 - Git commit: `feat(#11): Corregir Error 404 y mejorar vistas CRUD`
 
 ---
+
+## 14. Corrección de Acceso a Atributos NGSIv2 en Templates (Issue #12)
+
+### Problema Identificado
+
+Tras Issue #11, todas las vistas de lista y detalle mostraban el error:
+```
+'str object' has no attribute 'value'
+```
+
+### Causa Raíz
+
+El atributo `id` en Orion Context Broker es un **STRING puro**, no una estructura NGSIv2 `{type, value}`. 
+
+**Incorrecto:**
+```jinja2
+{{ product.id.value.split(':')[-1] }}  {# ERROR - id es string, no tiene .value #}
+```
+
+**Correcto:**
+```jinja2
+{{ product.id.split(':')[-1] }}  {# OK - id es string directo #}
+```
+
+### Cambios Implementados
+
+**Templates afectadas (6 fixes):**
+- [templates/products.html](templates/products.html) — 4 cambios `.id.value` → `.id`
+- [templates/stores.html](templates/stores.html) — 4 cambios `.id.value` → `.id`
+- [templates/employees.html](templates/employees.html) — 4 cambios `.id.value` → `.id`
+- [templates/product_detail.html](templates/product_detail.html) — Sin cambios necesarios (usa `.value` correctamente)
+- [templates/employee_detail.html](templates/employee_detail.html) — 1 cambio `store.id.value` → `store.id` en enlace
+- [templates/store_detail.html](templates/store_detail.html) — 1 cambio `emp.id.value` → `emp.id` en enlace
+
+### Adición de Traducciones i18n
+
+Se incorporaron 4 nuevas claves de internacionalización en [static/main.js](static/main.js):
+
+| Clave | Español | English |
+|-------|---------|---------|
+| `stores.add` | `+ Añadir Almacén` | `+ Add Store` |
+| `employees.add` | `+ Añadir Empleado` | `+ Add Employee` |
+| `products.add` | `+ Añadir Producto` | `+ Add Product` |
+
+Antes los botones mostraban literalmente las claves i18n sin traducir. Ahora se visualizan correctamente según idioma seleccionado.
+
+### Verificación
+
+✅ **Vistas lista:** /products, /stores, /employees cargan sin errores  
+✅ **Vistas detalle:** /stores/<id>, /employees/<id> cargan sin errores  
+✅ **Enlaces de navegación:** Funcionan correctamente desde listados y detalles  
+✅ **Traducciones i18n:** Botones "Añadir" muestran texto en idioma seleccionado  
+✅ **Dark/Light mode:** Compatible con nuevas vistas  
+
+### Total de Cambios
+
+- **4 templates modificados**
+- **1 archivo JavaScript (main.js) modificado**
+- **+4 claves i18n, -6 accesos `.id.value` incorrectos**
+- Git commits: `1ee7f4a` (lista), `b9a181f` (detalle + i18n), `76c5454` (merge)
+
+---

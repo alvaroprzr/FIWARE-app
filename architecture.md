@@ -810,3 +810,84 @@ Grid de tarjetas (grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)))
 - **JS mejorado:** +194 líneas (mappings, handlers, validation)
 
 ---
+
+## 5.4 Corrección de Templatess y i18n (Issue #12)
+
+### Descripción del Problema
+
+**Error:** `'str object' has no attribute 'value'` en:
+- Vistas lista: `/products`, `/stores`, `/employees`
+- Vistas detalle: `/stores/<id>`, `/employees/<id>`
+
+**Causa:** Intento de acceder a `.value` en el atributo `id`, que es un **STRING puro** en Orion, no una estructura NGSIv2.
+
+### Cambios en Templates
+
+```jinja2
+{# ❌ ANTES (Incorrecto) #}
+<a href="/products/{{ product.id.value.split(':')[-1] }}">Ver</a>
+
+{# ✅ DESPUÉS (Correcto) #}
+<a href="/products/{{ product.id.split(':')[-1] }}">Ver</a>
+```
+
+**Archivos afectados:**
+| Archivo | Cambios | Líneas |
+|---------|---------|---------|
+| templates/products.html | 3 (enlaces acciones) | 43-49 |
+| templates/stores.html | 3 (enlaces acciones) | 41, 67-73 |
+| templates/employees.html | 3 (enlaces acciones) | 36, 60-66 |
+| templates/employee_detail.html | 1 (enlace a store) | 17 |
+| templates/store_detail.html | 1 (enlaces a empleados) | 168 |
+| **Total:** | **11 cambios de `.id.value` → `.id`** | — |
+
+### Adiciones en main.js (i18n)
+
+Antes: Botones mostraban literalmente `stores.add`, `employees.add`.  
+Después: Se añadieron 4 nuevas claves de traducción
+
+```javascript
+// static/main.js - Spanish (línea 52, 65)
+'stores.add': '+ Añadir Almacén',
+'employees.add': '+ Añadir Empleado',
+'products.add': '+ Añadir Producto',
+
+// static/main.js - English (línea 112, 125)
+'stores.add': '+ Add Store',
+'employees.add': '+ Add Employee',
+'products.add': '+ Add Product',
+```
+
+### Flujo de Plantilla Corregido
+
+```
+Orion JSON {id: "urn:ngsi-ld:Product:...", name: {type, value: "Laptop"}}
+    ↓
+Python Route (routes/products.py)
+    ↓
+render_template('products.html', products=products)
+    ↓
+Jinja2 Template
+    - NGSIv2 attrs: {{ product.name.value }} ✓
+    - ID (STRING): {{ product.id }} ✓ (sin .value)
+    ↓
+HTML renderizado correctamente
+```
+
+### Impacto
+
+- ✅ Todas las vistas lista funcionan sin errores
+- ✅ Todas las vistas detalle funcionan sin errores
+- ✅ Navegación entre vistas funciona correctamente
+- ✅ Traducciones i18n completamente funcionales
+- ✅ Compatible con Dark/Light mode
+
+### Commits Relacionados
+
+| Commit | Mensaje |
+|--------|---------|
+| `1ee7f4a` | fix(#12): Lista - Corregir .id.value |
+| `b9a181f` | fix(#12): Detalle + i18n |
+| `76c5454` | merge(main): Issue #12 |
+
+---

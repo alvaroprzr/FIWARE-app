@@ -1076,3 +1076,78 @@ Response: [
 ✅ Campos opcionales mantienen comportamiento anterior
 
 ---
+
+## Nota de Compatibilidad - Acceso a Atributos en Templates (Issue #12)
+
+### Estructura de Respuesta de Orion
+
+Orion devuelve entidades NGSIv2 con la siguiente estructura:
+
+```json
+{
+  "id": "urn:ngsi-ld:Product:laptop-dell",
+  "type": "Product",
+  "name": { "type": "Text", "value": "Laptop Dell XPS" },
+  "price": { "type": "Number", "value": 1299.99 },
+  "size": { "type": "Text", "value": "15 inches" },
+  "color": { "type": "Text", "value": "#000000" },
+  "image": { "type": "Text", "value": "https://..." }
+}
+```
+
+### Diferencia: `id` vs Atributos NGSIv2
+
+⚠️ **IMPORTANTE:** El atributo `id` es un **STRING puro**, NO una estructura `{type, value}`.
+
+**Correcto:**
+```jinja2
+{# Acceso a id: STRING directo #}
+{{ product.id }}                          {# ✓ "urn:ngsi-ld:Product:..." #}
+{{ product.id.split(':')[-1] }}           {# ✓ "laptop-dell" #}
+
+{# Acceso a atributos NGSIv2: requieren .value #}
+{{ product.name.value }}                  {# ✓ "Laptop Dell XPS" #}
+{{ product.price.value }}                 {# ✓ 1299.99 #}
+```
+
+**Incorrecto:**
+```jinja2
+{{ product.id.value }}                    {# ✗ ERROR: 'str' has no attribute 'value' #}
+{{ product.name }}                        {# ✗ ERROR: Objeto completo {type, value} #}
+```
+
+### Patrón Usado en Templates
+
+```jinja2
+{# Construcción de URLs con id #}
+<a href="/products/{{ product.id.split(':')[-1] }}">Ver</a>
+
+{# Acceso a atributos con .value #}
+<span>{{ product.name.value }}</span>
+<span>€{{ product.price.value }}</span>
+
+{# Acceso a datos pre-procesados en Python (sin .value) #}
+<span>{{ product.inventory_count }}</span>
+```
+
+### Campos Afectados por Esta Regla
+
+| Entidad | Campos STRING | Campos NGSIv2 |
+|---------|---------------|---------------|
+| Product | `id`, `type` | `name`, `price`, `size`, `color`, `image` |
+| Store | `id`, `type` | `name`, `address`, `telephone`, `capacity`, `temperature`, `relativeHumidity`, `tweets`, `image` |
+| Employee | `id`, `type` | `name`, `email`, `username`, `password`, `dateOfContract`, `category`, `skills`, `image` |
+| Shelf | `id`, `type` | `name`, `maxCapacity`, `numberOfItems`, `refStore` |
+| InventoryItem | `id`, `type` | `refProduct`, `refShelf`, `refStore`, `shelfCount`, `stockCount` |
+
+### Lists Modified (Issue #12)
+
+- templates/products.html — 3 fixes
+- templates/stores.html — 3 fixes
+- templates/employees.html — 3 fixes
+- templates/employee_detail.html — 1 fix
+- templates/store_detail.html — 1 fix
+
+**Total:** 11 cambios de `.id.value` → `.id` en Jinja2 templates.
+
+---
