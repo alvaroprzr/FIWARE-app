@@ -158,5 +158,5 @@ if __name__ == '__main__':
         app,
         host='0.0.0.0',
         port=APP_PORT,
-        debug=os.getenv('FLASK_ENV', 'production') == 'development'
+        debug=False
     )
