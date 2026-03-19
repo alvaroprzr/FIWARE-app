@@ -116,6 +116,7 @@
                             <th>Color</th>
                             <th>Stock</th>
                             <th>Cantidad en Estantería</th>
+                            <th data-i18n="store.actions">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -136,6 +137,15 @@
                             <td>{{ product.color.value if product and product.color else '-' }}</td>
                             <td>{{ item.stockCount.value if item.stockCount else 0 }}</td>
                             <td>{{ item.shelfCount.value if item.shelfCount else 1 }}</td>
+                            <td>
+                                <button class="btn-buy" 
+                                        data-inventoryitem-id="{{ item.id }}" 
+                                        data-shelf-count="{{ item.shelfCount.value if item.shelfCount else 1 }}" 
+                                        data-stock-count="{{ item.stockCount.value if item.stockCount else 0 }}"
+                                        {% if (item.shelfCount.value if item.shelfCount else 1) <= 0 %} disabled {% endif %}>
+                                    <span data-i18n="store.buy">Comprar</span>
+                                </button>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

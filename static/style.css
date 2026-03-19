@@ -282,6 +282,32 @@ code {
     font-size: 0.9rem;
 }
 
+.btn-buy {
+    background: var(--accent, #4CAF50);
+    color: white;
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.9rem;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.btn-buy:hover:not(:disabled) {
+    background: #45a049;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.btn-buy:disabled,
+.btn-buy.disabled {
+    background: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 /* ============================================================================
    Forms
    ============================================================================ */
