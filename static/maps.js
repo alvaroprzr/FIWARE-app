@@ -57,14 +57,14 @@ function initializeGlobalMap(stores) {
             const coords = [store.location.value.coordinates[1], store.location.value.coordinates[0]];
             
             L.marker(coords, {
-                title: store.name?.value || 'Store'
+                title: store.name?.value || 'Tienda Desconocida'
             }).bindPopup(`
                 <div style="width: 250px;">
-                    <img src="${store.image?.value}" style="width: 100%; border-radius: 8px; margin-bottom: 8px; max-height: 150px; object-fit: cover;">
-                    <h4><a href="/stores/${store.id.split(':').pop()}">${store.name?.value}</a></h4>
-                    <p><strong>${store.address?.value?.addressLocality || 'Unknown'}</strong></p>
-                    <p>Capacidad: ${store.capacity?.value} m²</p>
-                    <p><i class="fas fa-phone"></i> ${store.telephone?.value}</p>
+                    <img src="${store.image?.value || 'https://via.placeholder.com/250x150'}" style="width: 100%; border-radius: 8px; margin-bottom: 8px; max-height: 150px; object-fit: cover;">
+                    <h4><a href="/stores/${store.id.split(':').pop()}">${store.name?.value || 'Tienda Desconocida'}</a></h4>
+                    <p><strong>${store.address?.value?.addressLocality || 'Desconocida'}</strong></p>
+                    <p>Capacidad: ${store.capacity?.value || '-'} m²</p>
+                    <p><i class="fas fa-phone"></i> ${store.telephone?.value || '-'}</p>
                 </div>
             `).addTo(map);
         }

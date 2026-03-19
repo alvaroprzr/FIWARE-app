@@ -45,12 +45,10 @@ def list_products():
 @bp.route('/products/new', methods=['GET'])
 def new_product():
     """
-    GET /products/new - Show form to create new product (placeholder redirects to list).
-    In future issues, this will render a product creation form.
+    GET /products/new - Show form to create new product.
+    Renders a form template for adding a new product to the catalog.
     """
-    # For now, redirect to product list
-    from flask import redirect
-    return redirect('/products')
+    return render_template('add_product_form.html')
 
 # ============================================================================
 # GET /products/<product_id> - Product detail page
