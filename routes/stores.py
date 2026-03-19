@@ -38,6 +38,17 @@ def list_stores():
         return render_template('stores.html', stores=[], error=str(e))
 
 # ============================================================================
+# GET /stores/new - Create store form
+# ============================================================================
+
+@bp.route('/stores/new', methods=['GET'])
+def new_store():
+    """
+    GET /stores/new - Show form to create new store.
+    """
+    return render_template('store_form.html')
+
+# ============================================================================
 # GET /stores/<store_id> - Store detail page
 # ============================================================================
 
@@ -148,6 +159,29 @@ def store_detail(store_id):
                              products_dict=products_dict)
     except Exception as e:
         logger.error(f"Error fetching store detail: {e}")
+        return render_template('error.html', error=str(e)), 500
+
+# ============================================================================
+# GET /stores/<store_id>/edit - Edit store form
+# ============================================================================
+
+@bp.route('/stores/<store_id>/edit', methods=['GET'])
+def edit_store_form(store_id):
+    """
+    GET /stores/<store_id>/edit - Show form to edit store.
+    """
+    try:
+        if not store_id.startswith('urn:'):
+            store_id = f"urn:ngsi-ld:Store:{store_id}"
+        
+        store = orion.get_entity(store_id)
+        if not store:
+            return render_template('error.html',
+                                 error='Almacén no encontrado'), 404
+        
+        return render_template('store_form.html', store=store)
+    except Exception as e:
+        logger.error(f"Error fetching store for edit: {e}")
         return render_template('error.html', error=str(e)), 500
 
 # ============================================================================
@@ -343,6 +377,25 @@ def update_store(store_id):
         return {'success': success}, 200 if success else 400
     except Exception as e:
         logger.error(f"Error updating store: {e}")
+        return {'error': str(e)}, 500
+
+# ============================================================================
+# DELETE /api/stores/<store_id> - Delete store
+# ============================================================================
+
+@bp.route('/api/stores/<store_id>', methods=['DELETE'])
+def delete_store(store_id):
+    """
+    API endpoint to delete a store.
+    """
+    try:
+        if not store_id.startswith('urn:'):
+            store_id = f"urn:ngsi-ld:Store:{store_id}"
+        
+        success = orion.delete_entity(store_id)
+        return {'success': success}, 200 if success else 400
+    except Exception as e:
+        logger.error(f"Error deleting store: {e}")
         return {'error': str(e)}, 500
 
 # ============================================================================

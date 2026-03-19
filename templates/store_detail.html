@@ -165,7 +165,7 @@
             <div class="employee-item">
                 <img src=\"{{ emp.image.value if emp.image else 'https://via.placeholder.com/100x100' }}\" alt=\"{{ emp.name.value if emp.name else 'Empleado' }}\">
                 <div>
-                    <h4><a href=\"/employees/{{ emp.id.split(':')[-1] }}\">{{ emp.name.value if emp.name else 'Sin nombre' }}</a></h4>
+                    <h4><a href="/employees/{{ emp.id.value.split(':')[-1] }}">{{ emp.name.value if emp.name else 'Sin nombre' }}</a></h4>
                     <p>{{ emp.category.value if emp.category else '-' }}</p>
                     <p class=\"email\">{{ emp.email.value if emp.email else '-' }}</p>
                 </div>

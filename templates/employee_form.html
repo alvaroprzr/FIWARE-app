@@ -1,0 +1,379 @@
+{% extends "base.html" %}
+
+{% block title %}{% if employee %}Editar Empleado{% else %}Crear Empleado{% endif %} - FIWARE{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <h1>{% if employee %}Editar Empleado{% else %}Nuevo Empleado{% endif %}</h1>
+        
+        {% if error %}
+        <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+        
+        <form id="employee-form" method="POST" action="{% if employee %}/api/employees/{{ employee.id.value }}{% else %}/api/employees{% endif %}">
+            <fieldset>
+                <legend>Información Personal</legend>
+                
+                <div class="form-group">
+                    <label for="id">ID (único):</label>
+                    <input type="text" id="id" name="id" required pattern="[a-z0-9\-]+" maxlength="50"
+                           value="{% if employee %}{{ employee.id.value.split(':')[-1] }}{% endif %}" 
+                           {% if employee %}readonly{% endif %}
+                           placeholder="ej: emp-001">
+                    <small>Letras minúsculas, números y guiones.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Nombre Completo:</label>
+                    <input type="text" id="name" name="name" required minlength="2" maxlength="100"
+                           value="{% if employee %}{{ employee.name.value }}{% endif %}"
+                           placeholder="ej: Juan García López">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Correo Electrónico:</label>
+                    <input type="email" id="email" name="email" required maxlength="100"
+                           value="{% if employee %}{{ employee.email.value }}{% endif %}"
+                           placeholder="ej: juan@ejemplo.com">
+                    <small>Será validado como único en el sistema.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="dateOfContract">Fecha de Contratación:</label>
+                    <input type="date" id="dateOfContract" name="dateOfContract" required
+                           value="{% if employee %}{{ employee.dateOfContract.value.split('T')[0] if 'T' in employee.dateOfContract.value else employee.dateOfContract.value }}{% endif %}"
+                           max="{% now 'Y-m-d' %}">
+                </div>
+            </fieldset>
+            
+            <fieldset>
+                <legend>Credenciales</legend>
+                
+                <div class="form-group">
+                    <label for="username">Nombre de Usuario:</label>
+                    <input type="text" id="username" name="username" required minlength="4" maxlength="50"
+                           value="{% if employee %}{{ employee.username.value }}{% endif %}"
+                           placeholder="ej: juan.garcia"
+                           {% if not employee %} autocomplete="off" {% endif %}>
+                    <small>Será validado como único. Mínimo 4 caracteres.</small>
+                </div>
+                
+                {% if not employee %}
+                <div class="form-group">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" name="password" required minlength="8" 
+                           placeholder="Mínimo 8 caracteres (mayúscula, número, símbolo)"
+                           autocomplete="new-password">
+                    <div class="password-strength">
+                        <div class="strength-meter" id="strength-meter"></div>
+                    </div>
+                    <small>Debe incluir: mayúscula, número y símbolo especial.</small>
+                </div>
+                {% else %}
+                <div class="form-group">
+                    <p><small><em>Para cambiar la contraseña, contacta con administración.</em></small></p>
+                </div>
+                {% endif %}
+            </fieldset>
+            
+            <fieldset>
+                <legend>Rol y Asignación</legend>
+                
+                <div class="form-group">
+                    <label for="category">Categoría/Rol:</label>
+                    <select id="category" name="category" required>
+                        <option value="">-- Selecciona categoría --</option>
+                        <option value="Manager" {% if employee and employee.category and employee.category.value == 'Manager' %}selected{% endif %}>Manager</option>
+                        <option value="Assistant" {% if employee and employee.category and employee.category.value == 'Assistant' %}selected{% endif %}>Asistente</option>
+                        <option value="Operator" {% if employee and employee.category and employee.category.value == 'Operator' %}selected{% endif %}>Operario</option>
+                        <option value="Supervisor" {% if employee and employee.category and employee.category.value == 'Supervisor' %}selected{% endif %}>Supervisor</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Competencias:</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="skills" value="MachineryDriving"
+                                   {% if employee and employee.skills and 'MachineryDriving' in employee.skills.value %}checked{% endif %}>
+                            <i class="fas fa-gears"></i> Conducción de Maquinaria
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="skills" value="WritingReports"
+                                   {% if employee and employee.skills and 'WritingReports' in employee.skills.value %}checked{% endif %}>
+                            <i class="fas fa-file-text"></i> Redacción de Informes
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="skills" value="CustomerRelationships"
+                                   {% if employee and employee.skills and 'CustomerRelationships' in employee.skills.value %}checked{% endif %}>
+                            <i class="fas fa-handshake"></i> Relaciones con Clientes
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="refStore">Almacén Asignado:</label>
+                    <input type="text" id="refStore" name="refStore" required 
+                           placeholder="Comienza a escribir nombre del almacén..."
+                           value="{% if employee and employee.refStore %}{{ employee.refStore.value.split(':')[-1] }}{% endif %}"
+                           list="stores-list">
+                    <datalist id="stores-list">
+                        <!-- Populated by JavaScript -->
+                    </datalist>
+                </div>
+            </fieldset>
+            
+            <fieldset>
+                <legend>Imagen</legend>
+                
+                <div class="form-group">
+                    <label for="image">URL de Foto:</label>
+                    <input type="url" id="image" name="image"
+                           value="{% if employee %}{{ employee.image.value }}{% endif %}"
+                           placeholder="https://ejemplo.com/foto.jpg">
+                </div>
+            </fieldset>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    {% if employee %}Guardar Cambios{% else %}Crear Empleado{% endif %}
+                </button>
+                <a href="/employees" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    background: var(--surface);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-container h1 {
+    margin-top: 0;
+    color: var(--primary);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 1rem;
+}
+
+fieldset {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+legend {
+    padding: 0 0.5rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+input[type="text"],
+input[type="url"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+input[type="password"],
+input[type="email"],
+select,
+textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+}
+
+input:invalid:not(:placeholder-shown),
+select:invalid:not(:placeholder-shown) {
+    border-color: #f44336;
+}
+
+small {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.password-strength {
+    margin-top: 0.5rem;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.strength-meter {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+    background: linear-gradient(90deg, #f44336, #ff9800, #ffc107, #8bc34a);
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    font-weight: normal;
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+    cursor: pointer;
+}
+
+.checkbox-label i {
+    color: var(--accent);
+    width: 20px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.2s ease;
+    text-align: center;
+    flex: 1;
+}
+
+.btn-primary {
+    background: var(--accent);
+    color: white;
+}
+
+.btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn-secondary {
+    background: var(--border);
+    color: var(--text);
+}
+
+.btn-secondary:hover {
+    background: var(--text-secondary);
+}
+
+.alert-error {
+    background: #ffebee;
+    color: #c62828;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    border-left: 4px solid #f44336;
+}
+
+@media (max-width: 768px) {
+    .form-container {
+        padding: 1rem;
+    }
+    
+    fieldset {
+        padding: 1rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        flex: none;
+    }
+    
+    .checkbox-group {
+        gap: 0.5rem;
+    }
+}
+</style>
+
+<script>
+// Password strength meter
+const passwordInput = document.getElementById('password');
+if (passwordInput) {
+    passwordInput.addEventListener('input', (e) => {
+        const meter = document.getElementById('strength-meter');
+        const pwd = e.target.value;
+        let strength = 0;
+        
+        if (pwd.length >= 8) strength += 25;
+        if (pwd.length >= 12) strength += 25;
+        if (/[A-Z]/.test(pwd)) strength += 25;
+        if (/[0-9!@#$%^&*]/.test(pwd)) strength += 25;
+        
+        meter.style.width = strength + '%';
+    });
+}
+
+// Load stores for datalist
+document.addEventListener('DOMContentLoaded', () => {
+    fetch('/api/stores')
+        .then(r => r.json())
+        .then(stores => {
+            const datalist = document.getElementById('stores-list');
+            stores.forEach(store => {
+                const option = document.createElement('option');
+                option.value = store.id ? store.id.split(':').pop() : '';
+                datalist.appendChild(option);
+            });
+        })
+        .catch(e => console.error('Error loading stores:', e));
+});
+</script>
+{% endblock %}

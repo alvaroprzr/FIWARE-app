@@ -13,78 +13,174 @@
     <div class="alert alert-error">{{ error }}</div>
     {% endif %}
     
-    <div class="products-grid">
-        {% for product in products %}
-        <div class="product-card">
-            <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/200x150' }}" alt="{{ product.name.value if product and product.name else 'Unknown' }}" class="product-image">
-            <div class="product-info">
-                <h3>{{ product.name.value if product and product.name else 'Sin nombre' }}</h3>
-                <p class="price">€{{ product.price.value if product and product.price else '-' }}</p>
-                <p class="size">{{ product.size.value if product and product.size else '-' }}</p>
-                <div class="color-swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}"></div>
-                <p class="inventory">{{ product.inventory_count }} ubicaciones</p>
-                <a href="/products/{{ product.id.split(':')[-1] }}" class="btn btn-small" data-i18n="products.view">Ver</a>
-            </div>
-        </div>
-        {% endfor %}
+    <div class="products-table-container">
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th scope="col">Imagen</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Precio</th>
+                    <th scope="col">Tamaño</th>
+                    <th scope="col">Color</th>
+                    <th scope="col"># Ubicaciones</th>
+                    <th scope="col" data-i18n="products.actions">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td class="img-cell">
+                        <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/50x40' }}" alt="{{ product.name.value if product and product.name else 'Unknown' }}" class="product-thumb">
+                    </td>
+                    <td>{{ product.name.value if product and product.name else 'Sin nombre' }}</td>
+                    <td>€{{ product.price.value if product and product.price else '-' }}</td>
+                    <td>{{ product.size.value if product and product.size else '-' }}</td>
+                    <td class="color-cell">
+                        <div class="color-swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}" title="{{ product.color.value if product and product.color else 'N/A' }}"></div>
+                    </td>
+                    <td class="inventory-cell">{{ product.inventory_count }} ubicaciones</td>
+                    <td class="actions-cell">
+                        <a href="/products/{{ product.id.value.split(':')[-1] }}" class="btn btn-sm btn-info" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="/products/{{ product.id.value.split(':')[-1] }}/edit" class="btn btn-sm btn-warning" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button class="btn btn-sm btn-danger btn-delete" data-id="{{ product.id.value }}" title="Borrar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_css %}
 <style>
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
+.products-table-container {
+    overflow-x: auto;
     margin-top: 2rem;
-}
-
-.product-card {
-    background: var(--surface);
     border-radius: 8px;
-    overflow: hidden;
-    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.product-image {
+.products-table {
     width: 100%;
-    height: 150px;
-    object-fit: cover;
+    border-collapse: collapse;
+    background: var(--surface);
 }
 
-.product-info {
+.products-table thead {
+    background: var(--accent);
+    color: white;
+}
+
+.products-table th {
     padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border);
 }
 
-.product-info h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1rem;
+.products-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
 }
 
-.price {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--primary);
-    margin: 0.5rem 0;
+.products-table tbody tr:hover {
+    background: var(--border);
+}
+
+.products-table .img-cell {
+    width: 60px;
+}
+
+.product-thumb {
+    width: 50px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.color-cell {
+    width: 60px;
+    text-align: center;
 }
 
 .color-swatch {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     border-radius: 4px;
     border: 2px solid var(--border);
-    margin: 0.5rem 0;
+    display: inline-block;
 }
 
-.inventory {
-    font-size: 0.8rem;
+.inventory-cell {
+    font-size: 0.9rem;
     color: var(--text-secondary);
+}
+
+.actions-cell {
+    width: 150px;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.2s ease;
+}
+
+.btn-info {
+    background: var(--accent);
+    color: white;
+}
+
+.btn-warning {
+    background: #ff9800;
+    color: white;
+}
+
+.btn-danger {
+    background: #f44336;
+    color: white;
+}
+
+.btn-sm:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    .products-table-container {
+        font-size: 0.85rem;
+    }
+    
+    .products-table th,
+    .products-table td {
+        padding: 0.5rem;
+    }
+    
+    .product-thumb {
+        width: 40px;
+        height: 30px;
+    }
+    
+    .color-swatch {
+        width: 30px;
+        height: 30px;
+    }
 }
 </style>
 {% endblock %}

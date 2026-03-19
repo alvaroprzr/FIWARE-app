@@ -354,3 +354,197 @@ function updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount) {
     
     console.log(`[UPDATE] UI updated for ${inventoryItemId}`);
 }
+
+// ============================================================================
+// Country Code to Emoji Flag Converter
+// ============================================================================
+
+const countryCodeToEmoji = {
+    'ES': '🇪🇸',
+    'FR': '🇫🇷',
+    'IT': '🇮🇹',
+    'PT': '🇵🇹',
+    'DE': '🇩🇪',
+    'GB': '🇬🇧',
+    'NL': '🇳🇱',
+    'BE': '🇧🇪',
+    'AT': '🇦🇹',
+    'CH': '🇨🇭',
+    'SE': '🇸🇪',
+    'NO': '🇳🇴',
+    'DK': '🇩🇰',
+    'FI': '🇫🇮',
+    'PL': '🇵🇱',
+    'CZ': '🇨🇿',
+    'HU': '🇭🇺',
+    'RO': '🇷🇴',
+    'GR': '🇬🇷',
+    'IE': '🇮🇪'
+};
+
+function convertCountryCodesToEmojis() {
+    document.querySelectorAll('.flag-emoji[data-country]').forEach((el) => {
+        const code = el.getAttribute('data-country');
+        el.textContent = countryCodeToEmoji[code] || '🏳️';
+    });
+}
+
+// ============================================================================
+// Employee Category Icons Mapper
+// ============================================================================
+
+const categoryIconMap = {
+    'Manager': 'fa-crown',
+    'Assistant': 'fa-user-tie',
+    'Operator': 'fa-industry',
+    'Supervisor': 'fa-clipboard-check'
+};
+
+function applyCategoryIcons() {
+    document.querySelectorAll('.category-badge[data-category]').forEach((el) => {
+        const category = el.getAttribute('data-category');
+        const icon = categoryIconMap[category] || 'fa-tag';
+        const iconEl = el.querySelector('i');
+        if (iconEl) {
+            iconEl.className = `fas ${icon}`;
+        }
+    });
+}
+
+// ============================================================================
+// Employee Skills Icons Mapper
+// ============================================================================
+
+const skillIconMap = {
+    'MachineryDriving': 'fa-gears',
+    'WritingReports': 'fa-file-text',
+    'CustomerRelationships': 'fa-handshake'
+};
+
+function applySkillIcons() {
+    document.querySelectorAll('.skill-icon[data-skill]').forEach((el) => {
+        const skill = el.getAttribute('data-skill');
+        const icon = skillIconMap[skill] || 'fa-star';
+        const iconEl = el.querySelector('i');
+        if (iconEl) {
+            iconEl.className = `fas ${icon}`;
+        }
+    });
+}
+
+// ============================================================================
+// Delete Button Handlers
+// ============================================================================
+
+function setupDeleteButtons() {
+    document.querySelectorAll('.btn-delete').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const entityId = btn.getAttribute('data-id');
+            if (!entityId) return;
+            
+            // Determine entity type and endpoint from current URL or data attribute
+            const currentPath = window.location.pathname;
+            let endpoint = '';
+            
+            if (currentPath.includes('/products')) {
+                endpoint = `/api/products/${entityId.split(':').pop()}`;
+            } else if (currentPath.includes('/stores')) {
+                endpoint = `/api/stores/${entityId.split(':').pop()}`;
+            } else if (currentPath.includes('/employees')) {
+                endpoint = `/api/employees/${entityId.split(':').pop()}`;
+            }
+            
+            if (!endpoint) return;
+            
+            if (window.confirm('¿Estás seguro de que deseas borrar esta entidad? Esta acción no se puede deshacer.')) {
+                fetch(endpoint, { method: 'DELETE' })
+                    .then(r => {
+                        if (r.ok) {
+                            window.location.reload();
+                        } else {
+                            alert('Error al borrar. Intenta de nuevo.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Delete error:', err);
+                        alert('Error al conectar con el servidor.');
+                    });
+            }
+        });
+    });
+}
+
+// ============================================================================
+// Load Stores for Datalist (Employee Form)
+// ============================================================================
+
+function loadStoresForDatalist() {
+    const datalist = document.getElementById('stores-list');
+    const refStoreInput = document.getElementById('refStore');
+    
+    if (!datalist || !refStoreInput) return;
+    
+    fetch('/api/stores')
+        .then(r => r.json())
+        .then(data => {
+            const stores = data.stores || [];
+            stores.forEach(store => {
+                const option = document.createElement('option');
+                const storeId = store.id ? store.id.split(':').pop() : '';
+                const storeName = store.name ? store.name.value : storeId;
+                option.value = storeId;
+                option.label = storeName;
+                datalist.appendChild(option);
+            });
+        })
+        .catch(err => console.error('Error loading stores:', err));
+}
+
+// ============================================================================
+// Form Validation Enhancements
+// ============================================================================
+
+function setupFormValidation() {
+    // Setup custom error messages on input fields
+    const formElements = document.querySelectorAll('input, select, textarea');
+    
+    formElements.forEach((el) => {
+        el.addEventListener('invalid', (e) => {
+            e.preventDefault();
+            
+            if (el.type === 'email' && el.validity.typeMismatch) {
+                el.setCustomValidity('Por favor ingresa un correo válido.');
+            } else if (el.type === 'tel' && el.validity.patternMismatch) {
+                el.setCustomValidity('Formato de teléfono inválido. Usa: +34 91 234 5678');
+            } else if (el.type === 'url' && el.validity.typeMismatch) {
+                el.setCustomValidity('Por favor ingresa una URL válida.');
+            } else if (el.validity.valueMissing) {
+                el.setCustomValidity('Este campo es requerido.');
+            } else if (el.validity.tooShort) {
+                el.setCustomValidity(`Mínimo ${el.minLength} caracteres.`);
+            } else if (el.validity.patternMismatch) {
+                el.setCustomValidity('Formato inválido.');
+            } else if (el.validity.stepMismatch || el.validity.rangeOverflow || el.validity.rangeUnderflow) {
+                el.setCustomValidity('Valor fuera de rango permitido.');
+            }
+        });
+        
+        el.addEventListener('change', () => {
+            el.setCustomValidity('');
+        });
+    });
+}
+
+// ============================================================================
+// Initialize all bindings on page load
+// ============================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    convertCountryCodesToEmojis();
+    applyCategoryIcons();
+    applySkillIcons();
+    setupDeleteButtons();
+    loadStoresForDatalist();
+    setupFormValidation();
+});
