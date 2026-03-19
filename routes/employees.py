@@ -37,6 +37,17 @@ def list_employees():
         return render_template('employees.html', employees=[], error=str(e))
 
 # ============================================================================
+# GET /employees/new - Create employee form
+# ============================================================================
+
+@bp.route('/employees/new', methods=['GET'])
+def new_employee():
+    """
+    GET /employees/new - Show form to create new employee.
+    """
+    return render_template('employee_form.html')
+
+# ============================================================================
 # GET /employees/<employee_id> - Employee detail page
 # ============================================================================
 
@@ -78,6 +89,29 @@ def employee_detail(employee_id):
                              store=store)
     except Exception as e:
         logger.error(f"Error fetching employee detail: {e}")
+        return render_template('error.html', error=str(e)), 500
+
+# ============================================================================
+# GET /employees/<employee_id>/edit - Edit employee form
+# ============================================================================
+
+@bp.route('/employees/<employee_id>/edit', methods=['GET'])
+def edit_employee_form(employee_id):
+    """
+    GET /employees/<employee_id>/edit - Show form to edit employee.
+    """
+    try:
+        if not employee_id.startswith('urn:'):
+            employee_id = f"urn:ngsi-ld:Employee:{employee_id}"
+        
+        employee = orion.get_entity(employee_id)
+        if not employee:
+            return render_template('error.html',
+                                 error='Empleado no encontrado'), 404
+        
+        return render_template('employee_form.html', employee=employee)
+    except Exception as e:
+        logger.error(f"Error fetching employee for edit: {e}")
         return render_template('error.html', error=str(e)), 500
 
 # ============================================================================
