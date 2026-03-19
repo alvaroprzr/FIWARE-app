@@ -60,6 +60,8 @@ Conjunto de vistas HTML + CSS + JavaScript que proporcionan:
 - **Stores:**
   - Lista tabular con foto, nombre, país, temperatura y humedad con códigos de color.
   - Detalle exhaustivo: foto del store, sensores ambientales, mapa Leaflet.js, recorrido virtual 3D (Three.js), inventario agrupado por shelf con barras de progreso, tweets, panel de notificaciones.
+  - Inventario con tabla detallada: imagen, nombre, precio, tamaño, color, stock, cantidad en estantería, y botón "Comprar" para cada InventoryItem.
+  - Botón "Comprar" realiza PATCH directo a Orion (NGSIv2) para decrementar shelfCount y stockCount, con actualización UI en tiempo real sin recargar página.
   - Formulario para añadir shelves.
 - **Employees:**
   - Lista con foto, nombre, categoría, skills con iconografía.
@@ -683,5 +685,148 @@ Aunque Issue #8 había agregado algunas guardias, se mejoraron para mayor robust
 - ✅ GET /stores/<store_id> retorna Store con atributo `name`
 - ✅ Template renderiza sin AttributeError
 - ✅ Fallbacks de valor por defecto funcionan si otras atributos faltan
+
+---
+
+## 13. Correción Store Detail View - Mejoras Interface (Issue #10)
+
+### Resumen Ejecutivo
+
+Se corrigieron 4 problemas identificados en la vista de detalle de almacenes:
+1. Logging mejorado para issues con URN de empleados
+2. Normalización de nombres de estanterías (de idiomas locales a español)
+3. Inclusión de atributos faltantes en queries a Orion
+4. Implementación de botón "Comprar" para InventoryItems con PATCH directo
+
+### Problema 1: Logging para Diagnóstico de URNs de Empleados
+
+**Síntoma:** Error "Not Found" al clickear links de empleados desde store_detail
+
+**Solución:** Agregar logging verboso en [routes/employees.py](routes/employees.py)
+- Logguea employee_id recibido de la URL
+- Logguea URN reconstruido (urn:ngsi-ld:Employee:{employee_id})
+- Logguea si Orion retorna null
+
+**Archivos modificados:**
+- `routes/employees.py` (función employee_detail): +7 líneas con logger.debug/warning
+
+### Problema 2: Normalización de Nombres de Estanterías
+
+**Síntoma:** Shelf names muestran en idioma del país (francés "Étagere Secteur C", italiano "Scaffale Settore D")
+
+**Raíz:** Nombres hardcodeados en [import-data.sh](import-data.sh) sin traducción
+
+**Solución:**
+- París: `"Étagere Secteur C${i}"` → `"Estantería Sector C${i}"`
+- Milán: `"Scaffale Settore D${i}"` → `"Estantería Sector D${i}"`
+
+**Archivos modificados:**
+- `import-data.sh` (2 líneas: cambios directos de strings)
+
+**Impacto:** Nombres de estanterías consistentes en español en toda la aplicación
+
+### Problema 3: Atributos Faltantes en Store Detail
+
+**Síntoma:** Vista muestra "Desconocida, Desconocida-- m²" para dirección y "-" para teléfono/capacidad
+
+**Raíz:** `include_attrs` en [routes/stores.py](routes/stores.py#L62) limitado a 4 atributos
+
+**Antes:**
+```python
+store = orion.get_entity(store_id, include_attrs='name,temperature,relativeHumidity,tweets')
+```
+
+**Después:**
+```python
+store = orion.get_entity(store_id, include_attrs='name,address,telephone,capacity,countryCode,url,description,temperature,relativeHumidity,tweets')
+```
+
+**Archivos modificados:**
+- `routes/stores.py` (1 línea: expandir include_attrs)
+
+**Impacto:** Store detail muestra dirección completa, teléfono, capacidad, URL y descripción
+
+### Problema 4: Botón "Comprar" en InventoryItems
+
+**Requisito:** Cada InventoryItem debe permitir compra con PATCH directo a Orion
+
+**Solución:**
+- Nueva columna "Acciones" en tabla de inventario
+- Botón "Comprar" en cada fila que ejecuta:
+  - PATCH a `http://localhost:1026/v2/entities/<inventoryitem_id>/attrs`
+  - Decrementa `shelfCount` y `stockCount` en -1
+  - Actualiza UI sin recargar página
+  - Deshabilita botón si shelfCount <= 0
+
+**Implementación:**
+
+#### HTML (templates/store_detail.html)
+- Nueva columna `<th data-i18n="store.actions">Acciones</th>`
+- Botón: `<button class="btn-buy" data-inventoryitem-id data-shelf-count data-stock-count>`
+- Botón deshabilitado si shelfCount <= 0
+
+#### JavaScript (static/main.js)
+- Función `buyInventoryItem(inventoryItemId, currentShelfCount, currentStockCount)`
+  - Valida shelfCount > 0
+  - Realiza PATCH directo a Orion
+  - Maneja errores de red con notificaciones
+  
+- Función `updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount)`
+  - Busca fila en tabla `[data-inventoryitem-id]`
+  - Actualiza celdas de Stock (6) y Cantidad Estante (7)
+  - Deshabilita botón si necesario
+  
+- Event listeners en `.btn-buy` con DOMContentLoaded
+
+- Traducciones i18n agregadas: `store.actions`, `store.buy`, `store.inventory_details`
+
+#### CSS (static/style.css)
+- Clase `.btn-buy` con estilos:
+  - Background: color accent (#4CAF50 verde)
+  - Hover: cambio de color + sombra + transform
+  - Disabled: gris claro (opacity 0.6) + cursor not-allowed
+
+**Archivos modificados:**
+- `templates/store_detail.html` (+10 líneas: columna + botón)
+- `static/main.js` (+117 líneas: funciones + event listeners + i18n)
+- `static/style.css` (+26 líneas: .btn-buy con estados)
+
+### Flujo de Compra
+
+```
+Usuario click en botón "Comprar"
+  ↓
+JavaScript valida shelfCount > 0
+  ↓
+Fetch PATCH a Orion con decrements
+  ↓
+Orion actualiza entidad InventoryItem
+  ↓
+JavaScript recibe 200 OK
+  ↓
+updateInventoryItemUI() actualiza tabla
+  ↓
+Notificación de éxito al usuario
+  ↓
+(Si error) Notificación de error con detalles HTTP
+```
+
+### Impacto General
+
+✅ **Empleados:** URN issues diagnosticables mediante logs
+✅ **Estanterías:** Nombres consistentes en español
+✅ **Store Metadata:** Dirección, teléfono, capacidad completamente visible
+✅ **Compras:** Usuarios pueden reducir stock directo desde UI sin recargar
+
+### Archivos Modificados en Issue #10
+
+- `import-data.sh` (2 líneas)
+- `routes/stores.py` (1 línea)
+- `routes/employees.py` (+7 líneas)
+- `templates/store_detail.html` (+10 líneas)
+- `static/main.js` (+117 líneas)
+- `static/style.css` (+26 líneas)
+
+**Total:** +163 líneas insertadas, 3 líneas modificadas
 
 ---

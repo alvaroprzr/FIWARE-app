@@ -68,6 +68,7 @@
   - Gestionar i18n y Dark/Light mode.
   - Interacciones de formularios y validaciones.
   - Renderización de mapas (Leaflet.js) y vistas 3D (Three.js).
+  - **PATCH directo a Orion:** Botón "Comprar" en InventoryItems ejecuta actualización directa sin pasar por Flask.
   - Actualización de DOM sin recarga de página.
 
 **Arquitectura Frontend:**
@@ -75,9 +76,9 @@
 ```
 static/
 ├── css/
-│   └── style.css          # Variables CSS, animaciones, temas
+│   └── style.css          # Variables CSS, animaciones, temas, .btn-buy
 ├── js/
-│   ├── main.js            # Socket.IO, i18n, dark/light, navbar
+│   ├── main.js            # Socket.IO, i18n, dark/light, navbar, buyInventoryItem()
 │   ├── store_3d.js        # Three.js scene
 │   └── maps.js            # Leaflet.js maps
 └── images/                # Assets (opcional)
@@ -158,15 +159,18 @@ store = orion.get_entity(store_id, include_attrs='name,temperature,relativeHumid
 ### 3.2 Modificación de datos y notificaciones
 
 ```
-Usuario compra producto en store_detail
-  → JS hace PATCH /v2/entities/urn:ngsi-ld:InventoryItem:item123/attrs
-    → Flask valida y ejecuta llamada a Orion
-      → Orion actualiza shelfCount, stockCount en MongoDB
-        → Orion dispara suscripción "stock bajo" (si shelfCount < 3)
-          → Orion POST /notify/low-stock (webhook Flask)
-            → Flask emite Socket.IO 'low_stock'
-              → Clientes reciben evento y actualizan UI
+Usuario compra producto en store_detail (botón "Comprar")
+  → JS hace PATCH directo a Orion: /v2/entities/urn:ngsi-ld:InventoryItem:item123/attrs
+    → Orion actualiza shelfCount, stockCount en MongoDB
+      → Orion dispara suscripción "stock bajo" (si shelfCount < 3)
+        → Orion POST /notify/low-stock (webhook Flask)
+          → Flask emite Socket.IO 'low_stock'
+            → Clientes reciben evento y actualizan UI
+      → JS recibe respuesta 200 OK
+        → updateInventoryItemUI() actualiza tabla sin recargar página
 ```
+
+**Nota:** A diferencia de otras operaciones, la compra es un PATCH directo desde cliente a Orion, sin intermediación de Flask. Flask solo recibe notificaciones posteriores si se triggerean suscripciones.
 
 ## 4. Flujo de Notificaciones en Tiempo Real
 

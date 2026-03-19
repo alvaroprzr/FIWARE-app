@@ -144,6 +144,12 @@ Control granular: qué producto, en qué estantería, en qué tienda, cantidades
 - Si shelfCount < 3 → dispara notificación
 - Incluye Product, Store, Shelf y cantidades
 
+**Interacción Cliente - Botón Comprar (Issue #10):**
+- La interfaz proporciona botón "Comprar" en vista store_detail para cada InventoryItem
+- Al clickear: realiza PATCH directo a Orion decrementando shelfCount y stockCount en -1
+- Cliente actualiza UI sin recargar página
+- Botón deshabilitado si shelfCount ≤ 0
+
 **REQUISITO CRÍTICO:**
 - Cada Shelf DEBE contener MÍNIMO 4 Products distintos
 - (Validar en import-data.sh)
