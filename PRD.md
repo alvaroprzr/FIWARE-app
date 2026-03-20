@@ -1094,3 +1094,36 @@ Antes los botones mostraban literalmente las claves i18n sin traducir. Ahora se 
 - Git commits: `1ee7f4a` (lista), `b9a181f` (detalle + i18n), `76c5454` (merge)
 
 ---
+
+## 16. Integracion de Providers Externos, Tweets y Realtime (Issue #15)
+
+### Objetivo funcional
+
+Extender la experiencia de Store para mostrar datos dinamicos de providers externos y propagar eventos en tiempo real sin recargar:
+
+- Temperatura y humedad por Store.
+- Tweets asociados a cada Store.
+- Notificaciones realtime por cambios de precio y bajo stock.
+
+### Requisitos implementados
+
+- En Store detail se muestran `temperature`, `relativeHumidity` y `tweets` cuando Orion los resuelve.
+- Si Orion no devuelve atributos externos en ciertas consultas, la aplicacion aplica fallback backend consultando el provider tutorial directamente.
+- En Store detail y list se unifican umbrales de clima:
+  - Temperatura: frio `< 10`, normal `10-24`, calor `>= 25`.
+  - Humedad: baja `< 30`, normal `30-70`, alta `> 70`.
+- Se renderiza una seccion de notificaciones en la vista de Store detail con entrada incremental por Socket.IO.
+- Cambios de precio y alertas de stock bajo se reflejan en productos y tablas relacionadas sin recarga completa.
+
+### Criterios de aceptacion cubiertos
+
+- Se visualizan datos externos cuando el provider esta disponible.
+- La UI no falla cuando el provider no responde: se mantienen valores no disponibles de forma controlada.
+- Los eventos realtime impactan en la vista activa y en listas con selectores `data-product-id`.
+- No aparecen entidades fantasma en listados de Store (filtrado de IDs no validos y registro explicito por ID de Store).
+
+### Resultado para usuario final
+
+La aplicacion ofrece informacion ambiental y social en Store detail, junto con feedback realtime de operaciones de negocio, mejorando observabilidad y capacidad de reaccion.
+
+---

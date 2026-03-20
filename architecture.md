@@ -975,3 +975,44 @@ HTML renderizado correctamente
 | `76c5454` | merge(main): Issue #12 |
 
 ---
+
+## 5.5 Providers Externos y Propagacion Realtime (Issue #15)
+
+### Componentes involucrados
+
+- `modules/context_providers.py`: registro de providers de contexto y fallback de atributos externos.
+- `modules/orion.py`: lectura y limpieza de registros (`registrations`) en Orion.
+- `routes/stores.py`: enriquecimiento de atributos externos en list/detail.
+- `static/main.js` + templates: consumo de eventos Socket.IO y actualizacion de DOM.
+
+### Estrategia de registro de providers
+
+Se reemplaza el enfoque basado en patrones globales por registro explicito por entidad Store para evitar efectos colaterales:
+
+- Antes: uso de patrones amplios (`idPattern`) que podian inducir resultados no deseados.
+- Ahora: cada registration se asocia a IDs concretos de Store.
+- Se aplica limpieza previa de registros obsoletos para evitar duplicados y configuraciones stale.
+
+Esta estrategia elimina la aparicion de entidades fantasma en listados y hace el comportamiento mas determinista.
+
+### Flujo de resolucion de atributos externos
+
+1. La ruta consulta Orion para entidades Store.
+2. Si Orion no incluye `temperature`, `relativeHumidity` o `tweets` en la respuesta, se ejecuta fallback controlado desde backend.
+3. El fallback consulta el provider tutorial por Store valida y fusiona atributos faltantes.
+4. El resultado enriquecido se renderiza en templates con defensas para valores ausentes.
+
+### Propagacion realtime de eventos
+
+1. Orion subscription notifica cambios de dominio (precio y stock).
+2. Backend emite eventos Socket.IO a clientes conectados.
+3. Frontend actualiza celdas y bloques de notificacion mediante selectores por `data-product-id`.
+4. La propagacion aplica tanto a listados como a vistas de detalle, sin recarga completa.
+
+### Consideraciones de resiliencia
+
+- Filtrado de IDs no validos en rutas de Store para evitar renderizar entidades no URN.
+- Guardias de tipo y conversion numerica en templates para comparaciones de umbrales.
+- Reutilizacion de socket global para evitar listeners duplicados.
+
+---

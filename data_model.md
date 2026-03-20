@@ -1240,3 +1240,47 @@ Orion devuelve entidades NGSIv2 con la siguiente estructura:
 **Total:** 11 cambios de `.id.value` → `.id` en Jinja2 templates.
 
 ---
+
+## Nota de Integracion - Atributos Externos y Realtime (Issue #15)
+
+### Estado del modelo de datos
+
+Issue #15 no introduce nuevas entidades NGSIv2 ni cambia el esquema base.
+Se mantienen los tipos existentes:
+
+- `Store`
+- `Product`
+- `InventoryItem`
+- `Shelf`
+- `Employee`
+
+### Atributos externos en Store
+
+El tipo `Store` continua utilizando atributos externos ya definidos:
+
+- `temperature` (`Number`)
+- `relativeHumidity` (`Number`)
+- `tweets` (`Text` o arreglo serializado segun provider)
+
+Estos atributos pueden provenir de providers de contexto y no estar presentes en todas las respuestas de Orion.
+
+### Regla de consumo en aplicacion
+
+- Primero se consume la respuesta de Orion.
+- Si faltan atributos externos en Store, backend aplica enriquecimiento por fallback desde provider tutorial.
+- Solo se aplica fallback a IDs validos de Store (formato URN esperado).
+
+### Consistencia de eventos de dominio
+
+Los eventos realtime (cambio de precio y bajo stock) no alteran el esquema, pero afectan la coherencia temporal de vistas:
+
+- `price` se refleja en todas las vistas con `data-product-id`.
+- `shelfCount`/`stockCount` se usan para alertas de inventario bajo.
+
+### Impacto de compatibilidad
+
+- Compatible con datos existentes en Orion.
+- Sin migraciones de datos.
+- Sin cambios en endpoints CRUD de entidades principales.
+
+---
