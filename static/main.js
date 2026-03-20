@@ -61,6 +61,24 @@ const i18n = {
         'store.employees': 'Personal',
         'store.actions': 'Acciones',
         'store.buy': 'Comprar',
+        'store.add_shelf': 'Añadir Shelf',
+        'store.edit_shelf': 'Modificar',
+        'store.add_product': 'Añadir producto',
+        'store.shelf_name': 'Nombre',
+        'store.shelf_capacity': 'Capacidad máxima',
+        'store.cancel': 'Cancelar',
+        'store.save': 'Guardar',
+        'store.product': 'Producto',
+        'store.select_product': 'Selecciona un producto',
+        'store.no_products_in_shelf': 'No hay productos en esta shelf',
+        'store.units_on_shelf': 'unidades en shelf',
+        'store.table.image': 'Imagen',
+        'store.table.name': 'Nombre',
+        'store.table.price': 'Precio',
+        'store.table.size': 'Tamaño',
+        'store.table.color': 'Color',
+        'store.table.stock': 'stockCount',
+        'store.table.shelf': 'shelfCount',
         'employees.title': 'Equipo de Trabajo',
         'employees.add': '+ Añadir Empleado',
         'employee.skills': 'Competencias',
@@ -121,6 +139,24 @@ const i18n = {
         'store.employees': 'Staff',
         'store.actions': 'Actions',
         'store.buy': 'Buy',
+        'store.add_shelf': 'Add Shelf',
+        'store.edit_shelf': 'Edit',
+        'store.add_product': 'Add product',
+        'store.shelf_name': 'Name',
+        'store.shelf_capacity': 'Max capacity',
+        'store.cancel': 'Cancel',
+        'store.save': 'Save',
+        'store.product': 'Product',
+        'store.select_product': 'Select a product',
+        'store.no_products_in_shelf': 'There are no products in this shelf',
+        'store.units_on_shelf': 'units on shelf',
+        'store.table.image': 'Image',
+        'store.table.name': 'Name',
+        'store.table.price': 'Price',
+        'store.table.size': 'Size',
+        'store.table.color': 'Color',
+        'store.table.stock': 'stockCount',
+        'store.table.shelf': 'shelfCount',
         'employees.title': 'Team',
         'employees.add': '+ Add Employee',
         'employee.skills': 'Skills',
@@ -190,6 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
     updateLanguageSelector();
     updateUIText();
+    initializeStoreDetailForms();
 });
 
 function updateLanguageSelector() {
@@ -257,6 +294,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-buy').forEach(button => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
+
+            if (button.getAttribute('aria-disabled') === 'true' || button.classList.contains('disabled')) {
+                return;
+            }
             
             const inventoryItemId = button.getAttribute('data-inventoryitem-id');
             const shelfCount = parseInt(button.getAttribute('data-shelf-count')) || 0;
@@ -284,12 +325,12 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
         
         const body = {
             shelfCount: {
-                type: 'Number',
-                value: newShelfCount
+                type: 'Integer',
+                value: { '$inc': -1 }
             },
             stockCount: {
-                type: 'Number',
-                value: newStockCount
+                type: 'Integer',
+                value: { '$inc': -1 }
             }
         };
         
@@ -314,6 +355,201 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
     } catch (error) {
         console.error('[BUY] Error:', error);
         showNotification('Error de Conexión', `No se pudo conectar a Orion: ${error.message}`, 'error');
+    }
+}
+
+// ============================================================================
+// Store Detail: Shelf and Inventory forms
+// ============================================================================
+
+function initializeStoreDetailForms() {
+    const root = document.getElementById('store-detail-root');
+    if (!root) {
+        return;
+    }
+
+    const storeId = root.getAttribute('data-store-id');
+
+    document.querySelectorAll('[data-open-modal]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const modalId = button.getAttribute('data-open-modal');
+            if (modalId === 'edit-shelf-modal') {
+                fillEditShelfForm(button);
+            }
+            if (modalId === 'add-product-modal') {
+                await prepareAddProductForm(button);
+            }
+            openModal(modalId);
+        });
+    });
+
+    document.querySelectorAll('[data-close-modal]').forEach((button) => {
+        button.addEventListener('click', () => {
+            closeModal(button.getAttribute('data-close-modal'));
+        });
+    });
+
+    const addShelfForm = document.getElementById('add-shelf-form');
+    if (addShelfForm) {
+        addShelfForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(addShelfForm);
+            const payload = {
+                name: formData.get('name'),
+                maxCapacity: parseInt(formData.get('maxCapacity'), 10)
+            };
+
+            try {
+                const response = await fetch(`/api/stores/${encodeURIComponent(storeId)}/shelves`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                }
+
+                showNotification('Shelf creada', 'Nueva shelf añadida correctamente', 'success');
+                closeModal('add-shelf-modal');
+                window.location.reload();
+            } catch (error) {
+                showNotification('Error', `No se pudo crear la shelf: ${error.message}`, 'error');
+            }
+        });
+    }
+
+    const editShelfForm = document.getElementById('edit-shelf-form');
+    if (editShelfForm) {
+        editShelfForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(editShelfForm);
+            const shelfId = formData.get('shelfId');
+            const payload = {
+                name: formData.get('name'),
+                maxCapacity: parseInt(formData.get('maxCapacity'), 10)
+            };
+
+            try {
+                const response = await fetch(`/api/shelves/${encodeURIComponent(shelfId)}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                }
+
+                showNotification('Shelf actualizada', 'Cambios guardados correctamente', 'success');
+                closeModal('edit-shelf-modal');
+                window.location.reload();
+            } catch (error) {
+                showNotification('Error', `No se pudo actualizar la shelf: ${error.message}`, 'error');
+            }
+        });
+    }
+
+    const addProductForm = document.getElementById('add-product-form');
+    if (addProductForm) {
+        addProductForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(addProductForm);
+            const shelfId = formData.get('shelfId');
+            const payload = {
+                productId: formData.get('productId'),
+                shelfCount: parseInt(formData.get('shelfCount'), 10),
+                stockCount: parseInt(formData.get('stockCount'), 10)
+            };
+
+            try {
+                const response = await fetch(`/api/shelves/${encodeURIComponent(shelfId)}/inventory-items`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                }
+
+                showNotification('Producto añadido', 'InventoryItem creado correctamente', 'success');
+                closeModal('add-product-modal');
+                window.location.reload();
+            } catch (error) {
+                showNotification('Error', `No se pudo añadir el producto: ${error.message}`, 'error');
+            }
+        });
+    }
+}
+
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.remove('hidden');
+    }
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+}
+
+function fillEditShelfForm(button) {
+    const shelfIdField = document.getElementById('edit-shelf-id');
+    const shelfNameField = document.getElementById('edit-shelf-name');
+    const shelfCapacityField = document.getElementById('edit-shelf-capacity');
+
+    if (!shelfIdField || !shelfNameField || !shelfCapacityField) {
+        return;
+    }
+
+    shelfIdField.value = button.getAttribute('data-shelf-id') || '';
+    shelfNameField.value = button.getAttribute('data-shelf-name') || '';
+    shelfCapacityField.value = button.getAttribute('data-shelf-capacity') || 1;
+}
+
+async function prepareAddProductForm(button) {
+    const shelfId = button.getAttribute('data-shelf-id') || '';
+    const select = document.getElementById('add-product-select');
+    const shelfIdField = document.getElementById('add-product-shelf-id');
+
+    if (!select || !shelfIdField) {
+        return;
+    }
+
+    shelfIdField.value = shelfId;
+    select.innerHTML = `<option value="">${t('store.select_product')}</option>`;
+
+    try {
+        const response = await fetch(`/api/shelves/${encodeURIComponent(shelfId)}/available-products`);
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        const availableProducts = data.available_products || [];
+        if (!availableProducts.length) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = t('store.no_products_in_shelf');
+            select.appendChild(option);
+            return;
+        }
+
+        availableProducts.forEach((product) => {
+            const option = document.createElement('option');
+            option.value = product.id;
+            option.textContent = product.name?.value || product.id;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        showNotification('Error', `No se pudo cargar productos disponibles: ${error.message}`, 'error');
     }
 }
 
@@ -352,8 +588,11 @@ function updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount) {
     
     // Disable button if shelf count <= 0
     if (newShelfCount <= 0) {
-        button.disabled = true;
         button.classList.add('disabled');
+        button.setAttribute('aria-disabled', 'true');
+    } else {
+        button.classList.remove('disabled');
+        button.setAttribute('aria-disabled', 'false');
     }
     
     console.log(`[UPDATE] UI updated for ${inventoryItemId}`);

@@ -258,6 +258,35 @@ Proporciona retroalimentación visual interactiva sin interrumpir la navegación
 - Si el servicio `tutorial:3000` está disponible, los valores se muestran con colores dinámicos
 
 **Colores Dinámicos**:
+
+---
+
+## 14. Mejoras Store Detail - Shelves e Inventario (Issue #13)
+
+### Nuevas capacidades funcionales
+
+- **Añadir Shelf desde Store detail:** botón al final de la vista y formulario dedicado para crear una entidad `Shelf` en Orion con formato NGSIv2.
+- **Editar Shelf:** cada cabecera de grupo Shelf incluye botón "Modificar" para actualizar `name` y `maxCapacity`.
+- **Una sola tabla agrupada por Shelf:** la vista de inventario se presenta como tabla única con filas cabecera de Shelf y filas de `InventoryItem` por debajo.
+- **Barra de llenado por Shelf:** semáforo visual por porcentaje real de llenado usando unidades en shelf:
+  - Verde: `< 50%`
+  - Naranja: `50-80%`
+  - Rojo: `>= 80%`
+- **Añadir Product a Shelf:** botón por Shelf para abrir formulario y cargar por `fetch` los productos disponibles desde `GET /api/shelves/<shelf_id>/available-products`.
+- **Creación de InventoryItem:** al confirmar el formulario se crea el `InventoryItem` en Orion con `POST /v2/entities`.
+
+### Compra por InventoryItem (requisito exacto)
+
+El botón **Comprar** aplica decremento atómico en Orion con payload exacto:
+
+```json
+{
+  "shelfCount": {"type":"Integer", "value": {"$inc": -1}},
+  "stockCount": {"type":"Integer", "value": {"$inc": -1}}
+}
+```
+
+La UI actualiza `shelfCount` y `stockCount` sin recarga de página tras respuesta exitosa.
 - Temperatura: Azul (<10°C) | Verde (10-25°C) | Rojo (>25°C)
 - Humedad: Amarillo (<30%) | Verde (30-70%) | Azul (>70%)
 

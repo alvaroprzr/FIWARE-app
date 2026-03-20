@@ -319,6 +319,56 @@ En respuesta a Issue #2, el modelo de datos ha sido actualizado para compatibili
 
 ### URLs - Sin parámetros Query
 
+---
+
+## 11. Operaciones de Store Detail (Issue #13)
+
+### Shelf: creación y edición desde UI
+
+Se añaden operaciones de aplicación para `Shelf`:
+
+- **Crear Shelf en Store:**
+  - Endpoint app: `POST /api/stores/<store_id>/shelves`
+  - Orion: `POST /v2/entities`
+  - Atributos mínimos: `id`, `type`, `name`, `maxCapacity`, `numberOfItems`, `refStore`.
+- **Editar Shelf (name, maxCapacity):**
+  - Endpoint app: `PATCH /api/shelves/<shelf_id>`
+  - Orion: `PATCH /v2/entities/<shelf_id>/attrs`.
+
+### InventoryItem: alta desde Shelf
+
+- **Añadir Product a Shelf:**
+  - Endpoint app: `POST /api/shelves/<shelf_id>/inventory-items`
+  - Orion: `POST /v2/entities`
+  - Relaciones obligatorias: `refProduct`, `refShelf`, `refStore`.
+  - Cantidades obligatorias: `shelfCount`, `stockCount`.
+
+Validación lógica en backend:
+- No permitir duplicado de `Product` en la misma `Shelf`.
+- `shelfCount > 0`, `stockCount > 0`.
+- `shelfCount <= stockCount`.
+
+### Compra InventoryItem (decremento)
+
+Para compra de una unidad se usa PATCH directo a Orion con decremento atómico en ambos atributos:
+
+```json
+{
+  "shelfCount": {"type":"Integer", "value": {"$inc": -1}},
+  "stockCount": {"type":"Integer", "value": {"$inc": -1}}
+}
+```
+
+Tras respuesta exitosa, la UI actualiza contadores sin recargar la página.
+
+### Llenado de Shelf en UI
+
+El porcentaje de llenado de una shelf se calcula con:
+
+- `SUM(shelfCount de InventoryItems de la shelf) / maxCapacity * 100`
+
+No se usa el número de filas de inventario, sino unidades reales en estantería.
+
 **Restricción:** URLs con parámetros (`?param=value`) rechazadas.
 
 **Ejemplos:**

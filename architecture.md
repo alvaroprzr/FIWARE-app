@@ -254,6 +254,49 @@ FIWARE-app/
      "maxCapacity": {"type": "Number", "value": 20}
      ```
 
+## 6. Mejoras de Arquitectura - Store Detail (Issue #13)
+
+### Nuevos flujos frontend -> Flask -> Orion
+
+Desde `store_detail.html` se introducen formularios con `fetch` a endpoints Flask:
+
+- `POST /api/stores/<store_id>/shelves`
+  - Crea una `Shelf` en Orion (`POST /v2/entities`).
+- `PATCH /api/shelves/<shelf_id>`
+  - Actualiza atributos `name` y `maxCapacity` de Shelf (`PATCH /v2/entities/<shelf_id>/attrs`).
+- `POST /api/shelves/<shelf_id>/inventory-items`
+  - Crea un `InventoryItem` enlazando `Product`, `Shelf` y `Store` (`POST /v2/entities`).
+- `GET /api/shelves/<shelf_id>/available-products`
+  - Alimenta dinámicamente el `<select>` de productos disponibles (excluye los ya presentes en esa shelf).
+
+### Flujo de compra en tabla agrupada por Shelf
+
+El flujo de compra se mantiene directo Cliente -> Orion para minimizar latencia:
+
+```
+Click en Comprar
+  -> PATCH /v2/entities/<inventoryitem_id>/attrs
+  -> body con $inc en shelfCount y stockCount
+  -> respuesta OK
+  -> actualización de celdas en DOM sin recarga
+```
+
+Payload usado por requisito funcional:
+
+```json
+{
+  "shelfCount": {"type":"Integer", "value": {"$inc": -1}},
+  "stockCount": {"type":"Integer", "value": {"$inc": -1}}
+}
+```
+
+### Cambio de visualización
+
+La vista de inventario pasa a **una sola tabla agrupada por Shelf**:
+- Fila cabecera por Shelf con nombre, progreso de llenado y acciones.
+- Filas hijas por `InventoryItem` con columnas de producto y acciones.
+- Colores de barra de llenado: verde `<50%`, naranja `50-80%`, rojo `>=80%`.
+
 2. **Pattern Matching en Providers y Subscriptions**
    - Cambio: Uso exclusivo de `"idPattern"` en lugar de `"isPattern"`
    - Antes: `"isPattern": true` activaba regexp en `id`
