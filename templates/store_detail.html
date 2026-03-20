@@ -56,7 +56,10 @@
 
     <div class="section">
         <h2 data-i18n="store.visualization">Visualización 3D</h2>
-        <div id="three-container" class="visualization-container"></div>
+        <div class="store-3d-stage">
+            <div id="three-container" class="visualization-container"></div>
+            <div id="three-overlay" class="store-3d-overlay" aria-hidden="true"></div>
+        </div>
     </div>
 
     <div class="section">
@@ -262,19 +265,22 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="{{ url_for('static', filename='store_3d.js') }}"></script>
 <script src="{{ url_for('static', filename='maps.js') }}"></script>
 <script>
   window.inventoryData = {
     shelves: {{ shelves | tojson | safe }},
     inventory_by_shelf: {{ inventory_by_shelf | tojson | safe }},
-    inventory_items: {{ inventory_items | tojson | safe }}
+        inventory_items: {{ inventory_items | tojson | safe }},
+        products_dict: {{ products_dict | tojson | safe }}
   };
 
   initializeStoreScene({
     storeId: "{{ store.id }}",
     shelves: window.inventoryData.shelves,
-    inventoryByShelf: window.inventoryData.inventory_by_shelf
+        inventoryByShelf: window.inventoryData.inventory_by_shelf,
+        productsById: window.inventoryData.products_dict
   });
 
   initializeStoreMap({
