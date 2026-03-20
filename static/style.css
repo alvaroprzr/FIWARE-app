@@ -1019,6 +1019,9 @@ label {
 /* Visualization Container */
 .store-3d-stage {
     position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    isolation: isolate;
 }
 
 .visualization-container {
@@ -1041,6 +1044,8 @@ label {
     inset: 0;
     pointer-events: none;
     overflow: hidden;
+    border-radius: inherit;
+    clip-path: inset(0 round var(--radius-lg));
 }
 
 .shelf-overlay-card {
