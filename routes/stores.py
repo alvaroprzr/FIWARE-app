@@ -7,6 +7,7 @@ import logging
 import uuid
 from flask import Blueprint, render_template, request, jsonify
 from modules import orion
+from modules import context_providers
 
 logger = logging.getLogger(__name__)
 
@@ -44,10 +45,26 @@ def list_stores():
     """
     try:
         stores = orion.get_entities(entity_type='Store', limit=1000)
+        stores = [
+            store for store in stores
+            if isinstance(store.get('id'), str) and store.get('id', '').startswith('urn:ngsi-ld:Store:')
+        ]
         
         # Get shelf count for each store
         for store in stores:
             store_id = store.get('id')
+
+            # Enrich list rows with external provider attrs when Orion omits them.
+            missing_external_attrs = any(
+                attr_name not in store or store.get(attr_name, {}).get('value') is None
+                for attr_name in ('temperature', 'relativeHumidity', 'tweets')
+            )
+            if missing_external_attrs:
+                external_attrs = context_providers.get_external_store_attrs(store_id)
+                for attr_name in ('temperature', 'relativeHumidity', 'tweets'):
+                    if external_attrs.get(attr_name):
+                        store[attr_name] = external_attrs[attr_name]
+
             shelves = orion.get_entities(
                 entity_type='Shelf',
                 query=f"refStore=='{store_id}'"
@@ -56,7 +73,7 @@ def list_stores():
         
         return render_template('stores.html', stores=stores)
     except Exception as e:
-        logger.error(f"Error listing stores: {e}")
+        logger.exception("Error listing stores")
         return render_template('stores.html', stores=[], error=str(e))
 
 # ============================================================================
@@ -91,11 +108,25 @@ def store_detail(store_id):
         store_id = _normalize_urn(store_id, 'Store')
         
         # Get store with context provider attributes (temperature, humidity)
-        store = orion.get_entity(store_id, include_attrs='name,address,telephone,capacity,countryCode,url,description,temperature,relativeHumidity,tweets')
+        store = orion.get_entity(
+            store_id,
+            include_attrs='name,address,telephone,capacity,countryCode,url,description,image,location,temperature,relativeHumidity,tweets'
+        )
         if not store:
             return render_template('error.html',
                                  error='Almacén no encontrado'), 404
         
+        # Orion may omit provider attrs on some query patterns; enrich from tutorial provider when needed.
+        missing_external_attrs = any(
+            attr_name not in store or store.get(attr_name, {}).get('value') is None
+            for attr_name in ('temperature', 'relativeHumidity', 'tweets')
+        )
+        if missing_external_attrs:
+            external_attrs = context_providers.get_external_store_attrs(store_id)
+            for attr_name in ('temperature', 'relativeHumidity', 'tweets'):
+                if external_attrs.get(attr_name):
+                    store[attr_name] = external_attrs[attr_name]
+
         # Log retrieved attributes for debugging
         logger.info(f"Store {store_id}: temperature={store.get('temperature')}, humidity={store.get('relativeHumidity')}")
         

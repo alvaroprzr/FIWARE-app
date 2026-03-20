@@ -46,7 +46,8 @@
                     </td>
                     <td class="temp-cell">
                         {% if store.temperature and store.temperature.value is not none %}
-                            <span class="temp-badge {% if store.temperature.value < 10 %}temp-cold{% elif store.temperature.value < 25 %}temp-normal{% else %}temp-hot{% endif %}">
+                            {% set temp_value = store.temperature.value | float %}
+                            <span class="temp-badge {% if temp_value < 15 %}temp-cold{% elif temp_value <= 25 %}temp-normal{% else %}temp-hot{% endif %}">
                                 {{ store.temperature.value }}°C
                             </span>
                         {% else %}
@@ -55,7 +56,8 @@
                     </td>
                     <td class="humidity-cell">
                         {% if store.relativeHumidity and store.relativeHumidity.value is not none %}
-                            <span class="humidity-badge {% if store.relativeHumidity.value < 30 %}humidity-low{% elif store.relativeHumidity.value < 70 %}humidity-normal{% else %}humidity-high{% endif %}">
+                            {% set humidity_value = store.relativeHumidity.value | float %}
+                            <span class="humidity-badge {% if humidity_value < 30 %}humidity-low{% elif humidity_value <= 70 %}humidity-normal{% else %}humidity-high{% endif %}">
                                 {{ store.relativeHumidity.value }}%
                             </span>
                         {% else %}

@@ -32,7 +32,8 @@
             <div class="climate-card temperature">
                 <i class="fas fa-thermometer-half"></i>
                 <h3 data-i18n="store.temperature">Temperatura</h3>
-                <p class="value climate-value {% if store.temperature and store.temperature.value is not none %}{% if store.temperature.value < 10 %}cold{% elif store.temperature.value < 25 %}normal{% else %}hot{% endif %}{% else %}unavailable{% endif %}">
+                {% set temp_value = store.temperature.value | float if store.temperature and store.temperature.value is not none else none %}
+                <p class="value climate-value {% if temp_value is not none %}{% if temp_value < 15 %}cold{% elif temp_value <= 25 %}normal{% else %}hot{% endif %}{% else %}unavailable{% endif %}">
                     {% if store.temperature and store.temperature.value is not none %}
                         {{ store.temperature.value }}°C
                     {% else %}
@@ -43,7 +44,8 @@
             <div class="climate-card humidity">
                 <i class="fas fa-tint"></i>
                 <h3 data-i18n="store.humidity">Humedad Relativa</h3>
-                <p class="value climate-value {% if store.relativeHumidity and store.relativeHumidity.value is not none %}{% if store.relativeHumidity.value < 30 %}humidity-low{% elif store.relativeHumidity.value < 70 %}normal{% else %}humidity-high{% endif %}{% else %}unavailable{% endif %}">
+                {% set humidity_value = store.relativeHumidity.value | float if store.relativeHumidity and store.relativeHumidity.value is not none else none %}
+                <p class="value climate-value {% if humidity_value is not none %}{% if humidity_value < 30 %}humidity-low{% elif humidity_value <= 70 %}normal{% else %}humidity-high{% endif %}{% else %}unavailable{% endif %}">
                     {% if store.relativeHumidity and store.relativeHumidity.value is not none %}
                         {{ store.relativeHumidity.value }}%
                     {% else %}
@@ -140,7 +142,7 @@
                                 {% endif %}
                             </td>
                             <td>{{ product.name.value if product and product.name else item.refProduct.value.split(':')[-1] }}</td>
-                            <td>{{ product.price.value if product and product.price else '-' }}</td>
+                            <td class="product-price-cell" data-product-id="{{ product_id }}">{{ product.price.value if product and product.price else '-' }}</td>
                             <td>{{ product.size.value if product and product.size else '-' }}</td>
                             <td>
                                 <span class="color-swatch" style="background-color: {{ color_hex }};"></span>
@@ -173,6 +175,29 @@
 
         <div class="inventory-footer-actions">
             <button type="button" class="btn btn-primary" data-open-modal="add-shelf-modal" data-i18n="store.add_shelf">Añadir Shelf</button>
+        </div>
+    </div>
+
+    <div class="section store-tweets-section">
+        <h2 data-i18n="store.tweets">Tweets</h2>
+        {% if store.tweets and store.tweets.value %}
+        <ul class="tweets-list">
+            {% for tweet in store.tweets.value %}
+            <li class="tweet-item">
+                <i class="fab fa-x-twitter" aria-hidden="true"></i>
+                <span>{{ tweet }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="muted" data-i18n="store.no_tweets">No hay tweets disponibles</p>
+        {% endif %}
+    </div>
+
+    <div class="section realtime-store-notifications">
+        <h2 data-i18n="store.realtime_notifications">Notificaciones en tiempo real</h2>
+        <div id="store-notifications-list" class="store-notifications-list" data-store-id="{{ store.id }}">
+            <p class="store-notification-empty" data-i18n="store.no_notifications">No hay notificaciones recientes</p>
         </div>
     </div>
 

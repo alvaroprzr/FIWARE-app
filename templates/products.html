@@ -33,7 +33,7 @@
                         <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/50x40' }}" alt="{{ product.name.value if product and product.name else 'Unknown' }}" class="product-thumb">
                     </td>
                     <td>{{ product.name.value if product and product.name else 'Sin nombre' }}</td>
-                    <td>€{{ product.price.value if product and product.price else '-' }}</td>
+                    <td class="product-price-cell" data-product-id="{{ product.id }}">€{{ product.price.value if product and product.price else '-' }}</td>
                     <td>{{ product.size.value if product and product.size else '-' }}</td>
                     <td class="color-cell">
                         <div class="color-swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}" title="{{ product.color.value if product and product.color else 'N/A' }}"></div>
