@@ -164,8 +164,13 @@ def store_detail(store_id):
         # Fetch Product entities from Orion
         products = []
         if product_ids:
-            # Fetch all products (using query with OR for each ID)
-            products = orion.get_entities(entity_type='Product', limit=1000)
+            # Orion query API does not support robust OR chains for many IDs,
+            # so fetch catalog once and keep only products referenced in store inventory.
+            all_products = orion.get_entities(entity_type='Product', limit=1000)
+            products = [
+                product for product in all_products
+                if product.get('id') in product_ids
+            ]
         
         # Create products dictionary keyed by ID for quick lookup
         products_dict = {}

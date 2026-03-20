@@ -180,6 +180,11 @@ function updateUIText() {
         const key = elem.getAttribute('data-i18n');
         elem.textContent = t(key);
     });
+
+    document.documentElement.lang = currentLanguage;
+    document.dispatchEvent(new CustomEvent('app:language-changed', {
+        detail: { language: currentLanguage }
+    }));
 }
 
 document.getElementById('language-selector')?.addEventListener('change', (e) => {
@@ -216,6 +221,9 @@ document.getElementById('theme-toggle')?.addEventListener('click', () => {
     const isDark = document.body.classList.contains('dark-theme');
     localStorage.setItem('theme', isDark ? 'dark' : 'light');
     updateThemeToggleButton();
+    document.dispatchEvent(new CustomEvent('app:theme-changed', {
+        detail: { theme: isDark ? 'dark' : 'light' }
+    }));
 });
 
 // ============================================================================
