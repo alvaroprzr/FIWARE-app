@@ -15,6 +15,18 @@ TUTORIAL_URL = os.getenv('TUTORIAL_URL', 'http://tutorial:3000')
 TUTORIAL_DIRECT_URL = os.getenv('TUTORIAL_DIRECT_URL', 'http://localhost:3000')
 
 
+def _get_real_store_ids():
+    """
+    Get real Store IDs persisted in Orion (exclude provider-generated synthetic IDs).
+    """
+    stores = orion.get_entities(entity_type='Store', limit=1000)
+    return [
+        store.get('id')
+        for store in stores
+        if isinstance(store.get('id'), str) and store.get('id', '').startswith('urn:ngsi-ld:Store:')
+    ]
+
+
 def _get_provider_path_for_attrs(attrs):
     """
     Resolve the tutorial proxy endpoint for a specific attribute set.
@@ -73,6 +85,10 @@ def get_external_store_attrs(store_id):
     Retrieve temperature/humidity/tweets directly from tutorial provider endpoints.
     Used as fallback when Orion responses do not include external attrs.
     """
+    if not isinstance(store_id, str) or not store_id.startswith('urn:ngsi-ld:Store:'):
+        logger.warning("Skipping external attrs fallback for invalid Store ID: %s", store_id)
+        return {}
+
     attrs = {}
     try:
         attrs.update(
@@ -99,19 +115,14 @@ def get_external_store_attrs(store_id):
     return attrs
 
 
-def _build_store_provider_registration(attrs):
+def _build_store_provider_registration(attrs, store_entities):
     """
     Build Orion registration payload for Store attributes backed by external provider.
     """
     provider_path = _get_provider_path_for_attrs(attrs)
     return {
         'dataProvided': {
-            'entities': [
-                {
-                    'type': 'Store',
-                    'idPattern': '.*'
-                }
-            ],
+            'entities': store_entities,
             'attrs': attrs
         },
         'provider': {
@@ -142,11 +153,11 @@ def _cleanup_store_provider_registrations():
     logger.info("Cleaned %s stale Store provider registrations", deleted)
 
 
-def _register_store_provider(attrs, provider_name):
+def _register_store_provider(attrs, provider_name, store_entities):
     """
     Register a Store external provider in Orion and log the result.
     """
-    provider_registration = _build_store_provider_registration(attrs)
+    provider_registration = _build_store_provider_registration(attrs, store_entities)
     success = orion.register_context_provider(provider_registration)
     if success:
         logger.info("✓ %s provider registered (%s)", provider_name, ', '.join(attrs))
@@ -163,9 +174,15 @@ def register_temperature_humidity_provider():
     Register a context provider for temperature/humidity attributes of Store entities.
     External provider: FIWARE tutorial service on port 3000
     """
+    store_entities = [{'type': 'Store', 'id': store_id} for store_id in _get_real_store_ids()]
+    if not store_entities:
+        logger.warning("No real Store entities found for Temperature/Humidity provider registration")
+        return False
+
     return _register_store_provider(
         attrs=['temperature', 'relativeHumidity'],
-        provider_name='Temperature/Humidity'
+        provider_name='Temperature/Humidity',
+        store_entities=store_entities
     )
 
 # ============================================================================
@@ -177,9 +194,15 @@ def register_tweets_provider():
     Register a context provider for tweets attribute of Store entities.
     External provider: FIWARE tutorial service on port 3000
     """
+    store_entities = [{'type': 'Store', 'id': store_id} for store_id in _get_real_store_ids()]
+    if not store_entities:
+        logger.warning("No real Store entities found for Tweets provider registration")
+        return False
+
     return _register_store_provider(
         attrs=['tweets'],
-        provider_name='Tweets'
+        provider_name='Tweets',
+        store_entities=store_entities
     )
 
 # ============================================================================

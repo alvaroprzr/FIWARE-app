@@ -45,10 +45,26 @@ def list_stores():
     """
     try:
         stores = orion.get_entities(entity_type='Store', limit=1000)
+        stores = [
+            store for store in stores
+            if isinstance(store.get('id'), str) and store.get('id', '').startswith('urn:ngsi-ld:Store:')
+        ]
         
         # Get shelf count for each store
         for store in stores:
             store_id = store.get('id')
+
+            # Enrich list rows with external provider attrs when Orion omits them.
+            missing_external_attrs = any(
+                attr_name not in store or store.get(attr_name, {}).get('value') is None
+                for attr_name in ('temperature', 'relativeHumidity', 'tweets')
+            )
+            if missing_external_attrs:
+                external_attrs = context_providers.get_external_store_attrs(store_id)
+                for attr_name in ('temperature', 'relativeHumidity', 'tweets'):
+                    if external_attrs.get(attr_name):
+                        store[attr_name] = external_attrs[attr_name]
+
             shelves = orion.get_entities(
                 entity_type='Shelf',
                 query=f"refStore=='{store_id}'"
