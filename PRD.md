@@ -158,6 +158,43 @@ Conjunto de vistas HTML + CSS + JavaScript que proporcionan:
 
 ---
 
+## 15. Rediseño Recorrido Virtual 3D en Store Detail (Issue #14)
+
+### Requisito funcional cubierto
+
+Se implementa el recorrido inmersivo por tienda con cumplimiento explícito del enunciado:
+
+- Escena Three.js con suelo plano representando el almacén.
+- Cada `Shelf` como `BoxGeometry` distribuida en el espacio.
+- Overlay 2D por shelf con nombre y listado de productos, mostrando por producto:
+  - `shelfCount`: unidades en esa estantería
+  - `stockCount`: unidades totales en stock
+
+### Navegación e interacción
+
+- Navegación no lineal mediante `OrbitControls`:
+  - Rotación orbital
+  - Zoom (dolly)
+  - Pan
+- Micro-interacción hover:
+  - Resaltado visual de shelf al pasar el puntero.
+- Focus UX:
+  - Click/tap sobre shelf centra cámara con transición animada suave.
+
+### Integración de datos
+
+- Se mantiene `window.inventoryData` como fuente principal de datos.
+- Se amplía payload con `products_dict` para resolver nombres de producto en overlays sin peticiones adicionales.
+
+### Robustez visual
+
+- Centro de navegación calculado dinámicamente a partir del conjunto real de shelves.
+- Límites de pan en X/Z para evitar pérdida de escena.
+- Priorización visual de overlays por profundidad de cámara.
+- Recorte estricto de overlays al contenedor 3D para no invadir navbar ni otras capas de UI.
+
+---
+
 ## 11. Optimización Orion 4.1.0 - Restricciones de Datos (Issue #3)
 
 ### Restricciones Identificadas y Solucionadas

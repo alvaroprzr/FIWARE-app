@@ -320,6 +320,45 @@ La vista de inventario pasa a **una sola tabla agrupada por Shelf**:
 
 ---
 
+## 6. Rediseño Arquitectónico del Recorrido 3D (Issue #14)
+
+### Arquitectura de render en Store Detail
+
+La vista `store_detail` pasa a un esquema mixto 3D + 2D:
+
+- **Capa 3D (WebGL / Three.js):** escena, suelo, shelves, luces, cámara y controles.
+- **Capa 2D (HTML overlay):** paneles informativos por shelf posicionados mediante proyección 3D->2D.
+
+El contenedor de overlays se recorta al viewport de la escena para impedir fugas visuales fuera del módulo 3D.
+
+### Flujo de datos actualizado
+
+```
+Flask store_detail()
+  -> obtiene Shelf + InventoryItem + Product
+  -> construye products_dict (lookup O(1) por refProduct)
+  -> render_template(store_detail.html)
+    -> window.inventoryData = {shelves, inventory_by_shelf, inventory_items, products_dict}
+      -> initializeStoreScene(config)
+        -> create meshes + overlays
+        -> OrbitControls + raycasting + focus animation
+```
+
+### Decisiones de navegación
+
+- El centro de órbita se calcula dinámicamente con el bounding del conjunto de shelves.
+- Distancias mínima/máxima de cámara se ajustan al radio de la escena.
+- El pan se limita por bounds en X/Z para mantener el usuario dentro del espacio útil.
+- Controles táctiles configurados como `ONE=ROTATE`, `TWO=DOLLY_PAN` para paridad con desktop.
+
+### Interacciones en tiempo real de escena
+
+- Raycasting continuo para hover sobre shelf.
+- Click/tap sobre shelf para enfoque animado (interpolación de target y posición de cámara).
+- Reordenación de overlays por profundidad de cámara; hover tiene prioridad máxima temporal.
+
+---
+
 ## 6. Restricciones y Soluciones Orion 4.1.0 (Issue #3)
 
 ### Restricciones Identificadas

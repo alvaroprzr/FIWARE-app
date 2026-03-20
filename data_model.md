@@ -28,6 +28,43 @@ Información de personal con autenticación, cualificaciones y asignación a un 
 
 ---
 
+## Nota de Integración de Modelo para Recorrido 3D (Issue #14)
+
+### Objetivo de modelado en UI 3D
+
+El recorrido 3D de Store detail utiliza entidades existentes (`Shelf`, `InventoryItem`, `Product`) sin cambios de esquema NGSIv2, pero establece un contrato de composición para visualización:
+
+- `Shelf` define la unidad espacial 3D (mesh por estantería).
+- `InventoryItem` define cantidades por producto en cada shelf.
+- `Product` aporta metadatos de presentación (nombre) para overlays.
+
+### Contrato de composición en frontend
+
+`window.inventoryData` se consolida como:
+
+- `shelves`: array de entidades Shelf.
+- `inventory_by_shelf`: diccionario `shelf_id -> [InventoryItem]`.
+- `products_dict`: diccionario `product_id -> Product` para resolver nombres en O(1).
+
+### Semántica de cantidades mostradas
+
+Para cada línea de producto en overlay de shelf:
+
+- `shelfCount` = unidades del producto en esa estantería concreta.
+- `stockCount` = total de unidades del producto en el store.
+
+Se conserva la restricción de coherencia funcional:
+
+- `shelfCount <= stockCount`
+
+### Alcance del cambio de modelo
+
+- No se añaden atributos nuevos en Orion.
+- No se modifican tipos NGSIv2 existentes.
+- El cambio es de **composición y presentación** sobre relaciones ya definidas.
+
+---
+
 ## 2. Entidad: Store
 
 Ubicación física de almacén con datos de contacto e integración con proveedores.
