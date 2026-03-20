@@ -57,7 +57,7 @@ def list_stores():
         
         return render_template('stores.html', stores=stores)
     except Exception as e:
-        logger.error(f"Error listing stores: {e}")
+        logger.exception("Error listing stores")
         return render_template('stores.html', stores=[], error=str(e))
 
 # ============================================================================
