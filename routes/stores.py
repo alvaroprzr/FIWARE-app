@@ -4,12 +4,34 @@ CRUD operations and views for Store entities, including inventory management.
 """
 
 import logging
+import uuid
 from flask import Blueprint, render_template, request, jsonify
 from modules import orion
 
 logger = logging.getLogger(__name__)
 
 bp = Blueprint('stores', __name__, url_prefix='')
+
+
+def _normalize_urn(entity_id: str, entity_type: str) -> str:
+    """
+    Normalize plain IDs to NGSI-LD URN format.
+    """
+    if not entity_id:
+        return ''
+    if entity_id.startswith('urn:'):
+        return entity_id
+    return f"urn:ngsi-ld:{entity_type}:{entity_id}"
+
+
+def _safe_number(value, default: int = 0) -> int:
+    """
+    Convert values from NGSI attributes to int safely.
+    """
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
 
 # ============================================================================
 # GET /stores - List all stores
@@ -66,8 +88,7 @@ def store_detail(store_id):
     - 3D visualization of shelves (Three.js)
     """
     try:
-        if not store_id.startswith('urn:'):
-            store_id = f"urn:ngsi-ld:Store:{store_id}"
+        store_id = _normalize_urn(store_id, 'Store')
         
         # Get store with context provider attributes (temperature, humidity)
         store = orion.get_entity(store_id, include_attrs='name,address,telephone,capacity,countryCode,url,description,temperature,relativeHumidity,tweets')
@@ -108,15 +129,18 @@ def store_detail(store_id):
         for shelf in shelves:
             shelf_id = shelf.get('id')
             items_in_shelf = inventory_by_shelf.get(shelf_id, [])
-            
-            # Calculate actual item count from inventory
-            shelf['calculated_item_count'] = len(items_in_shelf)
-            
+
+            # Calculate actual units in shelf as SUM(shelfCount) across InventoryItems
+            shelf_units = sum(
+                _safe_number(item.get('shelfCount', {}).get('value', 0), 0)
+                for item in items_in_shelf
+            )
+            shelf['calculated_item_count'] = shelf_units
+
             # Calculate capacity fill percentage
-            max_capacity = shelf.get('maxCapacity', {}).get('value', 1)
-            item_count = shelf['calculated_item_count']
-            fill_percent = int((item_count / max_capacity) * 100) if max_capacity > 0 else 0
-            
+            max_capacity = _safe_number(shelf.get('maxCapacity', {}).get('value', 0), 0)
+            fill_percent = int((shelf_units / max_capacity) * 100) if max_capacity > 0 else 0
+
             # Determine capacity status: low (0-50%), medium (50-80%), high (80-100%)
             if fill_percent < 50:
                 capacity_status = 'low'
@@ -124,7 +148,7 @@ def store_detail(store_id):
                 capacity_status = 'medium'
             else:
                 capacity_status = 'high'
-            
+
             shelf['capacity_fill'] = {
                 'percent': min(fill_percent, 100),
                 'status': capacity_status
@@ -194,8 +218,7 @@ def get_store_shelves(store_id):
     API endpoint returning all shelves in a store.
     """
     try:
-        if not store_id.startswith('urn:'):
-            store_id = f"urn:ngsi-ld:Store:{store_id}"
+        store_id = _normalize_urn(store_id, 'Store')
         
         shelves = orion.get_entities(
             entity_type='Shelf',
@@ -220,8 +243,7 @@ def get_available_products_for_shelf(shelf_id):
     Returns products that don't have an InventoryItem entry for this shelf.
     """
     try:
-        if not shelf_id.startswith('urn:'):
-            shelf_id = f"urn:ngsi-ld:Shelf:{shelf_id}"
+        shelf_id = _normalize_urn(shelf_id, 'Shelf')
         
         # Get all products
         all_products = orion.get_entities(entity_type='Product')
@@ -261,10 +283,8 @@ def get_available_shelves(store_id, product_id):
     Useful for forms to assign products to different shelves.
     """
     try:
-        if not store_id.startswith('urn:'):
-            store_id = f"urn:ngsi-ld:Store:{store_id}"
-        if not product_id.startswith('urn:'):
-            product_id = f"urn:ngsi-ld:Product:{product_id}"
+        store_id = _normalize_urn(store_id, 'Store')
+        product_id = _normalize_urn(product_id, 'Product')
         
         # Get all shelves in store
         all_shelves = orion.get_entities(
@@ -310,6 +330,167 @@ def stores_map():
     except Exception as e:
         logger.error(f"Error rendering map: {e}")
         return render_template('stores_map.html', stores=[], error=str(e))
+
+# ============================================================================
+# POST /api/stores/<store_id>/shelves - Create shelf in store
+# ============================================================================
+
+@bp.route('/api/stores/<store_id>/shelves', methods=['POST'])
+def create_store_shelf(store_id):
+    """
+    API endpoint to create a Shelf in a given Store.
+    Body: {name, maxCapacity, id?}
+    """
+    try:
+        store_id = _normalize_urn(store_id, 'Store')
+        data = request.get_json() or {}
+
+        name = (data.get('name') or '').strip()
+        max_capacity = _safe_number(data.get('maxCapacity'), 0)
+
+        if not name:
+            return {'error': 'Shelf name is required'}, 400
+        if max_capacity <= 0:
+            return {'error': 'maxCapacity must be greater than 0'}, 400
+
+        store = orion.get_entity(store_id)
+        if not store:
+            return {'error': 'Store not found'}, 404
+
+        shelf_id = data.get('id')
+        if shelf_id:
+            shelf_id = _normalize_urn(shelf_id, 'Shelf')
+        else:
+            short_name = '-'.join(name.lower().split()) or 'shelf'
+            shelf_id = f"urn:ngsi-ld:Shelf:{short_name}-{uuid.uuid4().hex[:8]}"
+
+        shelf = {
+            'id': shelf_id,
+            'type': 'Shelf',
+            'name': orion.build_attr(name, 'Text'),
+            'maxCapacity': orion.build_attr(max_capacity, 'Number'),
+            'numberOfItems': orion.build_attr(0, 'Number'),
+            'refStore': orion.build_attr(store_id, 'Relationship')
+        }
+
+        success = orion.create_entity(shelf)
+        if not success:
+            return {'error': 'Could not create shelf in Orion'}, 400
+
+        return {'success': True, 'shelf': shelf}, 201
+    except Exception as e:
+        logger.error(f"Error creating shelf: {e}")
+        return {'error': str(e)}, 500
+
+# ============================================================================
+# PATCH /api/shelves/<shelf_id> - Update shelf
+# ============================================================================
+
+@bp.route('/api/shelves/<shelf_id>', methods=['PATCH'])
+def update_shelf(shelf_id):
+    """
+    API endpoint to update shelf attributes.
+    Body: {name?, maxCapacity?}
+    """
+    try:
+        shelf_id = _normalize_urn(shelf_id, 'Shelf')
+        data = request.get_json() or {}
+
+        shelf = orion.get_entity(shelf_id)
+        if not shelf:
+            return {'error': 'Shelf not found'}, 404
+
+        attrs = {}
+        if 'name' in data:
+            name = (data.get('name') or '').strip()
+            if not name:
+                return {'error': 'Shelf name cannot be empty'}, 400
+            attrs['name'] = orion.build_attr(name, 'Text')
+
+        if 'maxCapacity' in data:
+            max_capacity = _safe_number(data.get('maxCapacity'), 0)
+            if max_capacity <= 0:
+                return {'error': 'maxCapacity must be greater than 0'}, 400
+            attrs['maxCapacity'] = orion.build_attr(max_capacity, 'Number')
+
+        if not attrs:
+            return {'error': 'No attributes to update'}, 400
+
+        success = orion.update_entity_attributes(shelf_id, attrs)
+        return {'success': success}, 200 if success else 400
+    except Exception as e:
+        logger.error(f"Error updating shelf {shelf_id}: {e}")
+        return {'error': str(e)}, 500
+
+# ============================================================================
+# POST /api/shelves/<shelf_id>/inventory-items - Add product to shelf
+# ============================================================================
+
+@bp.route('/api/shelves/<shelf_id>/inventory-items', methods=['POST'])
+def add_product_to_shelf(shelf_id):
+    """
+    API endpoint to create an InventoryItem from selected product and shelf.
+    Body: {productId, shelfCount?, stockCount?}
+    """
+    try:
+        shelf_id = _normalize_urn(shelf_id, 'Shelf')
+        data = request.get_json() or {}
+
+        product_id = _normalize_urn((data.get('productId') or '').strip(), 'Product')
+        if not product_id:
+            return {'error': 'productId is required'}, 400
+
+        shelf_count = _safe_number(data.get('shelfCount'), 1)
+        stock_count = _safe_number(data.get('stockCount'), shelf_count)
+
+        if shelf_count <= 0 or stock_count <= 0:
+            return {'error': 'Counts must be greater than 0'}, 400
+        if shelf_count > stock_count:
+            return {'error': 'shelfCount must be less or equal than stockCount'}, 400
+
+        shelf = orion.get_entity(shelf_id)
+        if not shelf:
+            return {'error': 'Shelf not found'}, 404
+
+        product = orion.get_entity(product_id)
+        if not product:
+            return {'error': 'Product not found'}, 404
+
+        store_id = shelf.get('refStore', {}).get('value')
+        if not store_id:
+            return {'error': 'Shelf has no valid refStore'}, 400
+
+        # Prevent duplicates: one product only once per shelf.
+        existing_item = orion.get_entities(
+            entity_type='InventoryItem',
+            query=f"refShelf=='{shelf_id}' AND refProduct=='{product_id}'"
+        )
+        if existing_item:
+            return {'error': 'This product already exists in the shelf'}, 409
+
+        inventory_id = (
+            f"urn:ngsi-ld:InventoryItem:"
+            f"{shelf_id.split(':')[-1]}-{product_id.split(':')[-1]}-{uuid.uuid4().hex[:8]}"
+        )
+
+        inventory_item = {
+            'id': inventory_id,
+            'type': 'InventoryItem',
+            'refProduct': orion.build_attr(product_id, 'Relationship'),
+            'refShelf': orion.build_attr(shelf_id, 'Relationship'),
+            'refStore': orion.build_attr(store_id, 'Relationship'),
+            'shelfCount': orion.build_attr(shelf_count, 'Number'),
+            'stockCount': orion.build_attr(stock_count, 'Number')
+        }
+
+        success = orion.create_entity(inventory_item)
+        if not success:
+            return {'error': 'Could not create inventory item in Orion'}, 400
+
+        return {'success': True, 'inventoryItem': inventory_item}, 201
+    except Exception as e:
+        logger.error(f"Error adding product to shelf {shelf_id}: {e}")
+        return {'error': str(e)}, 500
 
 # ============================================================================
 # POST /api/stores - Create new store
