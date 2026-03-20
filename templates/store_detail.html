@@ -146,13 +146,15 @@
                             <td>{{ item.stockCount.value if item.stockCount else 0 }}</td>
                             <td>{{ item.shelfCount.value if item.shelfCount else 0 }}</td>
                             <td>
-                                <button class="btn-buy"
+                                <a href="#"
+                                    role="button"
+                                    class="btn-buy btn-buy-link{% if (item.shelfCount.value if item.shelfCount else 0) <= 0 %} disabled{% endif %}"
+                                    aria-disabled="{{ 'true' if (item.shelfCount.value if item.shelfCount else 0) <= 0 else 'false' }}"
                                     data-inventoryitem-id="{{ item.id }}"
                                     data-shelf-count="{{ item.shelfCount.value if item.shelfCount else 0 }}"
-                                    data-stock-count="{{ item.stockCount.value if item.stockCount else 0 }}"
-                                    {% if (item.shelfCount.value if item.shelfCount else 0) <= 0 %}disabled{% endif %}>
+                                    data-stock-count="{{ item.stockCount.value if item.stockCount else 0 }}">
                                     <span data-i18n="store.buy">Comprar</span>
-                                </button>
+                                </a>
                             </td>
                         </tr>
                         {% endfor %}

@@ -294,6 +294,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.btn-buy').forEach(button => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
+
+            if (button.getAttribute('aria-disabled') === 'true' || button.classList.contains('disabled')) {
+                return;
+            }
             
             const inventoryItemId = button.getAttribute('data-inventoryitem-id');
             const shelfCount = parseInt(button.getAttribute('data-shelf-count')) || 0;
@@ -584,8 +588,11 @@ function updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount) {
     
     // Disable button if shelf count <= 0
     if (newShelfCount <= 0) {
-        button.disabled = true;
         button.classList.add('disabled');
+        button.setAttribute('aria-disabled', 'true');
+    } else {
+        button.classList.remove('disabled');
+        button.setAttribute('aria-disabled', 'false');
     }
     
     console.log(`[UPDATE] UI updated for ${inventoryItemId}`);
