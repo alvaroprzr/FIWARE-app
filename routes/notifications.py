@@ -5,7 +5,7 @@ Receives real-time events and broadcasts them via Socket.IO to connected clients
 """
 
 import logging
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, current_app
 
 logger = logging.getLogger(__name__)
 
@@ -105,11 +105,6 @@ def notify_low_stock():
                 }, broadcast=True)
                 
                 logger.warning(f"Low stock alert: {item_id} (count={shelf_count})")
-        
-        return {'status': 'ok'}, 200
-    except Exception as e:
-        logger.error(f"Error handling low stock notification: {e}")
-        return {'error': str(e)}, 500
         
         return {'status': 'ok'}, 200
     except Exception as e:

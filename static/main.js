@@ -58,6 +58,10 @@ const i18n = {
         'store.location': 'Ubicación',
         'store.inventory': 'Inventario',
         'store.inventory_details': 'Detalles de Inventario',
+        'store.tweets': 'Tweets',
+        'store.no_tweets': 'No hay tweets disponibles',
+        'store.realtime_notifications': 'Notificaciones en tiempo real',
+        'store.no_notifications': 'No hay notificaciones recientes',
         'store.employees': 'Personal',
         'store.actions': 'Acciones',
         'store.buy': 'Comprar',
@@ -136,6 +140,10 @@ const i18n = {
         'store.location': 'Location',
         'store.inventory': 'Inventory',
         'store.inventory_details': 'Inventory Details',
+        'store.tweets': 'Tweets',
+        'store.no_tweets': 'No tweets available',
+        'store.realtime_notifications': 'Real-time notifications',
+        'store.no_notifications': 'No recent notifications',
         'store.employees': 'Staff',
         'store.actions': 'Actions',
         'store.buy': 'Buy',
@@ -235,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLanguageSelector();
     updateUIText();
     initializeStoreDetailForms();
+    initializeRealtimeNotifications();
 });
 
 function updateLanguageSelector() {
@@ -282,6 +291,91 @@ function getIcon(level) {
         case 'success': return 'check-circle';
         default: return 'info-circle';
     }
+}
+
+function formatPriceValue(value) {
+    const parsed = Number(value);
+    if (Number.isNaN(parsed)) {
+        return value;
+    }
+    return parsed.toFixed(2);
+}
+
+function updateProductPriceUI(productId, newPrice) {
+    if (!productId) return;
+
+    const formatted = formatPriceValue(newPrice);
+    document.querySelectorAll(`.product-price-cell[data-product-id="${productId}"]`).forEach((cell) => {
+        const isDetailPrice = cell.classList.contains('price');
+        const hasCurrency = isDetailPrice || cell.textContent.trim().startsWith('€');
+        cell.textContent = hasCurrency ? `€${formatted}` : formatted;
+    });
+}
+
+function appendStoreRealtimeNotification(title, message, level = 'info') {
+    const list = document.getElementById('store-notifications-list');
+    if (!list) return;
+
+    const emptyState = list.querySelector('.store-notification-empty');
+    if (emptyState) {
+        emptyState.remove();
+    }
+
+    const item = document.createElement('div');
+    item.className = `notification-item ${level}`;
+    item.innerHTML = `
+        <div>
+            <strong>${title}</strong>
+            <p>${message}</p>
+            <small>${new Date().toLocaleTimeString()}</small>
+        </div>
+    `;
+    list.prepend(item);
+}
+
+function initializeRealtimeNotifications() {
+    const socket = window.appSocket || (typeof io !== 'undefined' ? io() : null);
+    if (!socket || window.__realtimeHandlersReady) {
+        return;
+    }
+
+    window.__realtimeHandlersReady = true;
+
+    socket.on('price_change', (data) => {
+        const productId = data?.product_id;
+        const newPrice = data?.new_price;
+
+        updateProductPriceUI(productId, newPrice);
+        showNotification(
+            'Cambio de Precio',
+            `Producto ${productId} - Nuevo precio: €${formatPriceValue(newPrice)}`,
+            'info'
+        );
+        appendStoreRealtimeNotification(
+            'Cambio de Precio',
+            `Producto ${productId} actualizado a €${formatPriceValue(newPrice)}`,
+            'info'
+        );
+    });
+
+    socket.on('low_stock', (data) => {
+        const storeNotifications = document.getElementById('store-notifications-list');
+        const currentStoreId = storeNotifications?.getAttribute('data-store-id');
+
+        showNotification(
+            'Stock Bajo',
+            `Apenas ${data?.shelf_count} unidades en ${data?.shelf_id}`,
+            'warning'
+        );
+
+        if (currentStoreId && data?.store_id === currentStoreId) {
+            appendStoreRealtimeNotification(
+                'Stock Bajo',
+                `Producto ${data?.product_id} con ${data?.shelf_count} unidades en ${data?.shelf_id}`,
+                'warning'
+            );
+        }
+    });
 }
 
 // ============================================================================

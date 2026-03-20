@@ -91,7 +91,10 @@ def store_detail(store_id):
         store_id = _normalize_urn(store_id, 'Store')
         
         # Get store with context provider attributes (temperature, humidity)
-        store = orion.get_entity(store_id, include_attrs='name,address,telephone,capacity,countryCode,url,description,temperature,relativeHumidity,tweets')
+        store = orion.get_entity(
+            store_id,
+            include_attrs='name,address,telephone,capacity,countryCode,url,description,image,location,temperature,relativeHumidity,tweets'
+        )
         if not store:
             return render_template('error.html',
                                  error='Almacén no encontrado'), 404

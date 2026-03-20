@@ -674,6 +674,14 @@ label {
     color: #ea4335;  /* Red */
 }
 
+.climate-value.humidity-low {
+    color: #fbbc04;
+}
+
+.climate-value.humidity-high {
+    color: #4285f4;
+}
+
 .climate-value.unavailable {
     color: var(--text-secondary);
     font-size: 1rem;
@@ -937,6 +945,48 @@ label {
     margin-top: var(--spacing-lg);
     display: flex;
     justify-content: flex-end;
+}
+
+.store-tweets-section,
+.realtime-store-notifications {
+    background: var(--surface);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-lg);
+}
+
+.tweets-list {
+    list-style: none;
+    display: grid;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-md) 0 0;
+    padding: 0;
+}
+
+.tweet-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.tweet-item i {
+    margin-top: 2px;
+    color: var(--text);
+}
+
+.store-notifications-list {
+    display: grid;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+}
+
+.store-notification-empty,
+.muted {
+    color: var(--text-secondary);
+    font-style: italic;
 }
 
 .inventory-header-row {
