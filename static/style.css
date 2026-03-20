@@ -1031,6 +1031,11 @@ label {
     overflow: hidden;
 }
 
+.visualization-container canvas {
+    display: block;
+    touch-action: none;
+}
+
 .store-3d-overlay {
     position: absolute;
     inset: 0;
@@ -1043,6 +1048,9 @@ label {
     min-width: 210px;
     max-width: 290px;
     background: var(--surface);
+    pointer-events: auto;
+    cursor: pointer;
+    user-select: none;
     border: 1px solid var(--border);
     border-radius: 10px;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
