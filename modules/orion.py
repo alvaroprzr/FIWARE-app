@@ -182,6 +182,48 @@ def register_context_provider(registration: Dict[str, Any]) -> bool:
         logger.error(f"Error registering provider: {e}")
         return False
 
+
+def get_registrations() -> List[Dict[str, Any]]:
+    """
+    Retrieve all context provider registrations from Orion.
+
+    Returns:
+        List of registration dictionaries
+    """
+    try:
+        url = f"{ORION_URL}/v2/registrations"
+        response = requests.get(url, params={'limit': 1000}, timeout=5)
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error retrieving registrations: {e}")
+        return []
+
+
+def delete_registration(registration_id: str) -> bool:
+    """
+    Delete a context provider registration from Orion.
+
+    Args:
+        registration_id (str): Registration ID
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        url = f"{ORION_URL}/v2/registrations/{registration_id}"
+        response = requests.delete(url, timeout=5)
+
+        if response.status_code == 204:
+            logger.info(f"Registration {registration_id} deleted")
+            return True
+
+        logger.warning(f"Delete registration failed ({response.status_code}): {response.text}")
+        return False
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Error deleting registration {registration_id}: {e}")
+        return False
+
 # ============================================================================
 # NGSIv2 Subscriptions Management
 # ============================================================================

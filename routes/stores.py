@@ -7,6 +7,7 @@ import logging
 import uuid
 from flask import Blueprint, render_template, request, jsonify
 from modules import orion
+from modules import context_providers
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +100,17 @@ def store_detail(store_id):
             return render_template('error.html',
                                  error='Almacén no encontrado'), 404
         
+        # Orion may omit provider attrs on some query patterns; enrich from tutorial provider when needed.
+        missing_external_attrs = any(
+            attr_name not in store or store.get(attr_name, {}).get('value') is None
+            for attr_name in ('temperature', 'relativeHumidity', 'tweets')
+        )
+        if missing_external_attrs:
+            external_attrs = context_providers.get_external_store_attrs(store_id)
+            for attr_name in ('temperature', 'relativeHumidity', 'tweets'):
+                if external_attrs.get(attr_name):
+                    store[attr_name] = external_attrs[attr_name]
+
         # Log retrieved attributes for debugging
         logger.info(f"Store {store_id}: temperature={store.get('temperature')}, humidity={store.get('relativeHumidity')}")
         
