@@ -287,6 +287,8 @@ El botón **Comprar** aplica decremento atómico en Orion con payload exacto:
 ```
 
 La UI actualiza `shelfCount` y `stockCount` sin recarga de página tras respuesta exitosa.
+
+La acción de compra se presenta en cada fila como control tipo enlace (estilo link) para mantener una interacción ligera en la tabla de inventario.
 - Temperatura: Azul (<10°C) | Verde (10-25°C) | Rojo (>25°C)
 - Humedad: Amarillo (<30%) | Verde (30-70%) | Azul (>70%)
 

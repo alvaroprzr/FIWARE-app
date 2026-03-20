@@ -361,6 +361,8 @@ Para compra de una unidad se usa PATCH directo a Orion con decremento atómico e
 
 Tras respuesta exitosa, la UI actualiza contadores sin recargar la página.
 
+En la vista Store detail, cada InventoryItem expone esta operación mediante un control tipo enlace por fila.
+
 ### Llenado de Shelf en UI
 
 El porcentaje de llenado de una shelf se calcula con:

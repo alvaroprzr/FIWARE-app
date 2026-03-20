@@ -281,6 +281,8 @@ Click en Comprar
   -> actualización de celdas en DOM sin recarga
 ```
 
+La acción "Comprar" se renderiza en cada InventoryItem como botón tipo enlace, manteniendo estado deshabilitado cuando no hay unidades en shelf.
+
 Payload usado por requisito funcional:
 
 ```json
