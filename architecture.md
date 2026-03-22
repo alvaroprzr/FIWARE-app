@@ -1016,3 +1016,44 @@ Esta estrategia elimina la aparicion de entidades fantasma en listados y hace el
 - Reutilizacion de socket global para evitar listeners duplicados.
 
 ---
+
+## 17. Ajustes Arquitectonicos de Product Detail y Compra (Issue #17)
+
+### Flujo Product detail -> alta InventoryItem
+
+La vista de Product detail incorpora alta contextual de InventoryItem por Store:
+
+1. Usuario abre accion "Anadir InventoryItem" en cabecera del grupo Store.
+2. Frontend llama:
+  - `GET /api/stores/<store_id>/available-shelves/<product_id>`
+3. Backend filtra Shelves disponibles excluyendo las que ya contienen el Product.
+4. Usuario confirma formulario.
+5. Frontend envia:
+  - `POST /api/shelves/<shelf_id>/inventory-items`
+6. Backend crea o fusiona InventoryItem para evitar duplicados por `(Shelf, Product)`.
+
+### Cambio de semantica visual en Product detail
+
+- El agregado de Store se calcula con suma de `shelfCount`.
+- Las filas hijas de Shelf muestran `Shelf.name` y `shelfCount`.
+- `stockCount` queda fuera de la tabla de Product detail por coherencia de capa de presentacion.
+
+### Compra InventoryItem via backend same-origin
+
+Se elimina dependencia de PATCH directo del navegador a Orion para la accion de compra en Store detail.
+Nuevo flujo:
+
+1. Click en comprar -> frontend llama:
+  - `PATCH /api/inventory-items/<inventory_item_id>/buy`
+2. Backend envia a Orion el PATCH de decremento atomico de `shelfCount` y `stockCount`.
+3. Orion responde y backend devuelve estado al cliente.
+4. Frontend refresca celdas de la fila sin recargar.
+
+Esto reduce fragilidad por restricciones de navegador en llamadas cross-origin a Orion.
+
+### Navegacion global
+
+- Navbar mantiene comportamiento sticky.
+- Estado activo se resuelve en cliente por `pathname`, cubriendo rutas de lista, detalle y `Stores Map`.
+
+---

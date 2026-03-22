@@ -1284,3 +1284,41 @@ Los eventos realtime (cambio de precio y bajo stock) no alteran el esquema, pero
 - Sin cambios en endpoints CRUD de entidades principales.
 
 ---
+
+## Nota de Integracion - Consistencia Product Detail (Issue #17)
+
+### Alcance de modelo
+
+Issue #17 no cambia el esquema NGSIv2 de entidades. Se mantiene:
+
+- `InventoryItem.shelfCount`
+- `InventoryItem.stockCount`
+- `Shelf.name`
+
+### Regla de presentacion en Product detail
+
+Para la vista de detalle de Product se fija la regla funcional:
+
+- **Stock total por Store** = suma de `shelfCount` de InventoryItems del mismo `(Product, Store)`.
+- En filas por Shelf se muestran:
+  - `Shelf.name`
+  - `shelfCount`
+- `stockCount` no se representa en la tabla de Product detail.
+
+Esta decision evita desalineacion visual cuando `stockCount` no refleja distribucion por shelf en tiempo real.
+
+### Resolucion de nombre de Shelf
+
+Cada fila de InventoryItem en Product detail resuelve `Shelf.name` desde la entidad `Shelf` referenciada por `refShelf`.
+Si no existe nombre disponible, se usa fallback con sufijo de ID.
+
+### Compra y coherencia de contadores
+
+La operacion de compra mantiene decremento atomico de:
+
+- `shelfCount`
+- `stockCount`
+
+El modelo no introduce atributos adicionales; solo se refuerza la semantica de lectura en UI para Product detail.
+
+---

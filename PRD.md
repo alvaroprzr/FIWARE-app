@@ -1127,3 +1127,52 @@ Extender la experiencia de Store para mostrar datos dinamicos de providers exter
 La aplicacion ofrece informacion ambiental y social en Store detail, junto con feedback realtime de operaciones de negocio, mejorando observabilidad y capacidad de reaccion.
 
 ---
+
+## 17. Product Detail, Navbar y Realtime (Issue #17)
+
+### Product detail: consistencia de inventario por Store/Shelf
+
+Se ajusta la vista de detalle de Product para alinear semantica de datos y UI:
+
+- En cabecera de cada grupo Store, el **Stock Total** se calcula como:
+  - suma de `shelfCount` de todos los `InventoryItem` del mismo `(Product, Store)`.
+- En filas por Shelf se muestran unicamente:
+  - nombre de Shelf (`Shelf.name`),
+  - `shelfCount`.
+- Se elimina `stockCount` de la tabla de Product detail para evitar lecturas inconsistentes en interfaz.
+- El color del Product en hero se representa con:
+  - swatch visual (cuadrado con color hexadecimal),
+  - texto hexadecimal junto al swatch.
+
+### Alta de InventoryItem desde Product detail
+
+- Cada grupo Store incorpora accion tipo enlace para anadir InventoryItem.
+- El formulario carga Shelves disponibles via API filtrando solo Shelves de ese Store que aun no contienen el Product.
+- Al confirmar, se crea o fusiona InventoryItem en backend manteniendo coherencia por `(Shelf, Product)`.
+
+### Navbar activa y sticky
+
+- La barra de navegacion permanece visible al hacer scroll.
+- Se marca visualmente la seccion activa para:
+  - Home,
+  - Products,
+  - Stores,
+  - Employees,
+  - Stores Map.
+
+### Realtime y compra de InventoryItem
+
+- Se valida el flujo Orion -> webhook Flask -> Socket.IO -> navegador para:
+  - `price_change`,
+  - `low_stock`.
+- La compra por InventoryItem se ejecuta via endpoint backend same-origin y aplica en Orion el PATCH de decremento atomico en `shelfCount` y `stockCount`.
+- Los precios se actualizan en vistas con `data-product-id` sin recarga de pagina.
+
+### Criterios de aceptacion reflejados
+
+- Stock total por Store en Product detail consistente con suma real de `shelfCount`.
+- Sin `stockCount` visible en filas de Product detail.
+- Navegacion global con estado activo correcto en todas las vistas principales.
+- Suscripciones y notificaciones en tiempo real operativas con callbacks validos.
+
+---
