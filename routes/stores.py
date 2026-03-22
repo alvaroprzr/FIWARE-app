@@ -567,6 +567,39 @@ def add_product_to_shelf(shelf_id):
         return {'error': str(e)}, 500
 
 # ============================================================================
+# PATCH /api/inventory-items/<inventory_item_id>/buy - Decrement inventory
+# ============================================================================
+
+@bp.route('/api/inventory-items/<path:inventory_item_id>/buy', methods=['PATCH'])
+def buy_inventory_item(inventory_item_id):
+    """
+    API endpoint to buy one unit from an InventoryItem.
+    Sends the exact required Orion PATCH payload with $inc -1.
+    """
+    try:
+        inventory_item_id = _normalize_urn(inventory_item_id, 'InventoryItem')
+
+        attrs = {
+            'shelfCount': {
+                'type': 'Integer',
+                'value': {'$inc': -1}
+            },
+            'stockCount': {
+                'type': 'Integer',
+                'value': {'$inc': -1}
+            }
+        }
+
+        success = orion.update_entity_attributes(inventory_item_id, attrs)
+        if not success:
+            return {'error': 'Could not update inventory item in Orion'}, 400
+
+        return {'success': True}, 200
+    except Exception as e:
+        logger.error(f"Error buying inventory item {inventory_item_id}: {e}")
+        return {'error': str(e)}, 500
+
+# ============================================================================
 # POST /api/stores - Create new store
 # ============================================================================
 

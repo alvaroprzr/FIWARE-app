@@ -90,9 +90,9 @@ def product_detail(product_id):
                     'store_name': ''
                 }
             
-            # Track stock count
-            stock_count = item.get('stockCount', {}).get('value', 0)
-            inventory_by_store[store_id]['totalStock'] += stock_count
+            # Real stock in this view is the sum of shelfCount for the same product+store.
+            shelf_count = item.get('shelfCount', {}).get('value', 0)
+            inventory_by_store[store_id]['totalStock'] += shelf_count
             inventory_by_store[store_id]['shelves'].append(item)
         
         # Fetch store names to display

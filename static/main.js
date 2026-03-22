@@ -471,7 +471,7 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
         
         console.log(`[BUY] Sending PATCH to ${inventoryItemId}`, body);
         
-        const response = await fetch(`http://localhost:1026/v2/entities/${inventoryItemId}/attrs`, {
+        const response = await fetch(`/api/inventory-items/${encodeURIComponent(inventoryItemId)}/buy`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
