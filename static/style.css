@@ -158,6 +158,12 @@ code {
     border-bottom-color: var(--primary);
 }
 
+.nav-links a.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    font-weight: 700;
+}
+
 .navbar-controls {
     display: flex;
     align-items: center;

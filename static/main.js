@@ -16,6 +16,7 @@ const i18n = {
         'nav.stores': 'Almacenes',
         'nav.products': 'Productos',
         'nav.employees': 'Empleados',
+        'nav.stores_map': 'Mapa Stores',
         'lang.spanish': 'Español',
         'lang.english': 'English',
         'notifications.title': 'Notificaciones',
@@ -48,6 +49,10 @@ const i18n = {
         'product.shelf': 'Estantería',
         'product.shelf_count': 'Cantidad Estante',
         'product.stock_count': 'Stock Total',
+        'product.add_inventory_item': 'Añadir InventoryItem',
+        'product.available_shelf': 'Estantería disponible',
+        'product.select_shelf': 'Selecciona una estantería',
+        'product.no_available_shelves': 'No hay estanterías disponibles para este producto',
         'stores.title': 'Almacenes',
         'stores.add': '+ Añadir Almacén',
         'stores.view_map': 'Ver Mapa',
@@ -98,6 +103,7 @@ const i18n = {
         'nav.stores': 'Stores',
         'nav.products': 'Products',
         'nav.employees': 'Employees',
+        'nav.stores_map': 'Stores Map',
         'lang.spanish': 'Español',
         'lang.english': 'English',
         'notifications.title': 'Notifications',
@@ -130,6 +136,10 @@ const i18n = {
         'product.shelf': 'Shelf',
         'product.shelf_count': 'Shelf Quantity',
         'product.stock_count': 'Total Stock',
+        'product.add_inventory_item': 'Add InventoryItem',
+        'product.available_shelf': 'Available shelf',
+        'product.select_shelf': 'Select a shelf',
+        'product.no_available_shelves': 'No available shelves for this product',
         'stores.title': 'Stores',
         'stores.add': '+ Add Store',
         'stores.view_map': 'View Map',
@@ -242,7 +252,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
     updateLanguageSelector();
     updateUIText();
+    initializeNavbarActive();
     initializeStoreDetailForms();
+    initializeProductDetailForms();
     initializeRealtimeNotifications();
 });
 
@@ -250,6 +262,27 @@ function updateLanguageSelector() {
     const selector = document.getElementById('language-selector');
     if (selector) {
         selector.value = currentLanguage;
+    }
+}
+
+function initializeNavbarActive() {
+    const currentPath = window.location.pathname;
+    const sectionMatchers = [
+        { section: 'home', matches: (path) => path === '/' },
+        { section: 'stores-map', matches: (path) => path === '/stores/map' },
+        { section: 'products', matches: (path) => path.startsWith('/products') },
+        { section: 'stores', matches: (path) => path.startsWith('/stores') && path !== '/stores/map' },
+        { section: 'employees', matches: (path) => path.startsWith('/employees') }
+    ];
+
+    const activeSection = sectionMatchers.find((matcher) => matcher.matches(currentPath))?.section;
+    if (!activeSection) {
+        return;
+    }
+
+    const navLink = document.querySelector(`.nav-links [data-nav-section="${activeSection}"]`);
+    if (navLink) {
+        navLink.classList.add('active');
     }
 }
 
@@ -438,7 +471,7 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
         
         console.log(`[BUY] Sending PATCH to ${inventoryItemId}`, body);
         
-        const response = await fetch(`http://localhost:1026/v2/entities/${inventoryItemId}/attrs`, {
+        const response = await fetch(`/api/inventory-items/${encodeURIComponent(inventoryItemId)}/buy`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
@@ -599,6 +632,119 @@ function closeModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
         modal.classList.add('hidden');
+    }
+}
+
+function initializeProductDetailForms() {
+    const root = document.getElementById('product-detail-root');
+    if (!root) {
+        return;
+    }
+
+    document.querySelectorAll('[data-open-modal="add-inventory-modal"]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            await prepareAddInventoryForm(button);
+            openModal('add-inventory-modal');
+        });
+    });
+
+    document.querySelectorAll('[data-close-modal="add-inventory-modal"]').forEach((button) => {
+        button.addEventListener('click', () => {
+            closeModal('add-inventory-modal');
+        });
+    });
+
+    const form = document.getElementById('add-inventory-form');
+    if (!form) {
+        return;
+    }
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+        const shelfId = formData.get('shelfId');
+        const shelfCount = parseInt(formData.get('shelfCount'), 10);
+        const stockCount = shelfCount;
+
+        if (Number.isNaN(shelfCount) || Number.isNaN(stockCount) || shelfCount <= 0 || stockCount <= 0) {
+            showNotification('Error', 'Las cantidades deben ser mayores que 0', 'error');
+            return;
+        }
+
+        if (shelfCount > stockCount) {
+            showNotification('Error', 'shelfCount no puede ser mayor que stockCount', 'error');
+            return;
+        }
+
+        const payload = {
+            productId: formData.get('productId'),
+            shelfCount,
+            stockCount
+        };
+
+        try {
+            const response = await fetch(`/api/shelves/${encodeURIComponent(shelfId)}/inventory-items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.error || `HTTP ${response.status}`);
+            }
+
+            showNotification('InventoryItem creado', 'El producto se añadió correctamente a la estantería', 'success');
+            closeModal('add-inventory-modal');
+            window.location.reload();
+        } catch (error) {
+            showNotification('Error', `No se pudo crear el InventoryItem: ${error.message}`, 'error');
+        }
+    });
+}
+
+async function prepareAddInventoryForm(button) {
+    const storeId = button.getAttribute('data-store-id') || '';
+    const productId = button.getAttribute('data-product-id') || '';
+
+    const select = document.getElementById('add-inventory-shelf-select');
+    const productInput = document.getElementById('add-inventory-product-id');
+    const storeInput = document.getElementById('add-inventory-store-id');
+
+    if (!select || !productInput || !storeInput) {
+        return;
+    }
+
+    productInput.value = productId;
+    storeInput.value = storeId;
+
+    select.innerHTML = `<option value="">${t('product.select_shelf')}</option>`;
+
+    try {
+        const response = await fetch(`/api/stores/${encodeURIComponent(storeId)}/available-shelves/${encodeURIComponent(productId)}`);
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        const availableShelves = data.available_shelves || [];
+        if (!availableShelves.length) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = t('product.no_available_shelves');
+            select.appendChild(option);
+            return;
+        }
+
+        availableShelves.forEach((shelf) => {
+            const option = document.createElement('option');
+            option.value = shelf.id;
+            option.textContent = shelf.name?.value || shelf.id;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        showNotification('Error', `No se pudo cargar estanterías disponibles: ${error.message}`, 'error');
     }
 }
 

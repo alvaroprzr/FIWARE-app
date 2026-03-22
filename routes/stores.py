@@ -328,11 +328,17 @@ def get_available_shelves(store_id, product_id):
             query=f"refStore=='{store_id}'"
         )
         
-        # Get inventory items for this product in this store
-        product_items = orion.get_entities(
+        # Get inventory items in this store and filter by product in Python.
+        # This avoids relying on compound q syntax differences across Orion versions.
+        store_items = orion.get_entities(
             entity_type='InventoryItem',
-            query=f"refProduct=='{product_id}' AND refStore=='{store_id}'"
+            query=f"refStore=='{store_id}'"
         )
+
+        product_items = [
+            item for item in store_items
+            if item.get('refProduct', {}).get('value') == product_id
+        ]
         
         # Extract shelf IDs containing this product
         shelves_with_product = set(
@@ -496,13 +502,45 @@ def add_product_to_shelf(shelf_id):
         if not store_id:
             return {'error': 'Shelf has no valid refStore'}, 400
 
-        # Prevent duplicates: one product only once per shelf.
-        existing_item = orion.get_entities(
+        # Prevent duplicated rows per (shelf, product): merge counts into existing item.
+        shelf_items = orion.get_entities(
             entity_type='InventoryItem',
-            query=f"refShelf=='{shelf_id}' AND refProduct=='{product_id}'"
+            query=f"refShelf=='{shelf_id}'"
         )
+        existing_item = next(
+            (
+                item for item in shelf_items
+                if item.get('refProduct', {}).get('value') == product_id
+            ),
+            None
+        )
+
         if existing_item:
-            return {'error': 'This product already exists in the shelf'}, 409
+            existing_id = existing_item.get('id')
+            current_shelf_count = _safe_number(existing_item.get('shelfCount', {}).get('value'), 0)
+            current_stock_count = _safe_number(existing_item.get('stockCount', {}).get('value'), 0)
+
+            merged_attrs = {
+                'shelfCount': orion.build_attr(current_shelf_count + shelf_count, 'Number'),
+                'stockCount': orion.build_attr(current_stock_count + stock_count, 'Number')
+            }
+
+            success = orion.update_entity_attributes(existing_id, merged_attrs)
+            if not success:
+                return {'error': 'Could not merge inventory item in Orion'}, 400
+
+            return {
+                'success': True,
+                'merged': True,
+                'inventoryItem': {
+                    'id': existing_id,
+                    'refProduct': orion.build_attr(product_id, 'Relationship'),
+                    'refShelf': orion.build_attr(shelf_id, 'Relationship'),
+                    'refStore': orion.build_attr(store_id, 'Relationship'),
+                    'shelfCount': orion.build_attr(current_shelf_count + shelf_count, 'Number'),
+                    'stockCount': orion.build_attr(current_stock_count + stock_count, 'Number')
+                }
+            }, 200
 
         inventory_id = (
             f"urn:ngsi-ld:InventoryItem:"
@@ -526,6 +564,39 @@ def add_product_to_shelf(shelf_id):
         return {'success': True, 'inventoryItem': inventory_item}, 201
     except Exception as e:
         logger.error(f"Error adding product to shelf {shelf_id}: {e}")
+        return {'error': str(e)}, 500
+
+# ============================================================================
+# PATCH /api/inventory-items/<inventory_item_id>/buy - Decrement inventory
+# ============================================================================
+
+@bp.route('/api/inventory-items/<path:inventory_item_id>/buy', methods=['PATCH'])
+def buy_inventory_item(inventory_item_id):
+    """
+    API endpoint to buy one unit from an InventoryItem.
+    Sends the exact required Orion PATCH payload with $inc -1.
+    """
+    try:
+        inventory_item_id = _normalize_urn(inventory_item_id, 'InventoryItem')
+
+        attrs = {
+            'shelfCount': {
+                'type': 'Integer',
+                'value': {'$inc': -1}
+            },
+            'stockCount': {
+                'type': 'Integer',
+                'value': {'$inc': -1}
+            }
+        }
+
+        success = orion.update_entity_attributes(inventory_item_id, attrs)
+        if not success:
+            return {'error': 'Could not update inventory item in Orion'}, 400
+
+        return {'success': True}, 200
+    except Exception as e:
+        logger.error(f"Error buying inventory item {inventory_item_id}: {e}")
         return {'error': str(e)}, 500
 
 # ============================================================================

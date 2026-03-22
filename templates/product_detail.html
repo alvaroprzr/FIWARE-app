@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container">
-    <div class="product-detail-page">
+    <div class="product-detail-page" id="product-detail-root" data-product-id="{{ product.id }}">
         <div class="product-hero">
             <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/400x300' }}" alt="{{ product.name.value if product and product.name else 'Unknown' }}">
             <div class="product-header">
@@ -12,7 +12,11 @@
                 <p class="price product-price-cell" data-product-id="{{ product.id }}">€{{ '%.2f' | format(product.price.value) if product and product.price and product.price.value else '-' }}</p>
                 <p class="specs">
                     <span class="size">Tamaño: {{ product.size.value if product and product.size else '-' }}</span>
-                    <span class="color">Color: <div class="swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}"></div></span>
+                    <span class="color">
+                        Color:
+                        <span class="swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}"></span>
+                        <span class="color-hex">{{ product.color.value if product and product.color else '#cccccc' }}</span>
+                    </span>
                 </p>
             </div>
         </div>
@@ -26,23 +30,29 @@
                             <th data-i18n="product.store">Almacén</th>
                             <th data-i18n="product.shelf">Estantería</th>
                             <th data-i18n="product.shelf_count">Cantidad Estante</th>
-                            <th data-i18n="product.stock_count">Stock</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for store_id, store_data in inventory_by_store.items() %}
-                        <tr class="store-header">
-                            <td colspan="4">
-                                <strong>{{ store_data.store_name }}</strong> 
-                                <span class="badge">Stock Total: {{ store_data.totalStock }}</span>
+                                                <tr class="store-header">
+                            <td colspan="3">
+                                                                <strong>{{ store_data.store_name }}</strong>
+                                                                <span class="badge">Stock Total: {{ store_data.totalStock }}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn-store-link"
+                                                                    data-open-modal="add-inventory-modal"
+                                                                    data-store-id="{{ store_id }}"
+                                                                    data-product-id="{{ product.id }}">
+                                                                    + Añadir InventoryItem
+                                                                </button>
                             </td>
                         </tr>
                         {% for item in store_data.shelves %}
                         <tr class="shelf-row">
                             <td></td>
-                            <td>{{ (item.refShelf.value.split(':')[-1] if item.refShelf and item.refShelf.value else 'Unknown') }}</td>
+                            <td>{{ item.shelfName if item.shelfName else 'Unknown' }}</td>
                             <td><span class="badge">{{ item.shelfCount.value if item.shelfCount else 0 }}</span></td>
-                            <td>{{ item.stockCount.value if item.stockCount else 0 }}</td>
                         </tr>
                         {% endfor %}
                         {% endfor %}
@@ -50,6 +60,32 @@
                 </table>
             </div>
         </div>
+    </div>
+</div>
+
+<div id="add-inventory-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 data-i18n="product.add_inventory_item">Añadir InventoryItem</h3>
+            <button type="button" class="close-btn" data-close-modal="add-inventory-modal">×</button>
+        </div>
+        <form id="add-inventory-form" class="modal-form">
+            <input id="add-inventory-product-id" name="productId" type="hidden">
+            <input id="add-inventory-store-id" name="storeId" type="hidden">
+
+            <label for="add-inventory-shelf-select" data-i18n="product.available_shelf">Estantería disponible</label>
+            <select id="add-inventory-shelf-select" name="shelfId" required>
+                <option value="" data-i18n="product.select_shelf">Selecciona una estantería</option>
+            </select>
+
+            <label for="add-inventory-shelf-count" data-i18n="product.shelf_count">Cantidad Estante</label>
+            <input id="add-inventory-shelf-count" name="shelfCount" type="number" min="1" value="1" required>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" data-close-modal="add-inventory-modal" data-i18n="store.cancel">Cancelar</button>
+                <button type="submit" class="btn btn-primary" data-i18n="store.save">Guardar</button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
@@ -91,6 +127,25 @@
     margin-top: 1rem;
 }
 
+.color {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.swatch {
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.color-hex {
+    font-family: monospace;
+}
+
 .inventory-table table {
     width: 100%;
     border-collapse: collapse;
@@ -113,6 +168,16 @@
     padding: 0.25rem 0.75rem;
     border-radius: 20px;
     font-size: 0.9rem;
+}
+
+.btn-store-link {
+    margin-left: 1rem;
+    border: none;
+    background: transparent;
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
 }
 
 @media (max-width: 768px) {
