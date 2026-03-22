@@ -5,11 +5,25 @@ Receives real-time events and broadcasts them via Socket.IO to connected clients
 """
 
 import logging
+from datetime import datetime, timezone
 from flask import Blueprint, request, current_app
 
 logger = logging.getLogger(__name__)
 
 bp = Blueprint('notifications', __name__, url_prefix='')
+
+
+def _payload_data_items(payload):
+    """
+    Normalize Orion webhook payload data list.
+    """
+    if not isinstance(payload, dict):
+        return []
+
+    items = payload.get('data', [])
+    if isinstance(items, list):
+        return items
+    return []
 
 # ============================================================================
 # POST /notify/price-change - Price change webhook
@@ -38,17 +52,23 @@ def notify_price_change():
             return {'status': 'ok'}, 200
         
         # Extract price change data
-        if payload and 'data' in payload:
-            for data_item in payload['data']:
+        for data_item in _payload_data_items(payload):
+            if not isinstance(data_item, dict):
+                continue
+
                 product_id = data_item.get('id')
                 price = data_item.get('price', {}).get('value')
                 
+                if not product_id or price is None:
+                    logger.warning(f"Invalid price change payload item: {data_item}")
+                    continue
+
                 # Broadcast to all connected clients
                 socketio.emit('price_change', {
                     'product_id': product_id,
                     'new_price': price,
-                    'timestamp': data_item.get('modified')
-                }, broadcast=True)
+                    'timestamp': datetime.now(timezone.utc).isoformat()
+                })
                 
                 logger.info(f"Broadcasted price change: {product_id} -> {price}")
         
@@ -86,13 +106,19 @@ def notify_low_stock():
             return {'status': 'ok'}, 200
         
         # Extract low stock data
-        if payload and 'data' in payload:
-            for data_item in payload['data']:
+        for data_item in _payload_data_items(payload):
+            if not isinstance(data_item, dict):
+                continue
+
                 item_id = data_item.get('id')
                 shelf_count = data_item.get('shelfCount', {}).get('value')
                 product_id = data_item.get('refProduct', {}).get('value')
                 shelf_id = data_item.get('refShelf', {}).get('value')
                 store_id = data_item.get('refStore', {}).get('value')
+
+                if not item_id:
+                    logger.warning(f"Invalid low stock payload item: {data_item}")
+                    continue
                 
                 # Broadcast to all connected clients
                 socketio.emit('low_stock', {
@@ -101,8 +127,8 @@ def notify_low_stock():
                     'product_id': product_id,
                     'shelf_id': shelf_id,
                     'store_id': store_id,
-                    'timestamp': data_item.get('modified')
-                }, broadcast=True)
+                    'timestamp': datetime.now(timezone.utc).isoformat()
+                })
                 
                 logger.warning(f"Low stock alert: {item_id} (count={shelf_count})")
         

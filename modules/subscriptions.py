@@ -12,6 +12,18 @@ logger = logging.getLogger(__name__)
 
 WEBHOOK_URL_BASE = os.getenv('WEBHOOK_URL_BASE', 'http://host.docker.internal:5000')
 
+
+def _subscription_exists(description: str) -> bool:
+    """
+    Check if a subscription already exists in Orion by description.
+    This prevents duplicate subscriptions across app restarts.
+    """
+    subscriptions = orion.get_subscriptions()
+    for subscription in subscriptions:
+        if subscription.get('description') == description:
+            return True
+    return False
+
 # ============================================================================
 # Subscription 1: Price Change Notifications
 # ============================================================================
@@ -22,8 +34,14 @@ def register_price_change_subscription():
     Triggers notification when product price is updated.
     Webhook: POST /notify/price-change
     """
+    description = 'Price change notifications for products'
+
+    if _subscription_exists(description):
+        logger.info("Price change subscription already exists, skipping creation")
+        return True
+
     subscription = {
-        'description': 'Price change notifications for products',
+        'description': description,
         'subject': {
             'entities': [
                 {
@@ -63,8 +81,14 @@ def register_low_stock_subscription():
     Triggers notification when shelf item count drops below 3.
     Webhook: POST /notify/low-stock
     """
+    description = 'Low stock notifications for inventory items'
+
+    if _subscription_exists(description):
+        logger.info("Low stock subscription already exists, skipping creation")
+        return True
+
     subscription = {
-        'description': 'Low stock notifications for inventory items',
+        'description': description,
         'subject': {
             'entities': [
                 {
