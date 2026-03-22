@@ -665,7 +665,7 @@ function initializeProductDetailForms() {
         const formData = new FormData(form);
         const shelfId = formData.get('shelfId');
         const shelfCount = parseInt(formData.get('shelfCount'), 10);
-        const stockCount = parseInt(formData.get('stockCount'), 10);
+        const stockCount = shelfCount;
 
         if (Number.isNaN(shelfCount) || Number.isNaN(stockCount) || shelfCount <= 0 || stockCount <= 0) {
             showNotification('Error', 'Las cantidades deben ser mayores que 0', 'error');

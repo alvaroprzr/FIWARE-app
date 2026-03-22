@@ -11,6 +11,13 @@ logger = logging.getLogger(__name__)
 
 bp = Blueprint('products', __name__, url_prefix='')
 
+
+def _safe_number(value, default=0):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
 # ============================================================================
 # GET /products - List all products
 # ============================================================================
@@ -78,7 +85,8 @@ def product_detail(product_id):
         
         # Organization by store with totalStock calculation
         inventory_by_store = {}
-        store_names = {}  # Cache for store names
+        involved_store_ids = set()
+        shelf_ids = set()
         
         for item in inventory_items:
             store_id = item.get('refStore', {}).get('value', 'Unknown')
@@ -89,20 +97,39 @@ def product_detail(product_id):
                     'totalStock': 0,
                     'store_name': ''
                 }
+            involved_store_ids.add(store_id)
+
+            shelf_id = item.get('refShelf', {}).get('value')
+            if shelf_id:
+                shelf_ids.add(shelf_id)
             
             # Real stock in this view is the sum of shelfCount for the same product+store.
-            shelf_count = item.get('shelfCount', {}).get('value', 0)
+            shelf_count = _safe_number(item.get('shelfCount', {}).get('value', 0), 0)
             inventory_by_store[store_id]['totalStock'] += shelf_count
             inventory_by_store[store_id]['shelves'].append(item)
+
+        shelf_names = {}
+        if shelf_ids:
+            shelves = orion.get_entities(entity_type='Shelf', limit=1000)
+            shelf_names = {
+                shelf.get('id'): shelf.get('name', {}).get('value', shelf.get('id', '').split(':')[-1])
+                for shelf in shelves
+                if shelf.get('id') in shelf_ids
+            }
+
+        for store_data in inventory_by_store.values():
+            for item in store_data['shelves']:
+                shelf_id = item.get('refShelf', {}).get('value')
+                item['shelfName'] = shelf_names.get(shelf_id, shelf_id.split(':')[-1] if shelf_id else 'Unknown')
         
         # Fetch store names to display
-        if store_names or inventory_by_store:
+        if inventory_by_store:
             stores = orion.get_entities(entity_type='Store', limit=1000)
             for store in stores:
-                for store_id in inventory_by_store:
-                    if store.get('id') == store_id:
-                        store_name = store.get('name', {}).get('value', store_id.split(':')[-1])
-                        inventory_by_store[store_id]['store_name'] = store_name
+                store_id = store.get('id')
+                if store_id in involved_store_ids:
+                    store_name = store.get('name', {}).get('value', store_id.split(':')[-1])
+                    inventory_by_store[store_id]['store_name'] = store_name
         
         return render_template('product_detail.html', 
                              product=product,

@@ -12,7 +12,11 @@
                 <p class="price product-price-cell" data-product-id="{{ product.id }}">€{{ '%.2f' | format(product.price.value) if product and product.price and product.price.value else '-' }}</p>
                 <p class="specs">
                     <span class="size">Tamaño: {{ product.size.value if product and product.size else '-' }}</span>
-                    <span class="color">Color: <div class="swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}"></div></span>
+                    <span class="color">
+                        Color:
+                        <span class="swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}"></span>
+                        <span class="color-hex">{{ product.color.value if product and product.color else '#cccccc' }}</span>
+                    </span>
                 </p>
             </div>
         </div>
@@ -26,13 +30,12 @@
                             <th data-i18n="product.store">Almacén</th>
                             <th data-i18n="product.shelf">Estantería</th>
                             <th data-i18n="product.shelf_count">Cantidad Estante</th>
-                            <th data-i18n="product.stock_count">Stock</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for store_id, store_data in inventory_by_store.items() %}
                                                 <tr class="store-header">
-                            <td colspan="4">
+                            <td colspan="3">
                                                                 <strong>{{ store_data.store_name }}</strong>
                                                                 <span class="badge">Stock Total: {{ store_data.totalStock }}</span>
                                                                 <button
@@ -48,9 +51,8 @@
                         {% for item in store_data.shelves %}
                         <tr class="shelf-row">
                             <td></td>
-                            <td>{{ (item.refShelf.value.split(':')[-1] if item.refShelf and item.refShelf.value else 'Unknown') }}</td>
+                            <td>{{ item.shelfName if item.shelfName else 'Unknown' }}</td>
                             <td><span class="badge">{{ item.shelfCount.value if item.shelfCount else 0 }}</span></td>
-                            <td>{{ item.stockCount.value if item.stockCount else 0 }}</td>
                         </tr>
                         {% endfor %}
                         {% endfor %}
@@ -78,9 +80,6 @@
 
             <label for="add-inventory-shelf-count" data-i18n="product.shelf_count">Cantidad Estante</label>
             <input id="add-inventory-shelf-count" name="shelfCount" type="number" min="1" value="1" required>
-
-            <label for="add-inventory-stock-count" data-i18n="product.stock_count">Stock Total</label>
-            <input id="add-inventory-stock-count" name="stockCount" type="number" min="1" value="1" required>
 
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" data-close-modal="add-inventory-modal" data-i18n="store.cancel">Cancelar</button>
@@ -126,6 +125,25 @@
     display: flex;
     gap: 2rem;
     margin-top: 1rem;
+}
+
+.color {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.swatch {
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.color-hex {
+    font-family: monospace;
 }
 
 .inventory-table table {
