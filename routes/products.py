@@ -55,7 +55,31 @@ def new_product():
     GET /products/new - Show form to create new product.
     Renders a form template for adding a new product to the catalog.
     """
-    return render_template('add_product_form.html')
+    return render_template('product_form.html')
+
+
+# ============================================================================
+# GET /products/<product_id>/edit - Edit product form
+# ============================================================================
+
+@bp.route('/products/<product_id>/edit', methods=['GET'])
+def edit_product_form(product_id):
+    """
+    GET /products/<product_id>/edit - Show form to edit product.
+    """
+    try:
+        if not product_id.startswith('urn:'):
+            product_id = f"urn:ngsi-ld:Product:{product_id}"
+
+        product = orion.get_entity(product_id)
+        if not product:
+            return render_template('error.html',
+                                 error='Producto no encontrado'), 404
+
+        return render_template('product_form.html', product=product)
+    except Exception as e:
+        logger.error(f"Error fetching product for edit: {e}")
+        return render_template('error.html', error=str(e)), 500
 
 # ============================================================================
 # GET /products/<product_id> - Product detail page
@@ -82,6 +106,13 @@ def product_detail(product_id):
             entity_type='InventoryItem',
             query=f"refProduct=='{product_id}'"
         )
+
+        stores = orion.get_entities(entity_type='Store', limit=1000)
+        existing_store_names = {
+            store.get('id'): store.get('name', {}).get('value', store.get('id', '').split(':')[-1])
+            for store in stores
+            if store.get('id')
+        }
         
         # Organization by store with totalStock calculation
         inventory_by_store = {}
@@ -90,12 +121,16 @@ def product_detail(product_id):
         
         for item in inventory_items:
             store_id = item.get('refStore', {}).get('value', 'Unknown')
+
+            # Skip orphan InventoryItems pointing to Stores that no longer exist.
+            if store_id not in existing_store_names:
+                continue
             
             if store_id not in inventory_by_store:
                 inventory_by_store[store_id] = {
                     'shelves': [],
                     'totalStock': 0,
-                    'store_name': ''
+                    'store_name': existing_store_names.get(store_id, '')
                 }
             involved_store_ids.add(store_id)
 
@@ -121,15 +156,6 @@ def product_detail(product_id):
             for item in store_data['shelves']:
                 shelf_id = item.get('refShelf', {}).get('value')
                 item['shelfName'] = shelf_names.get(shelf_id, shelf_id.split(':')[-1] if shelf_id else 'Unknown')
-        
-        # Fetch store names to display
-        if inventory_by_store:
-            stores = orion.get_entities(entity_type='Store', limit=1000)
-            for store in stores:
-                store_id = store.get('id')
-                if store_id in involved_store_ids:
-                    store_name = store.get('name', {}).get('value', store_id.split(':')[-1])
-                    inventory_by_store[store_id]['store_name'] = store_name
         
         return render_template('product_detail.html', 
                              product=product,
@@ -221,7 +247,31 @@ def delete_product(product_id):
     try:
         if not product_id.startswith('urn:'):
             product_id = f"urn:ngsi-ld:Product:{product_id}"
-        
+
+        inventory_items = orion.get_entities(
+            entity_type='InventoryItem',
+            query=f"refProduct=='{product_id}'"
+        )
+
+        failed_inventory_deletes = []
+        for item in inventory_items:
+            item_id = item.get('id')
+            if not item_id:
+                continue
+            if not orion.delete_entity(item_id):
+                failed_inventory_deletes.append(item_id)
+
+        if failed_inventory_deletes:
+            logger.error(
+                "Error deleting related InventoryItems for Product %s: %s",
+                product_id,
+                failed_inventory_deletes
+            )
+            return {
+                'error': 'Could not delete related InventoryItems',
+                'failedInventoryItems': failed_inventory_deletes
+            }, 500
+
         success = orion.delete_entity(product_id)
         return {'success': success}, 200 if success else 400
     except Exception as e:

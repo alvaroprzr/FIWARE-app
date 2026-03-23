@@ -34,6 +34,33 @@ def _safe_number(value, default: int = 0) -> int:
     except (TypeError, ValueError):
         return default
 
+
+def _is_valid_store_id(store_id: str) -> bool:
+    return isinstance(store_id, str) and store_id.startswith('urn:ngsi-ld:Store:') and bool(store_id.split(':')[-1])
+
+
+def _has_valid_store_name(store: dict) -> bool:
+    name_attr = store.get('name')
+    if not isinstance(name_attr, dict):
+        return False
+    name_value = name_attr.get('value')
+    return isinstance(name_value, str) and bool(name_value.strip())
+
+
+def _cleanup_invalid_stores(stores: list) -> None:
+    """Delete clearly invalid Store entities from Orion to avoid phantom rows."""
+    for store in stores:
+        store_id = store.get('id')
+        invalid_id = not _is_valid_store_id(store_id)
+        missing_name = not _has_valid_store_name(store)
+        if invalid_id or missing_name:
+            if store_id:
+                deleted = orion.delete_entity(store_id)
+                if deleted:
+                    logger.info("Deleted invalid Store entity: %s", store_id)
+                else:
+                    logger.warning("Could not delete invalid Store entity: %s", store_id)
+
 # ============================================================================
 # GET /stores - List all stores
 # ============================================================================
@@ -45,9 +72,12 @@ def list_stores():
     """
     try:
         stores = orion.get_entities(entity_type='Store', limit=1000)
+
+        # Clean invalid stores and keep only valid rows in the UI.
+        _cleanup_invalid_stores(stores)
         stores = [
             store for store in stores
-            if isinstance(store.get('id'), str) and store.get('id', '').startswith('urn:ngsi-ld:Store:')
+            if _is_valid_store_id(store.get('id')) and _has_valid_store_name(store)
         ]
         
         # Get shelf count for each store
@@ -653,10 +683,22 @@ def update_store(store_id):
         # Build updated attributes
         if 'name' in data:
             attrs['name'] = orion.build_attr(data['name'], 'Text')
+        if 'url' in data:
+            attrs['url'] = orion.build_attr(data.get('url', ''), 'Text')
+        if 'telephone' in data:
+            attrs['telephone'] = orion.build_attr(data.get('telephone', ''), 'Text')
+        if 'countryCode' in data:
+            attrs['countryCode'] = orion.build_attr(data.get('countryCode', ''), 'Text')
         if 'capacity' in data:
             attrs['capacity'] = orion.build_attr(float(data['capacity']), 'Number')
         if 'description' in data:
             attrs['description'] = orion.build_attr(data['description'], 'Text')
+        if 'address' in data:
+            attrs['address'] = orion.build_attr(data.get('address', {}), 'StructuredValue')
+        if 'location' in data:
+            attrs['location'] = orion.build_attr(data.get('location', {}), 'geo:json')
+        if 'image' in data:
+            attrs['image'] = orion.build_attr(data.get('image', ''), 'Text')
         
         if not attrs:
             return {'error': 'No attributes to update'}, 400
@@ -679,7 +721,53 @@ def delete_store(store_id):
     try:
         if not store_id.startswith('urn:'):
             store_id = f"urn:ngsi-ld:Store:{store_id}"
-        
+
+        inventory_items = orion.get_entities(
+            entity_type='InventoryItem',
+            query=f"refStore=='{store_id}'"
+        )
+        failed_inventory_deletes = []
+        for item in inventory_items:
+            item_id = item.get('id')
+            if not item_id:
+                continue
+            if not orion.delete_entity(item_id):
+                failed_inventory_deletes.append(item_id)
+
+        if failed_inventory_deletes:
+            logger.error(
+                "Error deleting InventoryItems for Store %s: %s",
+                store_id,
+                failed_inventory_deletes
+            )
+            return {
+                'error': 'Could not delete related InventoryItems',
+                'failedInventoryItems': failed_inventory_deletes
+            }, 500
+
+        shelves = orion.get_entities(
+            entity_type='Shelf',
+            query=f"refStore=='{store_id}'"
+        )
+        failed_shelf_deletes = []
+        for shelf in shelves:
+            shelf_id = shelf.get('id')
+            if not shelf_id:
+                continue
+            if not orion.delete_entity(shelf_id):
+                failed_shelf_deletes.append(shelf_id)
+
+        if failed_shelf_deletes:
+            logger.error(
+                "Error deleting Shelves for Store %s: %s",
+                store_id,
+                failed_shelf_deletes
+            )
+            return {
+                'error': 'Could not delete related Shelves',
+                'failedShelves': failed_shelf_deletes
+            }, 500
+
         success = orion.delete_entity(store_id)
         return {'success': success}, 200 if success else 400
     except Exception as e:

@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}{% if product %}Editar Producto{% else %}Añadir Producto{% endif %} - FIWARE Almacén{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="form-section">
+    <h1>{% if product %}Editar Producto{% else %}Añadir Nuevo Producto{% endif %}</h1>
+
+    {% if error %}
+    <div class="alert alert-error">{{ error }}</div>
+    {% endif %}
+
+    <form id="product-form" class="product-form" data-validate-inline="true" novalidate>
+      <div class="form-group">
+        <label for="product-id" data-i18n="form.id">ID del Producto</label>
+        <input
+          type="text"
+          id="product-id"
+          name="id"
+          required
+          pattern="[a-z0-9\-]+"
+          title="Solo letras minúsculas, números y guiones"
+          value="{% if product and product.id %}{{ product.id.split(':')[-1] }}{% endif %}"
+          {% if product %}readonly{% endif %}
+          placeholder="ejemplo-producto-001"
+        >
+        <span class="field-error" data-error-for="product-id"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="product-name" data-i18n="form.name">Nombre del Producto</label>
+        <input
+          type="text"
+          id="product-name"
+          name="name"
+          required
+          value="{% if product and product.name %}{{ product.name.value }}{% endif %}"
+          placeholder="Laptop Gaming ASUS"
+        >
+        <span class="field-error" data-error-for="product-name"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="product-price" data-i18n="form.price">Precio (EUR)</label>
+        <input
+          type="number"
+          id="product-price"
+          name="price"
+          required
+          min="0.01"
+          step="0.01"
+          value="{% if product and product.price %}{{ product.price.value }}{% endif %}"
+          placeholder="999.99"
+        >
+        <span class="field-error" data-error-for="product-price"></span>
+      </div>
+
+      <div class="form-group">
+        <label data-i18n="form.size">Tamaño</label>
+        <div class="size-radio-group">
+          <label><input type="radio" name="size" value="S" {% if product and product.size and product.size.value == 'S' %}checked{% endif %} required> S</label>
+          <label><input type="radio" name="size" value="M" {% if product and product.size and product.size.value == 'M' %}checked{% endif %} required> M</label>
+          <label><input type="radio" name="size" value="L" {% if product and product.size and product.size.value == 'L' %}checked{% endif %} required> L</label>
+          <label><input type="radio" name="size" value="XL" {% if product and product.size and product.size.value == 'XL' %}checked{% endif %} required> XL</label>
+        </div>
+        <span class="field-error" data-error-for="size"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="product-color" data-i18n="form.color">Color</label>
+        <input
+          type="color"
+          id="product-color"
+          name="color"
+          value="{% if product and product.color %}{{ product.color.value }}{% else %}#000000{% endif %}"
+        >
+        <span class="field-error" data-error-for="product-color"></span>
+      </div>
+
+      <div class="form-group">
+        <label for="product-image" data-i18n="form.image">URL de Imagen</label>
+        <input
+          type="url"
+          id="product-image"
+          name="image"
+          value="{% if product and product.image %}{{ product.image.value }}{% endif %}"
+          placeholder="https://via.placeholder.com/300x200"
+        >
+        <span class="field-error" data-error-for="product-image"></span>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">{% if product %}Guardar Cambios{% else %}Crear Producto{% endif %}</button>
+        <a href="/products" class="btn btn-secondary" data-i18n="form.cancel">Cancelar</a>
+      </div>
+
+      <div id="form-message" class="form-message"></div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-section {
+  max-width: 600px;
+  margin: 2rem auto;
+  background: var(--surface);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.product-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.size-radio-group {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.size-radio-group label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.field-error {
+  display: block;
+  min-height: 1rem;
+  margin-top: 0.25rem;
+  color: #c62828;
+  font-size: 0.82rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  flex: 1;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.form-message {
+  display: none;
+  padding: 0.8rem;
+  border-radius: 6px;
+}
+
+.form-message.success {
+  display: block;
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.form-message.error {
+  display: block;
+  background: #ffebee;
+  color: #c62828;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('product-form');
+  const messageDiv = document.getElementById('form-message');
+  const productIdInput = document.getElementById('product-id');
+  const isEditMode = productIdInput.hasAttribute('readonly');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!form.checkValidity()) {
+      return;
+    }
+
+    const payload = {
+      id: productIdInput.value,
+      name: document.getElementById('product-name').value,
+      price: parseFloat(document.getElementById('product-price').value),
+      size: (document.querySelector('input[name="size"]:checked') || {}).value || '',
+      color: document.getElementById('product-color').value,
+      image: document.getElementById('product-image').value
+    };
+
+    const endpoint = isEditMode
+      ? `/api/products/${encodeURIComponent(productIdInput.value)}`
+      : '/api/products';
+
+    const method = isEditMode ? 'PATCH' : 'POST';
+
+    if (isEditMode) {
+      delete payload.id;
+    }
+
+    try {
+      const response = await fetch(endpoint, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        messageDiv.className = 'form-message success';
+        messageDiv.textContent = isEditMode
+          ? 'Producto actualizado correctamente. Redirigiendo...'
+          : 'Producto creado correctamente. Redirigiendo...';
+        setTimeout(() => {
+          window.location.href = '/products';
+        }, 1200);
+      } else {
+        messageDiv.className = 'form-message error';
+        messageDiv.textContent = `Error: ${data.error || 'No se pudo guardar el producto'}`;
+      }
+    } catch (error) {
+      messageDiv.className = 'form-message error';
+      messageDiv.textContent = `Error de conexion: ${error.message}`;
+    }
+  });
+});
+</script>
+{% endblock %}

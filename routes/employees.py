@@ -11,6 +11,35 @@ logger = logging.getLogger(__name__)
 
 bp = Blueprint('employees', __name__, url_prefix='')
 
+
+def _get_ngsi_value(entity, attr_name, default=None):
+    """Safely extract NGSIv2 attribute values from dict-based entities."""
+    attr = entity.get(attr_name)
+    if isinstance(attr, dict):
+        return attr.get('value', default)
+    if attr is None:
+        return default
+    return attr
+
+
+def _normalize_employee_for_form(employee):
+    """Normalize an Employee payload so templates can safely use .value accesses."""
+    skills = _get_ngsi_value(employee, 'skills', [])
+    if not isinstance(skills, list):
+        skills = []
+
+    return {
+        'id': {'value': employee.get('id', '')},
+        'name': {'value': _get_ngsi_value(employee, 'name', '')},
+        'email': {'value': _get_ngsi_value(employee, 'email', '')},
+        'dateOfContract': {'value': _get_ngsi_value(employee, 'dateOfContract', '')},
+        'skills': {'value': skills},
+        'username': {'value': _get_ngsi_value(employee, 'username', '')},
+        'category': {'value': _get_ngsi_value(employee, 'category', '')},
+        'refStore': {'value': _get_ngsi_value(employee, 'refStore', '')},
+        'image': {'value': _get_ngsi_value(employee, 'image', '')}
+    }
+
 # ============================================================================
 # GET /employees - List all employees
 # ============================================================================
@@ -26,10 +55,17 @@ def list_employees():
         # Get store name for each employee
         for emp in employees:
             store_id = emp.get('refStore', {}).get('value')
+            emp['store_name'] = 'Sin asignar'
+            emp['store_exists'] = False
+
             if store_id:
                 store = orion.get_entity(store_id)
+                store_name = ''
                 if store:
-                    emp['store_name'] = store.get('name', {}).get('value', 'Unknown')
+                    store_name = store.get('name', {}).get('value', '')
+                if store_name:
+                    emp['store_name'] = store_name
+                    emp['store_exists'] = True
         
         return render_template('employees.html', employees=employees)
     except Exception as e:
@@ -108,8 +144,10 @@ def edit_employee_form(employee_id):
         if not employee:
             return render_template('error.html',
                                  error='Empleado no encontrado'), 404
-        
-        return render_template('employee_form.html', employee=employee)
+
+        normalized_employee = _normalize_employee_for_form(employee)
+
+        return render_template('employee_form.html', employee=normalized_employee)
     except Exception as e:
         logger.error(f"Error fetching employee for edit: {e}")
         return render_template('error.html', error=str(e)), 500
@@ -133,6 +171,10 @@ def create_employee():
         skills = data.get('skills', [])
         if isinstance(skills, str):
             skills = [s.strip() for s in skills.split(',')]
+
+        ref_store = data.get('refStore', '')
+        if ref_store and not ref_store.startswith('urn:'):
+            ref_store = f"urn:ngsi-ld:Store:{ref_store}"
         
         employee = {
             'id': data['id'] if data['id'].startswith('urn:') else f"urn:ngsi-ld:Employee:{data['id']}",
@@ -146,7 +188,7 @@ def create_employee():
             'category': orion.build_attr(data.get('category', ''), 'Text'),
             'refStore': {
                 'type': 'Relationship',
-                'value': data.get('refStore', '')
+                'value': ref_store
             },
             'image': orion.build_attr(data.get('image', ''), 'Text')
         }
@@ -177,13 +219,26 @@ def update_employee(employee_id):
             attrs['name'] = orion.build_attr(data['name'], 'Text')
         if 'email' in data:
             attrs['email'] = orion.build_attr(data['email'], 'Text')
+        if 'dateOfContract' in data:
+            attrs['dateOfContract'] = orion.build_attr(data['dateOfContract'], 'DateTime')
         if 'skills' in data:
             skills = data['skills']
             if isinstance(skills, str):
                 skills = [s.strip() for s in skills.split(',')]
             attrs['skills'] = orion.build_attr(skills, 'Array')
+        if 'username' in data:
+            attrs['username'] = orion.build_attr(data['username'], 'Text')
+        if 'password' in data and data.get('password'):
+            attrs['password'] = orion.build_attr(data['password'], 'Text')
         if 'category' in data:
             attrs['category'] = orion.build_attr(data['category'], 'Text')
+        if 'refStore' in data:
+            ref_store = data.get('refStore', '')
+            if ref_store and not ref_store.startswith('urn:'):
+                ref_store = f"urn:ngsi-ld:Store:{ref_store}"
+            attrs['refStore'] = orion.build_attr(ref_store, 'Relationship')
+        if 'image' in data:
+            attrs['image'] = orion.build_attr(data['image'], 'Text')
         
         if not attrs:
             return {'error': 'No attributes to update'}, 400

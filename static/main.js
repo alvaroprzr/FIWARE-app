@@ -96,7 +96,16 @@ const i18n = {
         'employee.category': 'Categoría',
         'map.title': 'Mapa Global de Almacenes',
         'error.title': 'Error',
-        'error.back_home': 'Volver al Inicio'
+        'error.back_home': 'Volver al Inicio',
+        'form.error.required': 'Este campo es requerido.',
+        'form.error.invalid_email': 'Por favor ingresa un correo válido.',
+        'form.error.invalid_tel': 'Formato de teléfono inválido. Usa: +34 91 234 5678',
+        'form.error.invalid_url': 'Por favor ingresa una URL válida.',
+        'form.error.too_short': 'El valor es demasiado corto.',
+        'form.error.pattern': 'Formato inválido.',
+        'form.error.range': 'Valor fuera de rango permitido.',
+        'form.error.password_mismatch': 'Las contraseñas no coinciden.',
+        'form.error.skills_required': 'Selecciona al menos una competencia.'
     },
     en: {
         'nav.home': 'Home',
@@ -183,7 +192,16 @@ const i18n = {
         'employee.category': 'Category',
         'map.title': 'Global Store Map',
         'error.title': 'Error',
-        'error.back_home': 'Back to Home'
+        'error.back_home': 'Back to Home',
+        'form.error.required': 'This field is required.',
+        'form.error.invalid_email': 'Please enter a valid email address.',
+        'form.error.invalid_tel': 'Invalid phone format. Use: +34 91 234 5678',
+        'form.error.invalid_url': 'Please enter a valid URL.',
+        'form.error.too_short': 'Value is too short.',
+        'form.error.pattern': 'Invalid format.',
+        'form.error.range': 'Value is outside the allowed range.',
+        'form.error.password_mismatch': 'Passwords do not match.',
+        'form.error.skills_required': 'Select at least one skill.'
     }
 };
 
@@ -997,32 +1015,94 @@ function loadStoresForDatalist() {
 // ============================================================================
 
 function setupFormValidation() {
-    // Setup custom error messages on input fields
-    const formElements = document.querySelectorAll('input, select, textarea');
-    
-    formElements.forEach((el) => {
-        el.addEventListener('invalid', (e) => {
-            e.preventDefault();
-            
-            if (el.type === 'email' && el.validity.typeMismatch) {
-                el.setCustomValidity('Por favor ingresa un correo válido.');
-            } else if (el.type === 'tel' && el.validity.patternMismatch) {
-                el.setCustomValidity('Formato de teléfono inválido. Usa: +34 91 234 5678');
-            } else if (el.type === 'url' && el.validity.typeMismatch) {
-                el.setCustomValidity('Por favor ingresa una URL válida.');
-            } else if (el.validity.valueMissing) {
-                el.setCustomValidity('Este campo es requerido.');
-            } else if (el.validity.tooShort) {
-                el.setCustomValidity(`Mínimo ${el.minLength} caracteres.`);
-            } else if (el.validity.patternMismatch) {
-                el.setCustomValidity('Formato inválido.');
-            } else if (el.validity.stepMismatch || el.validity.rangeOverflow || el.validity.rangeUnderflow) {
-                el.setCustomValidity('Valor fuera de rango permitido.');
-            }
+    const forms = document.querySelectorAll('form[data-validate-inline="true"]');
+
+    const errorKeyFor = (el) => {
+        if ((el.type === 'radio' || el.type === 'checkbox') && el.name) {
+            return el.name;
+        }
+        return el.id || el.name;
+    };
+
+    const setFieldError = (el, message) => {
+        const key = errorKeyFor(el);
+        if (!key) return;
+        const errorNode = document.querySelector(`.field-error[data-error-for="${key}"]`);
+        if (errorNode) {
+            errorNode.textContent = message || '';
+        }
+    };
+
+    const clearFieldError = (el) => {
+        setFieldError(el, '');
+    };
+
+    const messageFor = (el) => {
+        if (el.validity.valueMissing) return t('form.error.required');
+        if (el.type === 'email' && el.validity.typeMismatch) return t('form.error.invalid_email');
+        if (el.type === 'tel' && el.validity.patternMismatch) return t('form.error.invalid_tel');
+        if (el.type === 'url' && el.validity.typeMismatch) return t('form.error.invalid_url');
+        if (el.validity.tooShort) return t('form.error.too_short');
+        if (el.validity.patternMismatch) return t('form.error.pattern');
+        if (el.validity.stepMismatch || el.validity.rangeOverflow || el.validity.rangeUnderflow) {
+            return t('form.error.range');
+        }
+        return '';
+    };
+
+    forms.forEach((form) => {
+        const controls = form.querySelectorAll('input, select, textarea');
+        controls.forEach((el) => {
+            el.addEventListener('input', () => {
+                el.setCustomValidity('');
+                clearFieldError(el);
+            });
+            el.addEventListener('change', () => {
+                el.setCustomValidity('');
+                clearFieldError(el);
+            });
         });
-        
-        el.addEventListener('change', () => {
-            el.setCustomValidity('');
+
+        form.addEventListener('submit', (e) => {
+            let valid = true;
+
+            controls.forEach((el) => {
+                el.setCustomValidity('');
+                clearFieldError(el);
+            });
+
+            const matchInputs = form.querySelectorAll('input[data-match]');
+            matchInputs.forEach((el) => {
+                const target = form.querySelector(`#${el.getAttribute('data-match')}`);
+                if (target && el.value !== target.value) {
+                    el.setCustomValidity(t('form.error.password_mismatch'));
+                }
+            });
+
+            const skillsBoxes = form.querySelectorAll('input[name="skills"]');
+            if (skillsBoxes.length) {
+                const checked = Array.from(skillsBoxes).some((cb) => cb.checked);
+                if (!checked) {
+                    valid = false;
+                    setFieldError(skillsBoxes[0], t('form.error.skills_required'));
+                }
+            }
+
+            controls.forEach((el) => {
+                if (el.type === 'hidden') {
+                    return;
+                }
+
+                if (!el.checkValidity()) {
+                    valid = false;
+                    const msg = el.validationMessage || messageFor(el);
+                    setFieldError(el, msg || messageFor(el));
+                }
+            });
+
+            if (!valid) {
+                e.preventDefault();
+            }
         });
     });
 }

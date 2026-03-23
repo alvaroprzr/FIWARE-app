@@ -582,7 +582,15 @@ label {
 }
 
 .store-detail-hero:hover img {
-    transform: scale(1.1) rotate(360deg);
+    transform: scale(1.15) rotate(360deg);
+}
+
+.field-error {
+    display: block;
+    min-height: 1rem;
+    margin-top: 0.25rem;
+    color: #c62828;
+    font-size: 0.82rem;
 }
 
 .store-hero-info {
