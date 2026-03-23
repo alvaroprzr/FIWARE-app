@@ -7,6 +7,7 @@ Receives real-time events and broadcasts them via Socket.IO to connected clients
 import logging
 from datetime import datetime, timezone
 from flask import Blueprint, request, current_app
+from modules import orion
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,20 @@ def _payload_data_items(payload):
     if isinstance(items, list):
         return items
     return []
+
+
+def _entity_name(entity_id):
+    """
+    Resolve a human-readable name from an Orion entity ID.
+    """
+    if not entity_id:
+        return None
+
+    entity = orion.get_entity(entity_id)
+    if not entity:
+        return None
+
+    return entity.get('name', {}).get('value')
 
 # ============================================================================
 # POST /notify/price-change - Price change webhook
@@ -56,21 +71,23 @@ def notify_price_change():
             if not isinstance(data_item, dict):
                 continue
 
-                product_id = data_item.get('id')
-                price = data_item.get('price', {}).get('value')
-                
-                if not product_id or price is None:
-                    logger.warning(f"Invalid price change payload item: {data_item}")
-                    continue
+            product_id = data_item.get('id')
+            price = data_item.get('price', {}).get('value')
 
-                # Broadcast to all connected clients
-                socketio.emit('price_change', {
-                    'product_id': product_id,
-                    'new_price': price,
-                    'timestamp': datetime.now(timezone.utc).isoformat()
-                })
-                
-                logger.info(f"Broadcasted price change: {product_id} -> {price}")
+            if not product_id or price is None:
+                logger.warning(f"Invalid price change payload item: {data_item}")
+                continue
+
+            event_payload = {
+                'product_id': product_id,
+                'new_price': price,
+                'timestamp': datetime.now(timezone.utc).isoformat()
+            }
+
+            # Broadcast to all connected clients
+            socketio.emit('price_change', event_payload)
+
+            logger.info(f"Socket emit price_change: {event_payload}")
         
         return {'status': 'ok'}, 200
     except Exception as e:
@@ -110,27 +127,33 @@ def notify_low_stock():
             if not isinstance(data_item, dict):
                 continue
 
-                item_id = data_item.get('id')
-                shelf_count = data_item.get('shelfCount', {}).get('value')
-                product_id = data_item.get('refProduct', {}).get('value')
-                shelf_id = data_item.get('refShelf', {}).get('value')
-                store_id = data_item.get('refStore', {}).get('value')
+            item_id = data_item.get('id')
+            shelf_count = data_item.get('shelfCount', {}).get('value')
+            product_id = data_item.get('refProduct', {}).get('value')
+            shelf_id = data_item.get('refShelf', {}).get('value')
+            store_id = data_item.get('refStore', {}).get('value')
 
-                if not item_id:
-                    logger.warning(f"Invalid low stock payload item: {data_item}")
-                    continue
-                
-                # Broadcast to all connected clients
-                socketio.emit('low_stock', {
-                    'item_id': item_id,
-                    'shelf_count': shelf_count,
-                    'product_id': product_id,
-                    'shelf_id': shelf_id,
-                    'store_id': store_id,
-                    'timestamp': datetime.now(timezone.utc).isoformat()
-                })
-                
-                logger.warning(f"Low stock alert: {item_id} (count={shelf_count})")
+            if not item_id or not product_id or not shelf_id or not store_id:
+                logger.warning(f"Invalid low stock payload item: {data_item}")
+                continue
+
+            event_payload = {
+                'item_id': item_id,
+                'product_id': product_id,
+                'store_id': store_id,
+                'shelf_id': shelf_id,
+                'product_name': _entity_name(product_id),
+                'store_name': _entity_name(store_id),
+                'shelfCount': shelf_count,
+                # Backward compatibility with existing frontend listener.
+                'shelf_count': shelf_count,
+                'timestamp': datetime.now(timezone.utc).isoformat()
+            }
+
+            # Broadcast to all connected clients
+            socketio.emit('low_stock', event_payload)
+
+            logger.warning(f"Socket emit low_stock: {event_payload}")
         
         return {'status': 'ok'}, 200
     except Exception as e:

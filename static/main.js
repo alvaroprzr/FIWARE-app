@@ -20,6 +20,11 @@ const i18n = {
         'lang.spanish': 'Español',
         'lang.english': 'English',
         'notifications.title': 'Notificaciones',
+        'notifications.price_change_title': 'Cambio de Precio',
+        'notifications.price_change_message': 'Producto {product} - Nuevo precio: €{price}',
+        'notifications.low_stock_title': 'Stock Bajo',
+        'notifications.low_stock_message': 'Apenas {count} unidades en {shelf}',
+        'notifications.local_low_stock_message': 'Producto {product} con {count} unidades en {shelf}',
         'footer.text': 'Almacén Inteligente FIWARE © 2024',
         'footer.connecting': 'Conectando...',
         'home.title': 'Almacén Inteligente FIWARE',
@@ -116,6 +121,11 @@ const i18n = {
         'lang.spanish': 'Español',
         'lang.english': 'English',
         'notifications.title': 'Notifications',
+        'notifications.price_change_title': 'Price Change',
+        'notifications.price_change_message': 'Product {product} - New price: €{price}',
+        'notifications.low_stock_title': 'Low Stock',
+        'notifications.low_stock_message': 'Only {count} units left on {shelf}',
+        'notifications.local_low_stock_message': 'Product {product} has {count} units on {shelf}',
         'footer.text': 'Smart Warehouse FIWARE © 2024',
         'footer.connecting': 'Connecting...',
         'home.title': 'FIWARE Smart Warehouse',
@@ -206,6 +216,12 @@ const i18n = {
 };
 
 let currentLanguage = localStorage.getItem('language') || 'es';
+const notificationState = {
+    unreadCount: 0,
+    isPanelOpen: false,
+    maxGlobalItems: 80,
+    maxLocalItems: 20
+};
 
 function t(key) {
     return i18n[currentLanguage]?.[key] || key;
@@ -270,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTheme();
     updateLanguageSelector();
     updateUIText();
+    initializeGlobalNotificationsPanel();
     initializeNavbarActive();
     initializeStoreDetailForms();
     initializeProductDetailForms();
@@ -308,31 +325,142 @@ function initializeNavbarActive() {
 // Notification helpers
 // ============================================================================
 
-function showNotification(title, message, level = 'info') {
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function interpolate(template, values) {
+    return Object.entries(values).reduce((acc, [key, val]) => {
+        return acc.replace(new RegExp(`\\{${key}\\}`, 'g'), String(val ?? ''));
+    }, template);
+}
+
+function formatNotificationTime(date = new Date()) {
+    return date.toLocaleTimeString(currentLanguage, {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+}
+
+function setNotificationBadgeCount(count) {
+    const badge = document.getElementById('notification-count');
+    if (!badge) return;
+
+    notificationState.unreadCount = Math.max(0, Number(count) || 0);
+    badge.textContent = String(notificationState.unreadCount);
+    badge.classList.toggle('hidden', notificationState.unreadCount === 0);
+}
+
+function incrementNotificationBadge() {
+    setNotificationBadgeCount(notificationState.unreadCount + 1);
+}
+
+function openNotificationsPanel() {
+    const panel = document.getElementById('notifications-panel');
+    const toggle = document.getElementById('notification-toggle');
+    if (!panel || !toggle) return;
+
+    panel.classList.add('open');
+    panel.setAttribute('aria-hidden', 'false');
+    toggle.setAttribute('aria-expanded', 'true');
+    notificationState.isPanelOpen = true;
+    setNotificationBadgeCount(0);
+}
+
+function closeNotificationsPanel() {
+    const panel = document.getElementById('notifications-panel');
+    const toggle = document.getElementById('notification-toggle');
+    if (!panel || !toggle) return;
+
+    panel.classList.remove('open');
+    panel.setAttribute('aria-hidden', 'true');
+    toggle.setAttribute('aria-expanded', 'false');
+    notificationState.isPanelOpen = false;
+}
+
+function initializeGlobalNotificationsPanel() {
+    const toggle = document.getElementById('notification-toggle');
+    const closeBtn = document.getElementById('close-notifications');
+    const panel = document.getElementById('notifications-panel');
+
+    if (!toggle || !panel) {
+        return;
+    }
+
+    setNotificationBadgeCount(0);
+
+    toggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (notificationState.isPanelOpen) {
+            closeNotificationsPanel();
+        } else {
+            openNotificationsPanel();
+        }
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        closeNotificationsPanel();
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!notificationState.isPanelOpen) {
+            return;
+        }
+
+        const target = event.target;
+        if (panel.contains(target) || toggle.contains(target)) {
+            return;
+        }
+
+        closeNotificationsPanel();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && notificationState.isPanelOpen) {
+            closeNotificationsPanel();
+        }
+    });
+}
+
+function showNotification(titleOrOptions, message, level = 'info', icon) {
     const list = document.getElementById('notifications-list');
     if (!list) return;
+
+    const opts = typeof titleOrOptions === 'object'
+        ? titleOrOptions
+        : { title: titleOrOptions, message, level, icon };
+
+    const resolvedLevel = opts.level || 'info';
+    const resolvedIcon = opts.icon || getIcon(resolvedLevel);
+    const title = opts.title || '';
+    const body = opts.message || '';
+    const timestamp = formatNotificationTime(new Date());
     
     const item = document.createElement('div');
-    item.className = `notification-item ${level}`;
+    item.className = `notification-item ${resolvedLevel}`;
     item.innerHTML = `
-        <i class="fas fa-${getIcon(level)}"></i>
+        <i class="fas fa-${escapeHtml(resolvedIcon)}" aria-hidden="true"></i>
         <div>
-            <strong>${title}</strong>
-            <p>${message}</p>
+            <strong>${escapeHtml(title)}</strong>
+            <p>${escapeHtml(body)}</p>
+            <small>${escapeHtml(timestamp)}</small>
         </div>
-        <small>${new Date().toLocaleTimeString()}</small>
     `;
     
     list.prepend(item);
-    
-    // Update badge
-    const badge = document.getElementById('notification-count');
-    if (badge) {
-        badge.textContent = parseInt(badge.textContent || 0) + 1;
+    while (list.children.length > notificationState.maxGlobalItems) {
+        list.removeChild(list.lastElementChild);
     }
     
-    // Auto remove after 5 seconds
-    setTimeout(() => item.remove(), 5000);
+    if (!notificationState.isPanelOpen) {
+        incrementNotificationBadge();
+    }
 }
 
 function getIcon(level) {
@@ -374,14 +502,20 @@ function appendStoreRealtimeNotification(title, message, level = 'info') {
 
     const item = document.createElement('div');
     item.className = `notification-item ${level}`;
+    const icon = level === 'warning' ? 'exclamation-triangle' : 'tag';
     item.innerHTML = `
+        <i class="fas fa-${icon}" aria-hidden="true"></i>
         <div>
-            <strong>${title}</strong>
-            <p>${message}</p>
-            <small>${new Date().toLocaleTimeString()}</small>
+            <strong>${escapeHtml(title)}</strong>
+            <p>${escapeHtml(message)}</p>
+            <small>${escapeHtml(formatNotificationTime(new Date()))}</small>
         </div>
     `;
     list.prepend(item);
+
+    while (list.children.length > notificationState.maxLocalItems) {
+        list.removeChild(list.lastElementChild);
+    }
 }
 
 function initializeRealtimeNotifications() {
@@ -395,34 +529,43 @@ function initializeRealtimeNotifications() {
     socket.on('price_change', (data) => {
         const productId = data?.product_id;
         const newPrice = data?.new_price;
+        const title = t('notifications.price_change_title');
+        const message = interpolate(t('notifications.price_change_message'), {
+            product: productId || '-',
+            price: formatPriceValue(newPrice)
+        });
+
+        console.log('Socket event price_change:', data);
 
         updateProductPriceUI(productId, newPrice);
-        showNotification(
-            'Cambio de Precio',
-            `Producto ${productId} - Nuevo precio: €${formatPriceValue(newPrice)}`,
-            'info'
-        );
-        appendStoreRealtimeNotification(
-            'Cambio de Precio',
-            `Producto ${productId} actualizado a €${formatPriceValue(newPrice)}`,
-            'info'
-        );
+        showNotification({ title, message, level: 'info', icon: 'tag' });
     });
 
     socket.on('low_stock', (data) => {
         const storeNotifications = document.getElementById('store-notifications-list');
         const currentStoreId = storeNotifications?.getAttribute('data-store-id');
+        const shelfCount = data?.shelfCount ?? data?.shelf_count ?? 0;
+        const shelfId = data?.shelf_id || '-';
+        const productId = data?.product_id || '-';
+        const title = t('notifications.low_stock_title');
+        const globalMessage = interpolate(t('notifications.low_stock_message'), {
+            count: shelfCount,
+            shelf: shelfId
+        });
 
-        showNotification(
-            'Stock Bajo',
-            `Apenas ${data?.shelf_count} unidades en ${data?.shelf_id}`,
-            'warning'
-        );
+        console.log('Socket event low_stock:', data);
+
+        showNotification({ title, message: globalMessage, level: 'warning', icon: 'exclamation-triangle' });
 
         if (currentStoreId && data?.store_id === currentStoreId) {
+            const localMessage = interpolate(t('notifications.local_low_stock_message'), {
+                product: productId,
+                count: shelfCount,
+                shelf: shelfId
+            });
             appendStoreRealtimeNotification(
-                'Stock Bajo',
-                `Producto ${data?.product_id} con ${data?.shelf_count} unidades en ${data?.shelf_id}`,
+                title,
+                localMessage,
                 'warning'
             );
         }

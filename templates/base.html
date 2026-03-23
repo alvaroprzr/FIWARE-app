@@ -50,10 +50,10 @@
             <!-- Right side controls -->
             <div class="navbar-controls">
                 <!-- Notification badge -->
-                <div class="notification-badge">
+                <button id="notification-toggle" class="notification-badge" aria-label="Abrir notificaciones" aria-controls="notifications-panel" aria-expanded="false" type="button">
                     <i class="fas fa-bell"></i>
                     <span class="badge-count" id="notification-count">0</span>
-                </div>
+                </button>
                 
                 <!-- Language selector -->
                 <select id="language-selector" class="language-selector">
@@ -75,10 +75,10 @@
     </main>
     
     <!-- Notifications panel -->
-    <div id="notifications-panel" class="notifications-panel">
+    <div id="notifications-panel" class="notifications-panel" aria-hidden="true">
         <div class="notifications-header">
             <h3 data-i18n="notifications.title">Notificaciones</h3>
-            <button id="close-notifications" class="close-btn">
+            <button id="close-notifications" class="close-btn" type="button">
                 <i class="fas fa-times"></i>
             </button>
         </div>
