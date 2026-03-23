@@ -11,6 +11,35 @@ logger = logging.getLogger(__name__)
 
 bp = Blueprint('employees', __name__, url_prefix='')
 
+
+def _get_ngsi_value(entity, attr_name, default=None):
+    """Safely extract NGSIv2 attribute values from dict-based entities."""
+    attr = entity.get(attr_name)
+    if isinstance(attr, dict):
+        return attr.get('value', default)
+    if attr is None:
+        return default
+    return attr
+
+
+def _normalize_employee_for_form(employee):
+    """Normalize an Employee payload so templates can safely use .value accesses."""
+    skills = _get_ngsi_value(employee, 'skills', [])
+    if not isinstance(skills, list):
+        skills = []
+
+    return {
+        'id': {'value': employee.get('id', '')},
+        'name': {'value': _get_ngsi_value(employee, 'name', '')},
+        'email': {'value': _get_ngsi_value(employee, 'email', '')},
+        'dateOfContract': {'value': _get_ngsi_value(employee, 'dateOfContract', '')},
+        'skills': {'value': skills},
+        'username': {'value': _get_ngsi_value(employee, 'username', '')},
+        'category': {'value': _get_ngsi_value(employee, 'category', '')},
+        'refStore': {'value': _get_ngsi_value(employee, 'refStore', '')},
+        'image': {'value': _get_ngsi_value(employee, 'image', '')}
+    }
+
 # ============================================================================
 # GET /employees - List all employees
 # ============================================================================
@@ -26,10 +55,17 @@ def list_employees():
         # Get store name for each employee
         for emp in employees:
             store_id = emp.get('refStore', {}).get('value')
+            emp['store_name'] = 'Sin asignar'
+            emp['store_exists'] = False
+
             if store_id:
                 store = orion.get_entity(store_id)
+                store_name = ''
                 if store:
-                    emp['store_name'] = store.get('name', {}).get('value', 'Unknown')
+                    store_name = store.get('name', {}).get('value', '')
+                if store_name:
+                    emp['store_name'] = store_name
+                    emp['store_exists'] = True
         
         return render_template('employees.html', employees=employees)
     except Exception as e:
@@ -108,8 +144,10 @@ def edit_employee_form(employee_id):
         if not employee:
             return render_template('error.html',
                                  error='Empleado no encontrado'), 404
-        
-        return render_template('employee_form.html', employee=employee)
+
+        normalized_employee = _normalize_employee_for_form(employee)
+
+        return render_template('employee_form.html', employee=normalized_employee)
     except Exception as e:
         logger.error(f"Error fetching employee for edit: {e}")
         return render_template('error.html', error=str(e)), 500

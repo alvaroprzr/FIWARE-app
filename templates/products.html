@@ -32,7 +32,9 @@
                     <td class="img-cell">
                         <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/50x40' }}" alt="{{ product.name.value if product and product.name else 'Unknown' }}" class="product-thumb">
                     </td>
-                    <td>{{ product.name.value if product and product.name else 'Sin nombre' }}</td>
+                    <td class="name-cell">
+                        <a href="/products/{{ product.id.split(':')[-1] }}">{{ product.name.value if product and product.name else 'Sin nombre' }}</a>
+                    </td>
                     <td class="product-price-cell" data-product-id="{{ product.id }}">€{{ product.price.value if product and product.price else '-' }}</td>
                     <td>{{ product.size.value if product and product.size else '-' }}</td>
                     <td class="color-cell">
@@ -104,6 +106,16 @@
     height: 40px;
     object-fit: cover;
     border-radius: 4px;
+}
+
+.name-cell a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.name-cell a:hover {
+    text-decoration: underline;
 }
 
 .color-cell {
