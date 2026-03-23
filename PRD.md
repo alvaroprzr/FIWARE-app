@@ -1176,3 +1176,45 @@ Se ajusta la vista de detalle de Product para alinear semantica de datos y UI:
 - Suscripciones y notificaciones en tiempo real operativas con callbacks validos.
 
 ---
+
+## 19. Correccion de CRUD y Formularios Completos (Issue #19)
+
+### Objetivo funcional
+
+Cerrar incidencias criticas de CRUD en Product, Store y Employee, y completar formularios add/edit con validacion HTML5 + JS inline i18n.
+
+### Fase 1: estabilidad CRUD
+
+- Delete de Product con cascada manual de `InventoryItem` por `refProduct`.
+- Delete de Store con cascada manual de `InventoryItem` y `Shelf` por `refStore`.
+- Product detail filtra disponibilidad por Stores existentes para evitar mostrar referencias huerfanas.
+- Recuperado flujo de edicion de Product (`GET /products/<id>/edit`).
+- Formularios de edicion de Store y Employee robustecidos para evitar errores de acceso NGSIv2/Jinja.
+
+### Fase 2: formularios y experiencia de uso
+
+- Product add/edit:
+  - `name` (text), `price` (number), `size` (radio S/M/L/XL), `color` (color), `image` (url).
+- Store add/edit:
+  - `name` (text), `url` (url), `telephone` (tel), `countryCode` (text 2 letras), `capacity` (number), `description` (textarea), `lat/lng` (number), `image` (url).
+- Employee add/edit:
+  - `name` (text), `email` (email), `dateOfContract` (date), `skills` (checkbox multiple), `username` (text), `password` + confirmacion, `category` (text), `refStore` (select dinamico), `image` (url).
+- Shelf add/edit desde Store detail:
+  - `name` (text), `maxCapacity` (number min=1).
+
+### Validacion y UX
+
+- Validacion HTML5 en formularios (`required`, `min`, `max`, `pattern`, `maxlength`, etc.).
+- Validacion JS previa al submit con mensajes inline por campo.
+- Mensajes de error traducidos en idioma activo (ES/EN) a traves de i18n.
+- Animaciones CSS actualizadas:
+  - foto Store: `transform: scale(1.15) rotate(360deg)`.
+  - foto Employee: `transform: scale(1.15)`.
+
+### Resultado esperado
+
+- CRUD sin errores funcionales en Product/Store/Employee.
+- Sin entidades fantasma visibles por referencias invalidas de Store.
+- Formularios completos y consistentes con criterios de validacion y usabilidad definidos.
+
+---

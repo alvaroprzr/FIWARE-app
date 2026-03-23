@@ -1322,3 +1322,36 @@ La operacion de compra mantiene decremento atomico de:
 El modelo no introduce atributos adicionales; solo se refuerza la semantica de lectura en UI para Product detail.
 
 ---
+
+## Nota de Integracion - Integridad Referencial y Formularios (Issue #19)
+
+### Alcance de esquema
+
+Issue #19 no introduce nuevos tipos de entidad ni atributos NGSIv2 adicionales.
+Se mantiene el esquema de `Product`, `Store`, `Employee`, `Shelf` e `InventoryItem`.
+
+### Reglas de integridad reforzadas
+
+Se formalizan reglas operativas de integridad en operaciones de borrado:
+
+- Al borrar `Product` se deben eliminar antes todos los `InventoryItem` con `refProduct == Product.id`.
+- Al borrar `Store` se deben eliminar antes:
+  - `InventoryItem` con `refStore == Store.id`
+  - `Shelf` con `refStore == Store.id`
+
+Esto mantiene coherencia de relaciones y evita residuos visibles en vistas.
+
+### Tratamiento de referencias huerfanas
+
+- En lecturas de Product detail, los grupos de disponibilidad se construyen solo con Stores existentes.
+- En lecturas de Employees, una referencia `refStore` no resoluble se interpreta como estado funcional:
+  - `Sin asignar`.
+
+No se altera la entidad `Employee`; se adapta la semantica de presentacion para consistencia funcional.
+
+### Formularios y modelo
+
+Los formularios add/edit de Product, Store, Employee y Shelf consumen los mismos atributos ya definidos en este modelo.
+Los cambios de Issue #19 son de validacion, mapeo y normalizacion de valores, no de estructura del modelo.
+
+---

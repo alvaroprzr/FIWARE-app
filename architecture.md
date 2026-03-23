@@ -1057,3 +1057,52 @@ Esto reduce fragilidad por restricciones de navegador en llamadas cross-origin a
 - Estado activo se resuelve en cliente por `pathname`, cubriendo rutas de lista, detalle y `Stores Map`.
 
 ---
+
+## 18. Ajustes Arquitectonicos de Integridad CRUD y Formularios (Issue #19)
+
+### Cascadas de borrado en capa backend
+
+Se formaliza un patron de borrado en dos pasos para evitar huerfanos en Orion:
+
+1. Resolver entidades dependientes por relacion (`refProduct` o `refStore`).
+2. Borrar dependencias una a una y solo despues borrar entidad raiz.
+
+Aplicaciones:
+
+- `DELETE /api/products/<id>`:
+  - borra `InventoryItem` asociados y despues `Product`.
+- `DELETE /api/stores/<id>`:
+  - borra `InventoryItem`, luego `Shelf`, y finalmente `Store`.
+
+Con esto se evita que la UI muestre filas huerfanas o entidades vacias tras operaciones CRUD.
+
+### Resiliencia de lectura en vistas
+
+- Product detail aplica filtrado de Stores existentes al construir la distribucion de inventario.
+- Employee list usa fallback de asignacion:
+  - cuando `refStore` no resuelve entidad valida, se muestra `Sin asignar`.
+- Store list aplica saneamiento defensivo de entidades invalidas:
+  - ID no valido o ausencia de `name`.
+
+### Normalizacion NGSIv2 para templates
+
+Se introduce normalizacion previa para cargas de formularios sensibles (Employee edit):
+
+- El backend convierte payload mixto (string/dict) a estructura segura con `.value` antes de renderizar template.
+- Se reduce acoplamiento entre formato devuelto por Orion y expectativas de Jinja2.
+
+### Arquitectura de validacion de formularios
+
+Patron mixto validacion HTML5 + validacion inline JS:
+
+- HTML5 define contrato base de campo.
+- JS centraliza mensajes inline i18n y validaciones cruzadas (por ejemplo, confirmacion de password).
+- El backend mantiene validacion de negocio y persistencia NGSIv2.
+
+### Impacto de arquitectura
+
+- Mayor consistencia de datos entre capas (Orion, backend, templates).
+- Menor probabilidad de errores por formato NGSIv2 heterogeneo.
+- Mejor trazabilidad de fallos de borrado y menor riesgo de regresiones visuales por huerfanos.
+
+---
