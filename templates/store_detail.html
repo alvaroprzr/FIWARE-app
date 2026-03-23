@@ -224,12 +224,14 @@
             <h3 data-i18n="store.add_shelf">Añadir Shelf</h3>
             <button type="button" class="close-btn" data-close-modal="add-shelf-modal">×</button>
         </div>
-        <form id="add-shelf-form" class="modal-form">
+        <form id="add-shelf-form" class="modal-form" data-validate-inline="true" novalidate>
             <label for="add-shelf-name" data-i18n="store.shelf_name">Nombre</label>
             <input id="add-shelf-name" name="name" type="text" required minlength="2" maxlength="80">
+            <span class="field-error" data-error-for="add-shelf-name"></span>
 
             <label for="add-shelf-capacity" data-i18n="store.shelf_capacity">Capacidad máxima</label>
             <input id="add-shelf-capacity" name="maxCapacity" type="number" min="1" required>
+            <span class="field-error" data-error-for="add-shelf-capacity"></span>
 
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" data-close-modal="add-shelf-modal" data-i18n="store.cancel">Cancelar</button>
@@ -245,14 +247,16 @@
             <h3 data-i18n="store.edit_shelf">Modificar Shelf</h3>
             <button type="button" class="close-btn" data-close-modal="edit-shelf-modal">×</button>
         </div>
-        <form id="edit-shelf-form" class="modal-form">
+        <form id="edit-shelf-form" class="modal-form" data-validate-inline="true" novalidate>
             <input id="edit-shelf-id" name="shelfId" type="hidden">
 
             <label for="edit-shelf-name" data-i18n="store.shelf_name">Nombre</label>
             <input id="edit-shelf-name" name="name" type="text" required minlength="2" maxlength="80">
+            <span class="field-error" data-error-for="edit-shelf-name"></span>
 
             <label for="edit-shelf-capacity" data-i18n="store.shelf_capacity">Capacidad máxima</label>
             <input id="edit-shelf-capacity" name="maxCapacity" type="number" min="1" required>
+            <span class="field-error" data-error-for="edit-shelf-capacity"></span>
 
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" data-close-modal="edit-shelf-modal" data-i18n="store.cancel">Cancelar</button>

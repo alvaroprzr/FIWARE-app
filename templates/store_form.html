@@ -11,59 +11,59 @@
         <div class="alert alert-error">{{ error }}</div>
         {% endif %}
         
-        <form id="store-form" method="POST" action="{% if store %}/api/stores/{{ store.id.value }}{% else %}/api/stores{% endif %}">
+        <form id="store-form" data-validate-inline="true" novalidate>
             <fieldset>
                 <legend>Información del Almacén</legend>
                 
                 <div class="form-group">
                     <label for="id">ID (único):</label>
                     <input type="text" id="id" name="id" required pattern="[a-z0-9\-]+" maxlength="50"
-                           value="{% if store %}{{ store.id.value.split(':')[-1] }}{% endif %}" 
+                              value="{% if store and store.id %}{{ store.id.split(':')[-1] }}{% endif %}" 
                            {% if store %}readonly{% endif %}
                            placeholder="ej: store-madrid-centro">
+                          <span class="field-error" data-error-for="id"></span>
                     <small>Letras minúsculas, números y guiones. Sin espacios.</small>
                 </div>
                 
                 <div class="form-group">
                     <label for="name">Nombre:</label>
                     <input type="text" id="name" name="name" required minlength="2" maxlength="100"
-                           value="{% if store %}{{ store.name.value }}{% endif %}"
+                              value="{% if store and store.name %}{{ store.name.value }}{% endif %}"
                            placeholder="ej: Almacén Madrid Centro">
+                          <span class="field-error" data-error-for="name"></span>
                 </div>
                 
                 <div class="form-group">
                     <label for="url">Sitio Web:</label>
                     <input type="url" id="url" name="url"
-                           value="{% if store %}{{ store.url.value }}{% endif %}"
+                              value="{% if store and store.url %}{{ store.url.value }}{% endif %}"
                            placeholder="https://ejemplo.com">
+                          <span class="field-error" data-error-for="url"></span>
                 </div>
                 
                 <div class="form-group">
                     <label for="telephone">Teléfono:</label>
                     <input type="tel" id="telephone" name="telephone" pattern="^[+]?[0-9\s\-()]{7,}$"
-                           value="{% if store %}{{ store.telephone.value }}{% endif %}"
+                              value="{% if store and store.telephone %}{{ store.telephone.value }}{% endif %}"
                            placeholder="+34 91 234 5678">
+                    <span class="field-error" data-error-for="telephone"></span>
                     <small>Formato internacional: +34 91 234 5678</small>
                 </div>
                 
                 <div class="form-group">
                     <label for="countryCode">País:</label>
-                    <select id="countryCode" name="countryCode" required>
-                        <option value="">-- Selecciona país --</option>
-                        <option value="ES" {% if store and store.address and store.address.value and store.address.value.addressCountry == 'ES' %}selected{% endif %}>España (ES)</option>
-                        <option value="FR" {% if store and store.address and store.address.value and store.address.value.addressCountry == 'FR' %}selected{% endif %}>Francia (FR)</option>
-                        <option value="IT" {% if store and store.address and store.address.value and store.address.value.addressCountry == 'IT' %}selected{% endif %}>Italia (IT)</option>
-                        <option value="PT" {% if store and store.address and store.address.value and store.address.value.addressCountry == 'PT' %}selected{% endif %}>Portugal (PT)</option>
-                        <option value="DE" {% if store and store.address and store.address.value and store.address.value.addressCountry == 'DE' %}selected{% endif %}>Alemania (DE)</option>
-                        <option value="GB" {% if store and store.address and store.address.value and store.address.value.addressCountry == 'GB' %}selected{% endif %}>Reino Unido (GB)</option>
-                    </select>
+                    <input type="text" id="countryCode" name="countryCode" required maxlength="2" pattern="[A-Z]{2}"
+                           value="{% if store and store.countryCode %}{{ store.countryCode.value }}{% endif %}"
+                           placeholder="ES">
+                    <span class="field-error" data-error-for="countryCode"></span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="capacity">Capacidad (m²):</label>
-                    <input type="number" id="capacity" name="capacity" required min="1" max="10000" step="1"
-                           value="{% if store %}{{ store.capacity.value }}{% endif %}"
+                    <label for="capacity">Capacidad (m3):</label>
+                    <input type="number" id="capacity" name="capacity" required min="0" max="10000" step="1"
+                              value="{% if store and store.capacity %}{{ store.capacity.value }}{% endif %}"
                            placeholder="ej: 500">
+                    <span class="field-error" data-error-for="capacity"></span>
                 </div>
             </fieldset>
             
@@ -73,15 +73,33 @@
                 <div class="form-group">
                     <label for="addressLocality">Localidad:</label>
                     <input type="text" id="addressLocality" name="addressLocality" minlength="2" maxlength="100"
-                           value="{% if store and store.address and store.address.value %}{{ store.address.value.addressLocality }}{% endif %}"
+                              value="{% if store and store.address and store.address.value and store.address.value is mapping %}{{ store.address.value.get('addressLocality', '') }}{% endif %}"
                            placeholder="ej: Madrid">
+                          <span class="field-error" data-error-for="addressLocality"></span>
                 </div>
                 
                 <div class="form-group">
                     <label for="addressStreet">Calle (opcional):</label>
                     <input type="text" id="addressStreet" name="addressStreet" maxlength="150"
-                           value="{% if store and store.address and store.address.value %}{{ store.address.value.addressStreet }}{% endif %}"
+                              value="{% if store and store.address and store.address.value and store.address.value is mapping %}{{ store.address.value.get('addressStreet', '') }}{% endif %}"
                            placeholder="ej: Calle Principal 123">
+                    <span class="field-error" data-error-for="addressStreet"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="lat">Latitud:</label>
+                    <input type="number" id="lat" name="lat" required step="0.000001" min="-90" max="90"
+                           value="{% if store and store.location and store.location.value and store.location.value.coordinates %}{{ store.location.value.coordinates[1] }}{% endif %}"
+                           placeholder="40.4168">
+                    <span class="field-error" data-error-for="lat"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="lng">Longitud:</label>
+                    <input type="number" id="lng" name="lng" required step="0.000001" min="-180" max="180"
+                           value="{% if store and store.location and store.location.value and store.location.value.coordinates %}{{ store.location.value.coordinates[0] }}{% endif %}"
+                           placeholder="-3.7038">
+                    <span class="field-error" data-error-for="lng"></span>
                 </div>
             </fieldset>
             
@@ -91,14 +109,16 @@
                 <div class="form-group">
                     <label for="description">Descripción:</label>
                     <textarea id="description" name="description" minlength="5" maxlength="500" rows="4"
-                              placeholder="Descripción detallada del almacén">{% if store %}{{ store.description.value }}{% endif %}</textarea>
+                              placeholder="Descripción detallada del almacén">{% if store and store.description %}{{ store.description.value }}{% endif %}</textarea>
+                    <span class="field-error" data-error-for="description"></span>
                 </div>
                 
                 <div class="form-group">
                     <label for="image">URL de Imagen:</label>
                     <input type="url" id="image" name="image"
-                           value="{% if store %}{{ store.image.value }}{% endif %}"
+                              value="{% if store and store.image %}{{ store.image.value }}{% endif %}"
                            placeholder="https://ejemplo.com/imagen.jpg">
+                    <span class="field-error" data-error-for="image"></span>
                 </div>
             </fieldset>
             
@@ -236,6 +256,14 @@ small {
     background: var(--text-secondary);
 }
 
+.field-error {
+    display: block;
+    min-height: 1rem;
+    margin-top: 0.25rem;
+    color: #c62828;
+    font-size: 0.82rem;
+}
+
 .alert-error {
     background: #ffebee;
     color: #c62828;
@@ -263,4 +291,73 @@ small {
     }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('store-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (!form.checkValidity()) {
+            return;
+        }
+
+        const storeId = document.getElementById('id').value.trim();
+        const lat = parseFloat(document.getElementById('lat').value);
+        const lng = parseFloat(document.getElementById('lng').value);
+
+        const payload = {
+            id: storeId,
+            name: document.getElementById('name').value.trim(),
+            url: document.getElementById('url').value.trim(),
+            telephone: document.getElementById('telephone').value.trim(),
+            countryCode: document.getElementById('countryCode').value.trim().toUpperCase(),
+            capacity: parseFloat(document.getElementById('capacity').value),
+            description: document.getElementById('description').value.trim(),
+            address: {
+                addressLocality: document.getElementById('addressLocality').value.trim(),
+                addressStreet: document.getElementById('addressStreet').value.trim(),
+                addressCountry: document.getElementById('countryCode').value.trim().toUpperCase()
+            },
+            location: {
+                type: 'Point',
+                coordinates: [lng, lat]
+            },
+            image: document.getElementById('image').value.trim()
+        };
+
+        const isEdit = document.getElementById('id').hasAttribute('readonly');
+        const endpoint = isEdit ? `/api/stores/${encodeURIComponent(storeId)}` : '/api/stores';
+        const method = isEdit ? 'PATCH' : 'POST';
+
+        if (isEdit) {
+            delete payload.id;
+        }
+
+        try {
+            const response = await fetch(endpoint, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || `HTTP ${response.status}`);
+            }
+
+            window.location.href = '/stores';
+        } catch (error) {
+            const alertBox = document.querySelector('.alert-error') || document.createElement('div');
+            alertBox.className = 'alert alert-error';
+            alertBox.textContent = `Error: ${error.message}`;
+            if (!alertBox.parentElement) {
+                form.parentElement.insertBefore(alertBox, form);
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -133,6 +133,10 @@ def create_employee():
         skills = data.get('skills', [])
         if isinstance(skills, str):
             skills = [s.strip() for s in skills.split(',')]
+
+        ref_store = data.get('refStore', '')
+        if ref_store and not ref_store.startswith('urn:'):
+            ref_store = f"urn:ngsi-ld:Store:{ref_store}"
         
         employee = {
             'id': data['id'] if data['id'].startswith('urn:') else f"urn:ngsi-ld:Employee:{data['id']}",
@@ -146,7 +150,7 @@ def create_employee():
             'category': orion.build_attr(data.get('category', ''), 'Text'),
             'refStore': {
                 'type': 'Relationship',
-                'value': data.get('refStore', '')
+                'value': ref_store
             },
             'image': orion.build_attr(data.get('image', ''), 'Text')
         }
@@ -177,13 +181,26 @@ def update_employee(employee_id):
             attrs['name'] = orion.build_attr(data['name'], 'Text')
         if 'email' in data:
             attrs['email'] = orion.build_attr(data['email'], 'Text')
+        if 'dateOfContract' in data:
+            attrs['dateOfContract'] = orion.build_attr(data['dateOfContract'], 'DateTime')
         if 'skills' in data:
             skills = data['skills']
             if isinstance(skills, str):
                 skills = [s.strip() for s in skills.split(',')]
             attrs['skills'] = orion.build_attr(skills, 'Array')
+        if 'username' in data:
+            attrs['username'] = orion.build_attr(data['username'], 'Text')
+        if 'password' in data and data.get('password'):
+            attrs['password'] = orion.build_attr(data['password'], 'Text')
         if 'category' in data:
             attrs['category'] = orion.build_attr(data['category'], 'Text')
+        if 'refStore' in data:
+            ref_store = data.get('refStore', '')
+            if ref_store and not ref_store.startswith('urn:'):
+                ref_store = f"urn:ngsi-ld:Store:{ref_store}"
+            attrs['refStore'] = orion.build_attr(ref_store, 'Relationship')
+        if 'image' in data:
+            attrs['image'] = orion.build_attr(data['image'], 'Text')
         
         if not attrs:
             return {'error': 'No attributes to update'}, 400

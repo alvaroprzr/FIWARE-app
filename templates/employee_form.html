@@ -11,7 +11,7 @@
         <div class="alert alert-error">{{ error }}</div>
         {% endif %}
         
-        <form id="employee-form" method="POST" action="{% if employee %}/api/employees/{{ employee.id.value }}{% else %}/api/employees{% endif %}">
+        <form id="employee-form" data-validate-inline="true" novalidate>
             <fieldset>
                 <legend>Información Personal</legend>
                 
@@ -21,6 +21,7 @@
                            value="{% if employee %}{{ employee.id.value.split(':')[-1] }}{% endif %}" 
                            {% if employee %}readonly{% endif %}
                            placeholder="ej: emp-001">
+                          <span class="field-error" data-error-for="id"></span>
                     <small>Letras minúsculas, números y guiones.</small>
                 </div>
                 
@@ -29,6 +30,7 @@
                     <input type="text" id="name" name="name" required minlength="2" maxlength="100"
                            value="{% if employee %}{{ employee.name.value }}{% endif %}"
                            placeholder="ej: Juan García López">
+                          <span class="field-error" data-error-for="name"></span>
                 </div>
                 
                 <div class="form-group">
@@ -36,6 +38,7 @@
                     <input type="email" id="email" name="email" required maxlength="100"
                            value="{% if employee %}{{ employee.email.value }}{% endif %}"
                            placeholder="ej: juan@ejemplo.com">
+                          <span class="field-error" data-error-for="email"></span>
                     <small>Será validado como único en el sistema.</small>
                 </div>
                 
@@ -43,7 +46,8 @@
                     <label for="dateOfContract">Fecha de Contratación:</label>
                     <input type="date" id="dateOfContract" name="dateOfContract" required
                            value="{% if employee %}{{ employee.dateOfContract.value.split('T')[0] if 'T' in employee.dateOfContract.value else employee.dateOfContract.value }}{% endif %}"
-                           max="{% now 'Y-m-d' %}">
+                           max="">
+                    <span class="field-error" data-error-for="dateOfContract"></span>
                 </div>
             </fieldset>
             
@@ -56,25 +60,29 @@
                            value="{% if employee %}{{ employee.username.value }}{% endif %}"
                            placeholder="ej: juan.garcia"
                            {% if not employee %} autocomplete="off" {% endif %}>
+                    <span class="field-error" data-error-for="username"></span>
                     <small>Será validado como único. Mínimo 4 caracteres.</small>
                 </div>
-                
-                {% if not employee %}
+
                 <div class="form-group">
                     <label for="password">Contraseña:</label>
-                    <input type="password" id="password" name="password" required minlength="8" 
+                    <input type="password" id="password" name="password" {% if not employee %}required{% endif %} minlength="8" 
                            placeholder="Mínimo 8 caracteres (mayúscula, número, símbolo)"
-                           autocomplete="new-password">
+                           autocomplete="new-password"
+                           pattern="^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,}$">
+                    <span class="field-error" data-error-for="password"></span>
                     <div class="password-strength">
                         <div class="strength-meter" id="strength-meter"></div>
                     </div>
                     <small>Debe incluir: mayúscula, número y símbolo especial.</small>
                 </div>
-                {% else %}
+
                 <div class="form-group">
-                    <p><small><em>Para cambiar la contraseña, contacta con administración.</em></small></p>
+                    <label for="confirmPassword">Confirmar contraseña:</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" {% if not employee %}required{% endif %}
+                           minlength="8" data-match="password" autocomplete="new-password">
+                    <span class="field-error" data-error-for="confirmPassword"></span>
                 </div>
-                {% endif %}
             </fieldset>
             
             <fieldset>
@@ -82,13 +90,10 @@
                 
                 <div class="form-group">
                     <label for="category">Categoría/Rol:</label>
-                    <select id="category" name="category" required>
-                        <option value="">-- Selecciona categoría --</option>
-                        <option value="Manager" {% if employee and employee.category and employee.category.value == 'Manager' %}selected{% endif %}>Manager</option>
-                        <option value="Assistant" {% if employee and employee.category and employee.category.value == 'Assistant' %}selected{% endif %}>Asistente</option>
-                        <option value="Operator" {% if employee and employee.category and employee.category.value == 'Operator' %}selected{% endif %}>Operario</option>
-                        <option value="Supervisor" {% if employee and employee.category and employee.category.value == 'Supervisor' %}selected{% endif %}>Supervisor</option>
-                    </select>
+                    <input type="text" id="category" name="category" required maxlength="80"
+                           value="{% if employee and employee.category %}{{ employee.category.value }}{% endif %}"
+                           placeholder="Manager">
+                    <span class="field-error" data-error-for="category"></span>
                 </div>
                 
                 <div class="form-group">
@@ -110,17 +115,15 @@
                             <i class="fas fa-handshake"></i> Relaciones con Clientes
                         </label>
                     </div>
+                    <span class="field-error" data-error-for="skills"></span>
                 </div>
                 
                 <div class="form-group">
                     <label for="refStore">Almacén Asignado:</label>
-                    <input type="text" id="refStore" name="refStore" required 
-                           placeholder="Comienza a escribir nombre del almacén..."
-                           value="{% if employee and employee.refStore %}{{ employee.refStore.value.split(':')[-1] }}{% endif %}"
-                           list="stores-list">
-                    <datalist id="stores-list">
-                        <!-- Populated by JavaScript -->
-                    </datalist>
+                    <select id="refStore" name="refStore" required data-current-ref="{% if employee and employee.refStore %}{{ employee.refStore.value }}{% endif %}">
+                        <option value="">-- Selecciona almacén --</option>
+                    </select>
+                    <span class="field-error" data-error-for="refStore"></span>
                 </div>
             </fieldset>
             
@@ -132,6 +135,7 @@
                     <input type="url" id="image" name="image"
                            value="{% if employee %}{{ employee.image.value }}{% endif %}"
                            placeholder="https://ejemplo.com/foto.jpg">
+                    <span class="field-error" data-error-for="image"></span>
                 </div>
             </fieldset>
             
@@ -320,6 +324,14 @@ small {
     border-left: 4px solid #f44336;
 }
 
+.field-error {
+    display: block;
+    min-height: 1rem;
+    margin-top: 0.25rem;
+    color: #c62828;
+    font-size: 0.82rem;
+}
+
 @media (max-width: 768px) {
     .form-container {
         padding: 1rem;
@@ -361,19 +373,97 @@ if (passwordInput) {
     });
 }
 
-// Load stores for datalist
+// Load stores for select
 document.addEventListener('DOMContentLoaded', () => {
+    const dateInput = document.getElementById('dateOfContract');
+    if (dateInput) {
+        dateInput.max = new Date().toISOString().split('T')[0];
+    }
+
     fetch('/api/stores')
         .then(r => r.json())
-        .then(stores => {
-            const datalist = document.getElementById('stores-list');
-            stores.forEach(store => {
+        .then(data => {
+            const select = document.getElementById('refStore');
+            const currentRef = select?.getAttribute('data-current-ref') || '';
+            (data.stores || []).forEach(store => {
                 const option = document.createElement('option');
-                option.value = store.id ? store.id.split(':').pop() : '';
-                datalist.appendChild(option);
+                option.value = store.id || '';
+                option.textContent = store.name && store.name.value ? store.name.value : (store.id || 'Store');
+                if (currentRef && currentRef === option.value) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
             });
         })
         .catch(e => console.error('Error loading stores:', e));
+
+    const form = document.getElementById('employee-form');
+    form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const isEdit = document.getElementById('id').hasAttribute('readonly');
+        const idValue = document.getElementById('id').value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (password !== confirmPassword) {
+            const mismatchMessage = typeof t === 'function'
+                ? t('form.error.password_mismatch')
+                : 'Las contraseñas no coinciden.';
+            document.getElementById('confirmPassword').setCustomValidity(mismatchMessage);
+            return;
+        }
+        document.getElementById('confirmPassword').setCustomValidity('');
+
+        if (!form.checkValidity()) {
+            return;
+        }
+
+        const skills = Array.from(document.querySelectorAll('input[name="skills"]:checked')).map((el) => el.value);
+
+        const payload = {
+            id: idValue,
+            name: document.getElementById('name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            dateOfContract: document.getElementById('dateOfContract').value,
+            skills,
+            username: document.getElementById('username').value.trim(),
+            category: document.getElementById('category').value.trim(),
+            refStore: document.getElementById('refStore').value,
+            image: document.getElementById('image').value.trim()
+        };
+
+        if (password) {
+            payload.password = password;
+        }
+
+        const endpoint = isEdit ? `/api/employees/${encodeURIComponent(idValue)}` : '/api/employees';
+        const method = isEdit ? 'PATCH' : 'POST';
+
+        if (isEdit) {
+            delete payload.id;
+        }
+
+        try {
+            const response = await fetch(endpoint, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || `HTTP ${response.status}`);
+            }
+            window.location.href = '/employees';
+        } catch (error) {
+            const alertBox = document.querySelector('.alert-error') || document.createElement('div');
+            alertBox.className = 'alert alert-error';
+            alertBox.textContent = `Error: ${error.message}`;
+            if (!alertBox.parentElement) {
+                form.parentElement.insertBefore(alertBox, form);
+            }
+        }
+    });
 });
 </script>
 {% endblock %}
