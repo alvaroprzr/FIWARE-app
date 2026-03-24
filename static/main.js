@@ -793,9 +793,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             button.dataset.buyPending = 'true';
+            const originalShelfCount = shelfCount;
+            const originalStockCount = stockCount;
+            
             try {
-                // Make PATCH request to Orion
-                await buyInventoryItem(inventoryItemId, shelfCount, stockCount);
+                // Optimistic update: Update UI immediately while request is in flight
+                const newShelfCount = Math.max(0, shelfCount - 1);
+                const newStockCount = Math.max(0, stockCount - 1);
+                updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount);
+                
+                // Confirm with server
+                await buyInventoryItem(inventoryItemId, originalShelfCount, originalStockCount);
+            } catch (error) {
+                // Revert optimistic update on error
+                console.error('[CLICK] Buy failed, reverting optimistic update:', error);
+                updateInventoryItemUI(inventoryItemId, originalShelfCount, originalStockCount);
             } finally {
                 button.dataset.buyPending = 'false';
             }
@@ -848,15 +860,19 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
                 const currentStock = parseInt(button?.getAttribute('data-stock-count') || '0', 10) || 0;
                 updateInventoryItemUI(inventoryItemId, 0, currentStock);
                 showNotification('Sin Stock', 'No hay disponible en esta ubicación', 'warning');
-                return;
+                throw new Error(errorMessage);
             }
 
             console.error(`[BUY] PATCH failed with status ${response.status}: ${errorMessage}`);
             showNotification('Error', `No se pudo actualizar el stock (${errorMessage})`, 'error');
+            throw new Error(errorMessage);
         }
     } catch (error) {
         console.error('[BUY] Error:', error);
-        showNotification('Error de Conexión', `No se pudo conectar a Orion: ${error.message}`, 'error');
+        if (!error.message.includes('No se pudo actualizar')) {
+            showNotification('Error de Conexión', `No se pudo conectar a Orion: ${error.message}`, 'error');
+        }
+        throw error;
     }
 }
 
