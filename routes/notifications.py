@@ -40,6 +40,18 @@ def _entity_name(entity_id):
 
     return entity.get('name', {}).get('value')
 
+
+def _safe_int(value, default=None):
+    """
+    Convert payload values to int safely.
+    """
+    try:
+        if value is None:
+            return default
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
 # ============================================================================
 # POST /notify/price-change - Price change webhook
 # ============================================================================
@@ -114,7 +126,8 @@ def notify_low_stock():
     """
     Webhook endpoint for low inventory notifications from Orion.
     
-    Triggered when InventoryItem shelfCount < 3
+    Triggered on InventoryItem stock changes.
+    Business rule: emit when total store stock for (store, product) is low.
     
     Receives:
     - subscriptionId: Subscription identifier
@@ -139,8 +152,8 @@ def notify_low_stock():
                 continue
 
             item_id = data_item.get('id')
-            shelf_count = data_item.get('shelfCount', {}).get('value')
-            stock_count = data_item.get('stockCount', {}).get('value')
+            shelf_count = _safe_int(data_item.get('shelfCount', {}).get('value'))
+            stock_count = _safe_int(data_item.get('stockCount', {}).get('value'))
             product_id = data_item.get('refProduct', {}).get('value')
             shelf_id = data_item.get('refShelf', {}).get('value')
             store_id = data_item.get('refStore', {}).get('value')
@@ -149,20 +162,25 @@ def notify_low_stock():
                 logger.warning(f"Invalid low stock payload item: {data_item}")
                 continue
 
-            # Only emit if stock is actually low (0 to 2 units on shelf).
-            if shelf_count is None or shelf_count >= 3:
-                logger.info(f"Skipping low-stock emit for {item_id}: shelfCount={shelf_count} is not in low range [0,2]")
-                continue
-
             store_inventory_items = orion.get_entities(
                 entity_type='InventoryItem',
                 query=f"refStore=='{store_id}'"
             )
             total_store_stock = sum(
-                int(item.get('shelfCount', {}).get('value', 0) or 0)
+                _safe_int(item.get('shelfCount', {}).get('value', 0), 0)
                 for item in store_inventory_items
                 if item.get('refProduct', {}).get('value') == product_id
             )
+
+            # Emit only when total stock in store for this product is low.
+            if total_store_stock >= 3:
+                logger.info(
+                    f"Skipping low-stock emit for {item_id}: totalStoreStock={total_store_stock} is not low"
+                )
+                continue
+
+            if shelf_count is None:
+                shelf_count = 0
 
             event_payload = {
                 'item_id': item_id,
@@ -173,11 +191,12 @@ def notify_low_stock():
                 'store_name': _entity_name(store_id),
                 'shelf_name': _entity_name(shelf_id),
                 'shelfCount': shelf_count,
-                'stockCount': stock_count,
+                # Keep stockCount aligned with store-total semantics for this event.
+                'stockCount': total_store_stock if stock_count is None else stock_count,
                 'totalStoreStock': total_store_stock,
                 # Backward compatibility with existing frontend listener.
                 'shelf_count': shelf_count,
-                'stock_count': stock_count,
+                'stock_count': total_store_stock if stock_count is None else stock_count,
                 'total_store_stock': total_store_stock,
                 'timestamp': datetime.now(timezone.utc).isoformat()
             }

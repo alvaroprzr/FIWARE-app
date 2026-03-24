@@ -101,11 +101,11 @@ def register_price_change_subscription():
 
 def register_low_stock_subscription():
     """
-    Register a subscription for low inventory on Shelf entities.
-    Triggers notification when shelf item count drops below 3.
+    Register a subscription for inventory changes.
+    Low-stock threshold is evaluated in webhook using total store stock.
     Webhook: POST /notify/low-stock
     """
-    description = 'Low stock notifications for inventory items'
+    description = 'Low stock notifications by store stock'
 
     # Clean stale/legacy subscriptions to avoid duplicate or inconsistent low-stock events.
     deleted = _delete_subscriptions_by_description({
@@ -125,10 +125,7 @@ def register_low_stock_subscription():
                 }
             ],
             'condition': {
-                'attrs': ['shelfCount'],
-                'expression': {
-                    'q': 'shelfCount<3'
-                }
+                'attrs': ['shelfCount', 'stockCount']
             }
         },
         'notification': {

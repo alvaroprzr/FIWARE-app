@@ -419,9 +419,10 @@ function toNumber(value, fallback = 0) {
 }
 
 function isDuplicateLowStockEvent(data) {
-    const itemId = data?.item_id || data?.itemId || data?.id;
-    const shelfCount = data?.shelfCount ?? data?.shelf_count;
-    const cacheKey = `${itemId || '-'}|${shelfCount}`;
+    const storeId = data?.store_id || data?.storeId || '-';
+    const productId = data?.product_id || data?.productId || '-';
+    const totalStoreStock = data?.totalStoreStock ?? data?.total_store_stock ?? data?.stockCount ?? data?.stock_count;
+    const cacheKey = `${storeId}|${productId}|${totalStoreStock}`;
     const now = Date.now();
     const previous = lowStockEventCache.get(cacheKey);
 
@@ -847,8 +848,9 @@ function initializeRealtimeNotifications() {
         const storeName = data?.store_name || data?.store_id || '-';
         const shelfName = data?.shelf_name || data?.shelf_id || '-';
         const title = t('notifications.low_stock_title');
+        const remainingCount = totalStoreStock;
         const globalMessage = interpolate(t('notifications.low_stock_message'), {
-            count: shelfCount,
+            count: remainingCount,
             product: productName,
             store: storeName,
             shelf: shelfName,
@@ -860,7 +862,7 @@ function initializeRealtimeNotifications() {
         if (currentStoreId && data?.store_id === currentStoreId) {
             const localMessage = interpolate(t('notifications.local_low_stock_message'), {
                 product: productName,
-                count: shelfCount,
+                count: remainingCount,
                 shelf: shelfName,
                 total: totalStoreStock
             });
