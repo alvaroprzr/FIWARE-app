@@ -1202,8 +1202,8 @@ async function prepareAddProductForm(button) {
  * Update UI to reflect new inventory counts without page reload
  */
 function updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount) {
-    // Find the button element
-    const button = document.querySelector(`[data-inventoryitem-id="${inventoryItemId}"]`);
+    // Find the buy button element (the row also has this data attribute).
+    const button = document.querySelector(`.btn-buy[data-inventoryitem-id="${inventoryItemId}"]`);
     if (!button) {
         console.warn(`[UPDATE] Button not found for ${inventoryItemId}`);
         return;
