@@ -149,9 +149,9 @@ def notify_low_stock():
                 logger.warning(f"Invalid low stock payload item: {data_item}")
                 continue
 
-            # Only emit if stock is actually low (< 3 units on shelf).
-            if shelf_count is None or shelf_count >= 3:
-                logger.info(f"Skipping low-stock emit for {item_id}: shelfCount={shelf_count} is not low")
+            # Only emit if stock is actually low (1 to 2 units on shelf, > 0 to avoid "quedan 0" message).
+            if shelf_count is None or shelf_count <= 0 or shelf_count >= 3:
+                logger.info(f"Skipping low-stock emit for {item_id}: shelfCount={shelf_count} is not in low range [1,2]")
                 continue
 
             event_payload = {

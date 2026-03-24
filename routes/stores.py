@@ -540,6 +540,10 @@ def add_product_to_shelf(shelf_id):
         if not shelf:
             return {'error': 'Shelf not found'}, 404
 
+        max_capacity = _safe_number(shelf.get('maxCapacity', {}).get('value'), 0)
+        if max_capacity <= 0:
+            return {'error': 'Shelf has invalid capacity'}, 400
+
         product = orion.get_entity(product_id)
         if not product:
             return {'error': 'Product not found'}, 404
@@ -576,9 +580,18 @@ def add_product_to_shelf(shelf_id):
         if existing_item:
             existing_id = existing_item.get('id')
             current_shelf_count = _safe_number(existing_item.get('shelfCount', {}).get('value'), 0)
+            new_shelf_count = current_shelf_count + shelf_count
+
+            # Validate that new total does not exceed shelf capacity
+            if new_shelf_count > max_capacity:
+                return {
+                    'error': f'Shelf capacity exceeded. Current: {current_shelf_count}, '
+                             f'requested: {shelf_count}, capacity: {max_capacity}. '
+                             f'Maximum allowed: {max(0, max_capacity - current_shelf_count)}'
+                }, 400
 
             merged_attrs = {
-                'shelfCount': orion.build_attr(current_shelf_count + shelf_count, 'Number'),
+                'shelfCount': orion.build_attr(new_shelf_count, 'Number'),
                 'stockCount': orion.build_attr(updated_total_store_stock, 'Number')
             }
 
@@ -594,7 +607,7 @@ def add_product_to_shelf(shelf_id):
                     'refProduct': orion.build_attr(product_id, 'Relationship'),
                     'refShelf': orion.build_attr(shelf_id, 'Relationship'),
                     'refStore': orion.build_attr(store_id, 'Relationship'),
-                    'shelfCount': orion.build_attr(current_shelf_count + shelf_count, 'Number'),
+                    'shelfCount': orion.build_attr(new_shelf_count, 'Number'),
                     'stockCount': orion.build_attr(updated_total_store_stock, 'Number')
                 }
             }, 200
@@ -603,6 +616,13 @@ def add_product_to_shelf(shelf_id):
             f"urn:ngsi-ld:InventoryItem:"
             f"{shelf_id.split(':')[-1]}-{product_id.split(':')[-1]}-{uuid.uuid4().hex[:8]}"
         )
+
+        # Validate that initial shelf count does not exceed shelf capacity
+        if shelf_count > max_capacity:
+            return {
+                'error': f'Shelf capacity exceeded. Requested: {shelf_count}, '
+                         f'capacity: {max_capacity}'
+            }, 400
 
         inventory_item = {
             'id': inventory_id,

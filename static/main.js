@@ -726,12 +726,12 @@ function initializeRealtimeNotifications() {
     socket.on('low_stock', (data) => {
         const storeNotifications = document.getElementById('store-notifications-list');
         const currentStoreId = storeNotifications?.getAttribute('data-store-id');
-        const stockCount = data?.stockCount ?? data?.stock_count ?? 0;
+        const shelfCount = data?.shelfCount ?? data?.shelf_count ?? 0;
         const productName = data?.product_name || data?.product_id || '-';
         const storeName = data?.store_name || data?.store_id || '-';
         const title = t('notifications.low_stock_title');
         const globalMessage = interpolate(t('notifications.low_stock_message'), {
-            count: stockCount,
+            count: shelfCount,
             product: productName,
             store: storeName
         });
@@ -743,7 +743,7 @@ function initializeRealtimeNotifications() {
         if (currentStoreId && data?.store_id === currentStoreId) {
             const localMessage = interpolate(t('notifications.local_low_stock_message'), {
                 product: productName,
-                count: stockCount,
+                count: shelfCount,
                 store: storeName
             });
             appendStoreRealtimeNotification(
