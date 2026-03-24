@@ -85,6 +85,7 @@ const i18n = {
         'store.cancel': 'Cancelar',
         'store.save': 'Guardar',
         'store.product': 'Producto',
+        'store.form.product_count': 'Numero de productos',
         'store.select_product': 'Selecciona un producto',
         'store.no_products_in_shelf': 'No hay productos en esta shelf',
         'store.units_on_shelf': 'unidades en shelf',
@@ -189,6 +190,7 @@ const i18n = {
         'store.cancel': 'Cancel',
         'store.save': 'Save',
         'store.product': 'Product',
+        'store.form.product_count': 'Number of products',
         'store.select_product': 'Select a product',
         'store.no_products_in_shelf': 'There are no products in this shelf',
         'store.units_on_shelf': 'units on shelf',
@@ -991,8 +993,7 @@ function initializeStoreDetailForms() {
             const shelfId = formData.get('shelfId');
             const payload = {
                 productId: formData.get('productId'),
-                shelfCount: parseInt(formData.get('shelfCount'), 10),
-                stockCount: parseInt(formData.get('stockCount'), 10)
+                shelfCount: parseInt(formData.get('shelfCount'), 10)
             };
 
             try {

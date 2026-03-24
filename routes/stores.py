@@ -522,7 +522,7 @@ def update_shelf(shelf_id):
 def add_product_to_shelf(shelf_id):
     """
     API endpoint to create an InventoryItem from selected product and shelf.
-    Body: {productId, shelfCount?, stockCount?}
+    Body: {productId, shelfCount?}
     """
     try:
         shelf_id = _normalize_urn(shelf_id, 'Shelf')
@@ -533,12 +533,8 @@ def add_product_to_shelf(shelf_id):
             return {'error': 'productId is required'}, 400
 
         shelf_count = _safe_number(data.get('shelfCount'), 1)
-        stock_count = _safe_number(data.get('stockCount'), shelf_count)
-
-        if shelf_count <= 0 or stock_count <= 0:
+        if shelf_count <= 0:
             return {'error': 'Counts must be greater than 0'}, 400
-        if shelf_count > stock_count:
-            return {'error': 'shelfCount must be less or equal than stockCount'}, 400
 
         shelf = orion.get_entity(shelf_id)
         if not shelf:
@@ -551,6 +547,18 @@ def add_product_to_shelf(shelf_id):
         store_id = shelf.get('refStore', {}).get('value')
         if not store_id:
             return {'error': 'Shelf has no valid refStore'}, 400
+
+        # stockCount is store-level total for this product. Recompute from shelfCount values.
+        store_inventory_items = orion.get_entities(
+            entity_type='InventoryItem',
+            query=f"refStore=='{store_id}'"
+        )
+        current_total_store_stock = sum(
+            _safe_number(item.get('shelfCount', {}).get('value'), 0)
+            for item in store_inventory_items
+            if item.get('refProduct', {}).get('value') == product_id
+        )
+        updated_total_store_stock = current_total_store_stock + shelf_count
 
         # Prevent duplicated rows per (shelf, product): merge counts into existing item.
         shelf_items = orion.get_entities(
@@ -568,11 +576,10 @@ def add_product_to_shelf(shelf_id):
         if existing_item:
             existing_id = existing_item.get('id')
             current_shelf_count = _safe_number(existing_item.get('shelfCount', {}).get('value'), 0)
-            current_stock_count = _safe_number(existing_item.get('stockCount', {}).get('value'), 0)
 
             merged_attrs = {
                 'shelfCount': orion.build_attr(current_shelf_count + shelf_count, 'Number'),
-                'stockCount': orion.build_attr(current_stock_count + stock_count, 'Number')
+                'stockCount': orion.build_attr(updated_total_store_stock, 'Number')
             }
 
             success = orion.update_entity_attributes(existing_id, merged_attrs)
@@ -588,7 +595,7 @@ def add_product_to_shelf(shelf_id):
                     'refShelf': orion.build_attr(shelf_id, 'Relationship'),
                     'refStore': orion.build_attr(store_id, 'Relationship'),
                     'shelfCount': orion.build_attr(current_shelf_count + shelf_count, 'Number'),
-                    'stockCount': orion.build_attr(current_stock_count + stock_count, 'Number')
+                    'stockCount': orion.build_attr(updated_total_store_stock, 'Number')
                 }
             }, 200
 
@@ -604,7 +611,7 @@ def add_product_to_shelf(shelf_id):
             'refShelf': orion.build_attr(shelf_id, 'Relationship'),
             'refStore': orion.build_attr(store_id, 'Relationship'),
             'shelfCount': orion.build_attr(shelf_count, 'Number'),
-            'stockCount': orion.build_attr(stock_count, 'Number')
+            'stockCount': orion.build_attr(updated_total_store_stock, 'Number')
         }
 
         success = orion.create_entity(inventory_item)
