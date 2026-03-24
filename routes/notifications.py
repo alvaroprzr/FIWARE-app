@@ -40,19 +40,6 @@ def _entity_name(entity_id):
 
     return entity.get('name', {}).get('value')
 
-
-def _safe_int(value, default=None):
-    """
-    Convert incoming payload values to int safely.
-    Orion may provide numeric attrs as strings depending on subscription format.
-    """
-    try:
-        if value is None:
-            return default
-        return int(value)
-    except (TypeError, ValueError):
-        return default
-
 # ============================================================================
 # POST /notify/price-change - Price change webhook
 # ============================================================================
@@ -152,8 +139,8 @@ def notify_low_stock():
                 continue
 
             item_id = data_item.get('id')
-            shelf_count = _safe_int(data_item.get('shelfCount', {}).get('value'))
-            stock_count = _safe_int(data_item.get('stockCount', {}).get('value'))
+            shelf_count = data_item.get('shelfCount', {}).get('value')
+            stock_count = data_item.get('stockCount', {}).get('value')
             product_id = data_item.get('refProduct', {}).get('value')
             shelf_id = data_item.get('refShelf', {}).get('value')
             store_id = data_item.get('refStore', {}).get('value')
@@ -172,7 +159,7 @@ def notify_low_stock():
                 query=f"refStore=='{store_id}'"
             )
             total_store_stock = sum(
-                _safe_int(item.get('shelfCount', {}).get('value', 0), 0)
+                int(item.get('shelfCount', {}).get('value', 0) or 0)
                 for item in store_inventory_items
                 if item.get('refProduct', {}).get('value') == product_id
             )
