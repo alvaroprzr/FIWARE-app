@@ -793,21 +793,19 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             button.dataset.buyPending = 'true';
-            const originalShelfCount = shelfCount;
-            const originalStockCount = stockCount;
-            
+            const shouldDisableNow = shelfCount === 1;
+            if (shouldDisableNow) {
+                button.classList.add('disabled');
+                button.setAttribute('aria-disabled', 'true');
+            }
+
             try {
-                // Optimistic update: Update UI immediately while request is in flight
-                const newShelfCount = Math.max(0, shelfCount - 1);
-                const newStockCount = Math.max(0, stockCount - 1);
-                updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount);
-                
-                // Confirm with server
-                await buyInventoryItem(inventoryItemId, originalShelfCount, originalStockCount);
-            } catch (error) {
-                // Revert optimistic update on error
-                console.error('[CLICK] Buy failed, reverting optimistic update:', error);
-                updateInventoryItemUI(inventoryItemId, originalShelfCount, originalStockCount);
+                // Make PATCH request to Orion
+                const success = await buyInventoryItem(inventoryItemId, shelfCount, stockCount);
+                if (!success && shouldDisableNow) {
+                    button.classList.remove('disabled');
+                    button.setAttribute('aria-disabled', 'false');
+                }
             } finally {
                 button.dataset.buyPending = 'false';
             }
@@ -851,28 +849,25 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
             console.log(`[BUY] Success for ${inventoryItemId}`);
             updateInventoryItemUI(inventoryItemId, resolvedShelfCount, resolvedStockCount);
             showNotification('Compra Exitosa', 'Stock actualizado en tiempo real', 'success');
+            return true;
         } else {
             const errorPayload = await response.json().catch(() => ({}));
             const errorMessage = errorPayload?.error || `HTTP ${response.status}`;
 
             if (response.status === 400 && /No stock available on this shelf/i.test(errorMessage)) {
-                const button = document.querySelector(`[data-inventoryitem-id="${inventoryItemId}"]`);
-                const currentStock = parseInt(button?.getAttribute('data-stock-count') || '0', 10) || 0;
-                updateInventoryItemUI(inventoryItemId, 0, currentStock);
+                updateInventoryItemUI(inventoryItemId, 0, Math.max(0, currentStockCount));
                 showNotification('Sin Stock', 'No hay disponible en esta ubicación', 'warning');
-                throw new Error(errorMessage);
+                return false;
             }
 
             console.error(`[BUY] PATCH failed with status ${response.status}: ${errorMessage}`);
             showNotification('Error', `No se pudo actualizar el stock (${errorMessage})`, 'error');
-            throw new Error(errorMessage);
+            return false;
         }
     } catch (error) {
         console.error('[BUY] Error:', error);
-        if (!error.message.includes('No se pudo actualizar')) {
-            showNotification('Error de Conexión', `No se pudo conectar a Orion: ${error.message}`, 'error');
-        }
-        throw error;
+        showNotification('Error de Conexión', `No se pudo conectar a Orion: ${error.message}`, 'error');
+        return false;
     }
 }
 
