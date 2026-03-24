@@ -195,7 +195,10 @@
     </div>
 
     <div class="section realtime-store-notifications">
-        <h2 data-i18n="store.realtime_notifications">Notificaciones en tiempo real</h2>
+        <div class="inventory-header-row">
+            <h2 data-i18n="store.realtime_notifications">Notificaciones en tiempo real</h2>
+            <button id="clear-store-notifications" class="btn btn-secondary btn-small" type="button" data-i18n="notifications.clear_all">Borrar todas</button>
+        </div>
         <div id="store-notifications-list" class="store-notifications-list" data-store-id="{{ store.id }}">
             <p class="store-notification-empty" data-i18n="store.no_notifications">No hay notificaciones recientes</p>
         </div>

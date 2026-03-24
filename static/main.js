@@ -21,11 +21,12 @@ const i18n = {
         'lang.english': 'English',
         'notifications.title': 'Notificaciones',
         'notifications.dismiss': 'Cerrar notificacion',
+        'notifications.clear_all': 'Borrar todas',
         'notifications.price_change_title': 'Cambio de Precio',
         'notifications.price_change_message': 'Producto {product} - Nuevo precio: €{price}',
         'notifications.low_stock_title': 'Stock Bajo en Almacen',
-        'notifications.low_stock_message': 'Quedan {count} unidades de {product} en {shelf} ({store}). Stock total en tienda: {total}',
-        'notifications.local_low_stock_message': 'Atencion: quedan {count} unidades de {product} en {shelf}. Stock total en tienda: {total}',
+        'notifications.low_stock_message': 'Atencion: quedan {count} unidades de {product}',
+        'notifications.local_low_stock_message': 'Atencion: quedan {count} unidades de {product}',
         'notifications.no_stock_title': 'Sin Stock',
         'notifications.no_stock_message': 'No hay disponible en esta ubicacion',
         'notifications.purchase_success_title': 'Compra Exitosa',
@@ -156,11 +157,12 @@ const i18n = {
         'lang.english': 'English',
         'notifications.title': 'Notifications',
         'notifications.dismiss': 'Dismiss notification',
+        'notifications.clear_all': 'Clear all',
         'notifications.price_change_title': 'Price Change',
         'notifications.price_change_message': 'Product {product} - New price: €{price}',
         'notifications.low_stock_title': 'Low Store Stock',
-        'notifications.low_stock_message': '{count} units of {product} remain in {shelf} ({store}). Total store stock: {total}',
-        'notifications.local_low_stock_message': 'Alert: {count} units of {product} remain in {shelf}. Total store stock: {total}',
+        'notifications.low_stock_message': 'Alert: {count} units of {product} remain',
+        'notifications.local_low_stock_message': 'Alert: {count} units of {product} remain',
         'notifications.no_stock_title': 'Out of Stock',
         'notifications.no_stock_message': 'No units available in this location',
         'notifications.purchase_success_title': 'Purchase Successful',
@@ -290,10 +292,24 @@ const notificationState = {
     maxGlobalItems: 80,
     maxLocalItems: 20
 };
-const GLOBAL_NOTIF_SESSION_KEY = 'fiware.notifications.global.v1';
-const LOCAL_NOTIF_SESSION_KEY = 'fiware.notifications.local.v1';
+const APP_BOOT_ID = window.appBootId || 'unknown-boot';
+const GLOBAL_NOTIF_SESSION_KEY = `fiware.notifications.global.${APP_BOOT_ID}`;
+const LOCAL_NOTIF_SESSION_KEY = `fiware.notifications.local.${APP_BOOT_ID}`;
 const LOW_STOCK_DUP_WINDOW_MS = 5000;
 const lowStockEventCache = new Map();
+
+function clearLegacyNotificationStorage() {
+    const keepKeys = new Set([GLOBAL_NOTIF_SESSION_KEY, LOCAL_NOTIF_SESSION_KEY]);
+    const keysToDelete = [];
+    for (let i = 0; i < sessionStorage.length; i += 1) {
+        const key = sessionStorage.key(i);
+        if (!key) continue;
+        if (!key.startsWith('fiware.notifications.')) continue;
+        if (keepKeys.has(key)) continue;
+        keysToDelete.push(key);
+    }
+    keysToDelete.forEach((key) => sessionStorage.removeItem(key));
+}
 
 function t(key) {
     return i18n[currentLanguage]?.[key] || key;
@@ -355,6 +371,7 @@ document.getElementById('theme-toggle')?.addEventListener('click', () => {
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    clearLegacyNotificationStorage();
     initializeTheme();
     updateLanguageSelector();
     updateUIText();
@@ -506,6 +523,7 @@ function closeNotificationsPanel() {
 function initializeGlobalNotificationsPanel() {
     const toggle = document.getElementById('notification-toggle');
     const closeBtn = document.getElementById('close-notifications');
+    const clearBtn = document.getElementById('clear-notifications');
     const panel = document.getElementById('notifications-panel');
     const list = document.getElementById('notifications-list');
 
@@ -527,6 +545,13 @@ function initializeGlobalNotificationsPanel() {
 
     closeBtn?.addEventListener('click', () => {
         closeNotificationsPanel();
+    });
+
+    clearBtn?.addEventListener('click', () => {
+        if (!list) return;
+        list.innerHTML = '';
+        persistGlobalNotifications();
+        setNotificationBadgeCount(0);
     });
 
     document.addEventListener('click', (event) => {
@@ -757,6 +782,7 @@ function persistLocalNotifications(storeId, list) {
 
 function initializeStoreNotificationPanel() {
     const list = document.getElementById('store-notifications-list');
+    const clearBtn = document.getElementById('clear-store-notifications');
     if (!list) return;
 
     const storeId = list.getAttribute('data-store-id');
@@ -797,6 +823,16 @@ function initializeStoreNotificationPanel() {
             empty.textContent = t('store.no_notifications');
             list.appendChild(empty);
         }
+        persistLocalNotifications(storeId, list);
+    });
+
+    clearBtn?.addEventListener('click', () => {
+        list.innerHTML = '';
+        const empty = document.createElement('p');
+        empty.className = 'store-notification-empty';
+        empty.setAttribute('data-i18n', 'store.no_notifications');
+        empty.textContent = t('store.no_notifications');
+        list.appendChild(empty);
         persistLocalNotifications(storeId, list);
     });
 }
@@ -859,6 +895,8 @@ function initializeRealtimeNotifications() {
 
         console.log('Socket event low_stock:', data);
 
+        showNotification({ title, message: globalMessage, level: 'warning', icon: 'exclamation-triangle' });
+
         if (currentStoreId && data?.store_id === currentStoreId) {
             const localMessage = interpolate(t('notifications.local_low_stock_message'), {
                 product: productName,
@@ -871,8 +909,6 @@ function initializeRealtimeNotifications() {
                 localMessage,
                 'warning'
             );
-        } else {
-            showNotification({ title, message: globalMessage, level: 'warning', icon: 'exclamation-triangle' });
         }
     });
 }
