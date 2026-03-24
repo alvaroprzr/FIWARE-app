@@ -158,5 +158,6 @@ if __name__ == '__main__':
         app,
         host='0.0.0.0',
         port=APP_PORT,
-        debug=False
+        debug=False,
+        allow_unsafe_werkzeug=True
     )

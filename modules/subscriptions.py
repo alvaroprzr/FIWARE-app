@@ -25,18 +25,28 @@ def _subscription_exists(description: str) -> bool:
     return False
 
 
-def _delete_subscriptions_by_description(description: str) -> None:
+def _delete_subscriptions_by_description(descriptions) -> int:
     """
-    Remove subscriptions by description (used for migration of old rules).
+    Delete all subscriptions whose description is in the provided list/set.
+    Returns the number of deleted subscriptions.
     """
+    if isinstance(descriptions, str):
+        descriptions = {descriptions}
+    else:
+        descriptions = set(descriptions)
+
+    deleted = 0
     subscriptions = orion.get_subscriptions()
     for subscription in subscriptions:
-        if subscription.get('description') != description:
+        if subscription.get('description') not in descriptions:
             continue
         sub_id = subscription.get('id')
-        if sub_id:
-            orion.delete_subscription(sub_id)
-            logger.info(f"Deleted obsolete subscription: {description} ({sub_id})")
+        if not sub_id:
+            continue
+        if orion.delete_subscription(sub_id):
+            deleted += 1
+            logger.info(f"Deleted stale subscription: {subscription.get('description')} ({sub_id})")
+    return deleted
 
 # ============================================================================
 # Subscription 1: Price Change Notifications
@@ -91,19 +101,19 @@ def register_price_change_subscription():
 
 def register_low_stock_subscription():
     """
-    Register a subscription for inventory changes and evaluate low stock at store level.
-    Business rule is computed in webhook: low stock by store+product (not by single shelf).
+    Register a subscription for low inventory on Shelf entities.
+    Triggers notification when shelf item count drops below 3.
     Webhook: POST /notify/low-stock
     """
-    legacy_description = 'Low stock notifications for inventory items'
-    description = 'Low stock notifications by store stock'
+    description = 'Low stock notifications for inventory items'
 
-    # Remove legacy subscription so old shelf-level rule does not keep firing.
-    _delete_subscriptions_by_description(legacy_description)
-
-    if _subscription_exists(description):
-        logger.info("Low stock subscription already exists, skipping creation")
-        return True
+    # Clean stale/legacy subscriptions to avoid duplicate or inconsistent low-stock events.
+    deleted = _delete_subscriptions_by_description({
+        'Low stock notifications by store stock',
+        'Low stock notifications for inventory items'
+    })
+    if deleted:
+        logger.info(f"Low stock subscription reset: removed {deleted} old subscription(s)")
 
     subscription = {
         'description': description,
@@ -115,7 +125,10 @@ def register_low_stock_subscription():
                 }
             ],
             'condition': {
-                'attrs': ['shelfCount', 'stockCount']
+                'attrs': ['shelfCount'],
+                'expression': {
+                    'q': 'shelfCount<3'
+                }
             }
         },
         'notification': {
