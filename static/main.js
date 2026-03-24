@@ -795,16 +795,19 @@ document.addEventListener('DOMContentLoaded', () => {
             button.dataset.buyPending = 'true';
             const shouldDisableNow = shelfCount === 1;
             if (shouldDisableNow) {
-                button.classList.add('disabled');
-                button.setAttribute('aria-disabled', 'true');
+                // Instant UI feedback when the last unit is bought.
+                updateInventoryItemUI(
+                    inventoryItemId,
+                    0,
+                    Math.max(0, stockCount - 1)
+                );
             }
 
             try {
                 // Make PATCH request to Orion
                 const result = await buyInventoryItem(inventoryItemId, shelfCount, stockCount);
                 if (!result.success && shouldDisableNow && !result.outOfStock) {
-                    button.classList.remove('disabled');
-                    button.setAttribute('aria-disabled', 'false');
+                    updateInventoryItemUI(inventoryItemId, shelfCount, stockCount);
                 }
             } finally {
                 button.dataset.buyPending = 'false';
