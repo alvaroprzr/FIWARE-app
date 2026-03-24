@@ -585,9 +585,14 @@ def add_product_to_shelf(shelf_id):
             # Validate that new total does not exceed shelf capacity
             if new_shelf_count > max_capacity:
                 return {
-                    'error': f'Shelf capacity exceeded. Current: {current_shelf_count}, '
-                             f'requested: {shelf_count}, capacity: {max_capacity}. '
-                             f'Maximum allowed: {max(0, max_capacity - current_shelf_count)}'
+                    'error': 'Shelf capacity exceeded',
+                    'errorCode': 'SHELF_CAPACITY_EXCEEDED',
+                    'details': {
+                        'current': current_shelf_count,
+                        'requested': shelf_count,
+                        'capacity': max_capacity,
+                        'maximumAllowed': max(0, max_capacity - current_shelf_count)
+                    }
                 }, 400
 
             merged_attrs = {
@@ -620,8 +625,14 @@ def add_product_to_shelf(shelf_id):
         # Validate that initial shelf count does not exceed shelf capacity
         if shelf_count > max_capacity:
             return {
-                'error': f'Shelf capacity exceeded. Requested: {shelf_count}, '
-                         f'capacity: {max_capacity}'
+                'error': 'Shelf capacity exceeded',
+                'errorCode': 'SHELF_CAPACITY_EXCEEDED',
+                'details': {
+                    'current': 0,
+                    'requested': shelf_count,
+                    'capacity': max_capacity,
+                    'maximumAllowed': max_capacity
+                }
             }, 400
 
         inventory_item = {

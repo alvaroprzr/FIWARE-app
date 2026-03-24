@@ -149,10 +149,20 @@ def notify_low_stock():
                 logger.warning(f"Invalid low stock payload item: {data_item}")
                 continue
 
-            # Only emit if stock is actually low (1 to 2 units on shelf, > 0 to avoid "quedan 0" message).
-            if shelf_count is None or shelf_count <= 0 or shelf_count >= 3:
-                logger.info(f"Skipping low-stock emit for {item_id}: shelfCount={shelf_count} is not in low range [1,2]")
+            # Only emit if stock is actually low (0 to 2 units on shelf).
+            if shelf_count is None or shelf_count >= 3:
+                logger.info(f"Skipping low-stock emit for {item_id}: shelfCount={shelf_count} is not in low range [0,2]")
                 continue
+
+            store_inventory_items = orion.get_entities(
+                entity_type='InventoryItem',
+                query=f"refStore=='{store_id}'"
+            )
+            total_store_stock = sum(
+                int(item.get('shelfCount', {}).get('value', 0) or 0)
+                for item in store_inventory_items
+                if item.get('refProduct', {}).get('value') == product_id
+            )
 
             event_payload = {
                 'item_id': item_id,
@@ -161,11 +171,14 @@ def notify_low_stock():
                 'shelf_id': shelf_id,
                 'product_name': _entity_name(product_id),
                 'store_name': _entity_name(store_id),
+                'shelf_name': _entity_name(shelf_id),
                 'shelfCount': shelf_count,
                 'stockCount': stock_count,
+                'totalStoreStock': total_store_stock,
                 # Backward compatibility with existing frontend listener.
                 'shelf_count': shelf_count,
                 'stock_count': stock_count,
+                'total_store_stock': total_store_stock,
                 'timestamp': datetime.now(timezone.utc).isoformat()
             }
 
