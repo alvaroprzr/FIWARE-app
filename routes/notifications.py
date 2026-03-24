@@ -114,7 +114,7 @@ def notify_low_stock():
     """
     Webhook endpoint for low inventory notifications from Orion.
     
-    Triggered when InventoryItem shelfCount < 3
+    Triggered by InventoryItem changes; low-stock is evaluated by store stockCount.
     
     Receives:
     - subscriptionId: Subscription identifier
@@ -133,38 +133,51 @@ def notify_low_stock():
             logger.warning("SocketIO not initialized, cannot emit events")
             return {'status': 'ok'}, 200
         
-        # Extract low stock data
+        # Extract data and emit only when STORE stock for that product is low.
         for data_item in _payload_data_items(payload):
             if not isinstance(data_item, dict):
                 continue
 
             item_id = data_item.get('id')
-            shelf_count = data_item.get('shelfCount', {}).get('value')
             product_id = data_item.get('refProduct', {}).get('value')
-            shelf_id = data_item.get('refShelf', {}).get('value')
             store_id = data_item.get('refStore', {}).get('value')
 
-            if not item_id or not product_id or not shelf_id or not store_id:
+            if not item_id or not product_id or not store_id:
                 logger.warning(f"Invalid low stock payload item: {data_item}")
                 continue
+
+            related_items = orion.get_entities(
+                entity_type='InventoryItem',
+                query=f"refStore=='{store_id}';refProduct=='{product_id}'"
+            )
+
+            total_store_stock = sum(
+                int(item.get('shelfCount', {}).get('value', 0) or 0)
+                for item in related_items
+                if isinstance(item, dict)
+            )
+
+            # Rule: notify on low stock of the STORE (not shelf-level scarcity).
+            if total_store_stock >= 3:
+                continue
+
+            product_name = _entity_name(product_id) or product_id.split(':')[-1]
+            store_name = _entity_name(store_id) or store_id.split(':')[-1]
 
             event_payload = {
                 'item_id': item_id,
                 'product_id': product_id,
                 'store_id': store_id,
-                'shelf_id': shelf_id,
-                'product_name': _entity_name(product_id),
-                'store_name': _entity_name(store_id),
-                'shelfCount': shelf_count,
-                # Backward compatibility with existing frontend listener.
-                'shelf_count': shelf_count,
+                'product_name': product_name,
+                'store_name': store_name,
+                'stockCount': total_store_stock,
+                # Backward compatibility for existing frontend listeners.
+                'stock_count': total_store_stock,
                 'timestamp': datetime.now(timezone.utc).isoformat()
             }
 
-            # Broadcast to all connected clients
             socketio.emit('low_stock', event_payload)
-
-            logger.warning(f"Socket emit low_stock: {event_payload}")
+            logger.warning(f"Socket emit low_stock (store-level): {event_payload}")
         
         return {'status': 'ok'}, 200
     except Exception as e:

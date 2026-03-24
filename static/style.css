@@ -329,11 +329,19 @@ code {
 }
 
 .btn-buy:disabled,
-.btn-buy.disabled {
-    background: #ccc;
-    color: #666;
+.btn-buy.disabled,
+.btn-buy[aria-disabled="true"],
+.btn-buy-link.disabled,
+.btn-buy-link[aria-disabled="true"] {
+    background: #b0b6bd;
+    color: #f5f7fa;
+    border-color: #b0b6bd;
     cursor: not-allowed;
-    opacity: 0.6;
+    opacity: 0.95;
+    pointer-events: none;
+    box-shadow: none;
+    transform: none;
+    text-decoration: none;
 }
 
 /* ============================================================================

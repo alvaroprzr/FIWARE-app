@@ -22,9 +22,9 @@ const i18n = {
         'notifications.title': 'Notificaciones',
         'notifications.price_change_title': 'Cambio de Precio',
         'notifications.price_change_message': 'Producto {product} - Nuevo precio: €{price}',
-        'notifications.low_stock_title': 'Stock Bajo',
-        'notifications.low_stock_message': 'Apenas {count} unidades en {shelf}',
-        'notifications.local_low_stock_message': 'Producto {product} con {count} unidades en {shelf}',
+        'notifications.low_stock_title': 'Stock Bajo en Almacen',
+        'notifications.low_stock_message': 'Quedan {count} unidades de {product} en {store}',
+        'notifications.local_low_stock_message': 'Atencion: solo {count} unidades de {product} en este almacen',
         'footer.text': 'Almacén Inteligente FIWARE © 2024',
         'footer.connecting': 'Conectando...',
         'home.title': 'Almacén Inteligente FIWARE',
@@ -126,9 +126,9 @@ const i18n = {
         'notifications.title': 'Notifications',
         'notifications.price_change_title': 'Price Change',
         'notifications.price_change_message': 'Product {product} - New price: €{price}',
-        'notifications.low_stock_title': 'Low Stock',
-        'notifications.low_stock_message': 'Only {count} units left on {shelf}',
-        'notifications.local_low_stock_message': 'Product {product} has {count} units on {shelf}',
+        'notifications.low_stock_title': 'Low Store Stock',
+        'notifications.low_stock_message': 'Only {count} units of {product} remain in {store}',
+        'notifications.local_low_stock_message': 'Alert: only {count} units of {product} remain in this store',
         'footer.text': 'Smart Warehouse FIWARE © 2024',
         'footer.connecting': 'Connecting...',
         'home.title': 'FIWARE Smart Warehouse',
@@ -724,13 +724,14 @@ function initializeRealtimeNotifications() {
     socket.on('low_stock', (data) => {
         const storeNotifications = document.getElementById('store-notifications-list');
         const currentStoreId = storeNotifications?.getAttribute('data-store-id');
-        const shelfCount = data?.shelfCount ?? data?.shelf_count ?? 0;
-        const shelfId = data?.shelf_id || '-';
-        const productId = data?.product_id || '-';
+        const stockCount = data?.stockCount ?? data?.stock_count ?? 0;
+        const productName = data?.product_name || data?.product_id || '-';
+        const storeName = data?.store_name || data?.store_id || '-';
         const title = t('notifications.low_stock_title');
         const globalMessage = interpolate(t('notifications.low_stock_message'), {
-            count: shelfCount,
-            shelf: shelfId
+            count: stockCount,
+            product: productName,
+            store: storeName
         });
 
         console.log('Socket event low_stock:', data);
@@ -739,9 +740,9 @@ function initializeRealtimeNotifications() {
 
         if (currentStoreId && data?.store_id === currentStoreId) {
             const localMessage = interpolate(t('notifications.local_low_stock_message'), {
-                product: productId,
-                count: shelfCount,
-                shelf: shelfId
+                product: productName,
+                count: stockCount,
+                store: storeName
             });
             appendStoreRealtimeNotification(
                 title,
@@ -771,7 +772,11 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
 
-            if (button.getAttribute('aria-disabled') === 'true' || button.classList.contains('disabled')) {
+            if (
+                button.getAttribute('aria-disabled') === 'true' ||
+                button.classList.contains('disabled') ||
+                button.dataset.buyPending === 'true'
+            ) {
                 return;
             }
             
@@ -781,12 +786,19 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Validate shelf count
             if (shelfCount <= 0) {
+                button.classList.add('disabled');
+                button.setAttribute('aria-disabled', 'true');
                 showNotification('Sin Stock', 'No hay disponible en esta ubicación', 'warning');
                 return;
             }
-            
-            // Make PATCH request to Orion
-            await buyInventoryItem(inventoryItemId, shelfCount, stockCount);
+
+            button.dataset.buyPending = 'true';
+            try {
+                // Make PATCH request to Orion
+                await buyInventoryItem(inventoryItemId, shelfCount, stockCount);
+            } finally {
+                button.dataset.buyPending = 'false';
+            }
         });
     });
 });
@@ -828,8 +840,19 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
             updateInventoryItemUI(inventoryItemId, resolvedShelfCount, resolvedStockCount);
             showNotification('Compra Exitosa', 'Stock actualizado en tiempo real', 'success');
         } else {
-            console.error(`[BUY] PATCH failed with status ${response.status}`);
-            showNotification('Error', `No se pudo actualizar el stock (HTTP ${response.status})`, 'error');
+            const errorPayload = await response.json().catch(() => ({}));
+            const errorMessage = errorPayload?.error || `HTTP ${response.status}`;
+
+            if (response.status === 400 && /No stock available on this shelf/i.test(errorMessage)) {
+                const button = document.querySelector(`[data-inventoryitem-id="${inventoryItemId}"]`);
+                const currentStock = parseInt(button?.getAttribute('data-stock-count') || '0', 10) || 0;
+                updateInventoryItemUI(inventoryItemId, 0, currentStock);
+                showNotification('Sin Stock', 'No hay disponible en esta ubicación', 'warning');
+                return;
+            }
+
+            console.error(`[BUY] PATCH failed with status ${response.status}: ${errorMessage}`);
+            showNotification('Error', `No se pudo actualizar el stock (${errorMessage})`, 'error');
         }
     } catch (error) {
         console.error('[BUY] Error:', error);

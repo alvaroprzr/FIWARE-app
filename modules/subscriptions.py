@@ -24,6 +24,20 @@ def _subscription_exists(description: str) -> bool:
             return True
     return False
 
+
+def _delete_subscriptions_by_description(description: str) -> None:
+    """
+    Remove subscriptions by description (used for migration of old rules).
+    """
+    subscriptions = orion.get_subscriptions()
+    for subscription in subscriptions:
+        if subscription.get('description') != description:
+            continue
+        sub_id = subscription.get('id')
+        if sub_id:
+            orion.delete_subscription(sub_id)
+            logger.info(f"Deleted obsolete subscription: {description} ({sub_id})")
+
 # ============================================================================
 # Subscription 1: Price Change Notifications
 # ============================================================================
@@ -77,11 +91,15 @@ def register_price_change_subscription():
 
 def register_low_stock_subscription():
     """
-    Register a subscription for low inventory on Shelf entities.
-    Triggers notification when shelf item count drops below 3.
+    Register a subscription for inventory changes and evaluate low stock at store level.
+    Business rule is computed in webhook: low stock by store+product (not by single shelf).
     Webhook: POST /notify/low-stock
     """
-    description = 'Low stock notifications for inventory items'
+    legacy_description = 'Low stock notifications for inventory items'
+    description = 'Low stock notifications by store stock'
+
+    # Remove legacy subscription so old shelf-level rule does not keep firing.
+    _delete_subscriptions_by_description(legacy_description)
 
     if _subscription_exists(description):
         logger.info("Low stock subscription already exists, skipping creation")
@@ -97,17 +115,14 @@ def register_low_stock_subscription():
                 }
             ],
             'condition': {
-                'attrs': ['shelfCount'],
-                'expression': {
-                    'q': 'shelfCount<3'
-                }
+                'attrs': ['shelfCount', 'stockCount']
             }
         },
         'notification': {
             'http': {
                 'url': f"{WEBHOOK_URL_BASE}/notify/low-stock"
             },
-            'attrs': ['shelfCount', 'refProduct', 'refShelf', 'refStore'],
+            'attrs': ['shelfCount', 'stockCount', 'refProduct', 'refShelf', 'refStore'],
             'attrsFormat': 'normalized'
         },
         'expires': '2099-12-31T23:59:59Z'
