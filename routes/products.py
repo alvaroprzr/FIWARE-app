@@ -129,7 +129,8 @@ def product_detail(product_id):
             if store_id not in inventory_by_store:
                 inventory_by_store[store_id] = {
                     'shelves': [],
-                    'totalStock': 0,
+                    'stockCount': None,
+                    'totalShelfCount': 0,
                     'store_name': existing_store_names.get(store_id, '')
                 }
             involved_store_ids.add(store_id)
@@ -138,10 +139,23 @@ def product_detail(product_id):
             if shelf_id:
                 shelf_ids.add(shelf_id)
             
-            # Real stock in this view is the sum of shelfCount for the same product+store.
             shelf_count = _safe_number(item.get('shelfCount', {}).get('value', 0), 0)
-            inventory_by_store[store_id]['totalStock'] += shelf_count
+            stock_count = _safe_number(item.get('stockCount', {}).get('value', 0), 0)
+            inventory_by_store[store_id]['totalShelfCount'] += shelf_count
+
+            # stockCount is store-level for the same product; keep one canonical value per store.
+            if inventory_by_store[store_id]['stockCount'] is None:
+                inventory_by_store[store_id]['stockCount'] = stock_count
+            else:
+                inventory_by_store[store_id]['stockCount'] = max(
+                    inventory_by_store[store_id]['stockCount'],
+                    stock_count
+                )
             inventory_by_store[store_id]['shelves'].append(item)
+
+        for store_data in inventory_by_store.values():
+            if store_data['stockCount'] is None:
+                store_data['stockCount'] = 0
 
         shelf_names = {}
         if shelf_ids:

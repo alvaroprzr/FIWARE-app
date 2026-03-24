@@ -49,6 +49,7 @@ const i18n = {
         'products.title': 'Catálogo de Productos',
         'products.add': '+ Añadir Producto',
         'products.view': 'Ver',
+        'products.actions': 'Acciones',
         'product.inventory_distribution': 'Distribución de Inventario',
         'product.store': 'Almacén',
         'product.shelf': 'Estantería',
@@ -61,6 +62,7 @@ const i18n = {
         'stores.title': 'Almacenes',
         'stores.add': '+ Añadir Almacén',
         'stores.view_map': 'Ver Mapa',
+        'stores.actions': 'Acciones',
         'store.climate': 'Clima del Almacén',
         'store.temperature': 'Temperatura',
         'store.humidity': 'Humedad Relativa',
@@ -95,6 +97,7 @@ const i18n = {
         'store.table.shelf': 'shelfCount',
         'employees.title': 'Equipo de Trabajo',
         'employees.add': '+ Añadir Empleado',
+        'employees.actions': 'Acciones',
         'employee.skills': 'Competencias',
         'employee.details': 'Detalles de Empleo',
         'employee.hire_date': 'Fecha de Contratación',
@@ -150,6 +153,7 @@ const i18n = {
         'products.title': 'Product Catalog',
         'products.add': '+ Add Product',
         'products.view': 'View',
+        'products.actions': 'Actions',
         'product.inventory_distribution': 'Inventory Distribution',
         'product.store': 'Store',
         'product.shelf': 'Shelf',
@@ -162,6 +166,7 @@ const i18n = {
         'stores.title': 'Stores',
         'stores.add': '+ Add Store',
         'stores.view_map': 'View Map',
+        'stores.actions': 'Actions',
         'store.climate': 'Store Climate',
         'store.temperature': 'Temperature',
         'store.humidity': 'Relative Humidity',
@@ -196,6 +201,7 @@ const i18n = {
         'store.table.shelf': 'shelfCount',
         'employees.title': 'Team',
         'employees.add': '+ Add Employee',
+        'employees.actions': 'Actions',
         'employee.skills': 'Skills',
         'employee.details': 'Employment Details',
         'employee.hire_date': 'Hire Date',
@@ -222,6 +228,8 @@ const notificationState = {
     maxGlobalItems: 80,
     maxLocalItems: 20
 };
+const GLOBAL_NOTIF_SESSION_KEY = 'fiware.notifications.global.v1';
+const LOCAL_NOTIF_SESSION_KEY = 'fiware.notifications.local.v1';
 
 function t(key) {
     return i18n[currentLanguage]?.[key] || key;
@@ -287,6 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLanguageSelector();
     updateUIText();
     initializeGlobalNotificationsPanel();
+    initializeStoreNotificationPanel();
     initializeNavbarActive();
     initializeStoreDetailForms();
     initializeProductDetailForms();
@@ -388,11 +397,13 @@ function initializeGlobalNotificationsPanel() {
     const toggle = document.getElementById('notification-toggle');
     const closeBtn = document.getElementById('close-notifications');
     const panel = document.getElementById('notifications-panel');
+    const list = document.getElementById('notifications-list');
 
     if (!toggle || !panel) {
         return;
     }
 
+    restoreGlobalNotifications();
     setNotificationBadgeCount(0);
 
     toggle.addEventListener('click', (event) => {
@@ -426,6 +437,24 @@ function initializeGlobalNotificationsPanel() {
             closeNotificationsPanel();
         }
     });
+
+    list?.addEventListener('click', (event) => {
+        const dismissBtn = event.target.closest('.notification-dismiss');
+        if (!dismissBtn) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const item = dismissBtn.closest('.notification-item');
+        if (!item) {
+            return;
+        }
+
+        item.remove();
+        persistGlobalNotifications();
+    });
 }
 
 function showNotification(titleOrOptions, message, level = 'info', icon) {
@@ -444,6 +473,11 @@ function showNotification(titleOrOptions, message, level = 'info', icon) {
     
     const item = document.createElement('div');
     item.className = `notification-item ${resolvedLevel}`;
+    item.dataset.level = resolvedLevel;
+    item.dataset.icon = resolvedIcon;
+    item.dataset.title = title;
+    item.dataset.message = body;
+    item.dataset.time = timestamp;
     item.innerHTML = `
         <i class="fas fa-${escapeHtml(resolvedIcon)}" aria-hidden="true"></i>
         <div>
@@ -451,12 +485,17 @@ function showNotification(titleOrOptions, message, level = 'info', icon) {
             <p>${escapeHtml(body)}</p>
             <small>${escapeHtml(timestamp)}</small>
         </div>
+        <button type="button" class="notification-dismiss" aria-label="Cerrar notificacion">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
     `;
     
     list.prepend(item);
     while (list.children.length > notificationState.maxGlobalItems) {
         list.removeChild(list.lastElementChild);
     }
+
+    persistGlobalNotifications();
     
     if (!notificationState.isPanelOpen) {
         incrementNotificationBadge();
@@ -494,6 +533,7 @@ function updateProductPriceUI(productId, newPrice) {
 function appendStoreRealtimeNotification(title, message, level = 'info') {
     const list = document.getElementById('store-notifications-list');
     if (!list) return;
+    const storeId = list.getAttribute('data-store-id');
 
     const emptyState = list.querySelector('.store-notification-empty');
     if (emptyState) {
@@ -510,12 +550,145 @@ function appendStoreRealtimeNotification(title, message, level = 'info') {
             <p>${escapeHtml(message)}</p>
             <small>${escapeHtml(formatNotificationTime(new Date()))}</small>
         </div>
+        <button type="button" class="notification-dismiss" aria-label="Cerrar notificacion">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
     `;
     list.prepend(item);
 
     while (list.children.length > notificationState.maxLocalItems) {
         list.removeChild(list.lastElementChild);
     }
+
+    persistLocalNotifications(storeId, list);
+}
+
+function serializeNotificationItem(item) {
+    return {
+        level: item.dataset.level || 'info',
+        icon: item.dataset.icon || getIcon(item.dataset.level || 'info'),
+        title: item.dataset.title || item.querySelector('strong')?.textContent || '',
+        message: item.dataset.message || item.querySelector('p')?.textContent || '',
+        time: item.dataset.time || item.querySelector('small')?.textContent || formatNotificationTime(new Date())
+    };
+}
+
+function buildNotificationItem(entry) {
+    const item = document.createElement('div');
+    item.className = `notification-item ${entry.level || 'info'}`;
+    item.dataset.level = entry.level || 'info';
+    item.dataset.icon = entry.icon || getIcon(entry.level || 'info');
+    item.dataset.title = entry.title || '';
+    item.dataset.message = entry.message || '';
+    item.dataset.time = entry.time || formatNotificationTime(new Date());
+
+    item.innerHTML = `
+        <i class="fas fa-${escapeHtml(item.dataset.icon)}" aria-hidden="true"></i>
+        <div>
+            <strong>${escapeHtml(item.dataset.title)}</strong>
+            <p>${escapeHtml(item.dataset.message)}</p>
+            <small>${escapeHtml(item.dataset.time)}</small>
+        </div>
+        <button type="button" class="notification-dismiss" aria-label="Cerrar notificacion">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+    `;
+
+    return item;
+}
+
+function persistGlobalNotifications() {
+    const list = document.getElementById('notifications-list');
+    if (!list) return;
+
+    const items = Array.from(list.querySelectorAll('.notification-item')).map(serializeNotificationItem);
+    sessionStorage.setItem(GLOBAL_NOTIF_SESSION_KEY, JSON.stringify(items.slice(0, notificationState.maxGlobalItems)));
+}
+
+function restoreGlobalNotifications() {
+    const list = document.getElementById('notifications-list');
+    if (!list) return;
+
+    let stored = [];
+    try {
+        stored = JSON.parse(sessionStorage.getItem(GLOBAL_NOTIF_SESSION_KEY) || '[]');
+    } catch (error) {
+        stored = [];
+    }
+
+    if (!Array.isArray(stored) || !stored.length) {
+        return;
+    }
+
+    list.innerHTML = '';
+    stored.forEach((entry) => {
+        list.appendChild(buildNotificationItem(entry));
+    });
+}
+
+function getLocalNotificationStore() {
+    try {
+        const parsed = JSON.parse(sessionStorage.getItem(LOCAL_NOTIF_SESSION_KEY) || '{}');
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (error) {
+        return {};
+    }
+}
+
+function persistLocalNotifications(storeId, list) {
+    if (!storeId || !list) return;
+
+    const payload = getLocalNotificationStore();
+    payload[storeId] = Array.from(list.querySelectorAll('.notification-item'))
+        .map(serializeNotificationItem)
+        .slice(0, notificationState.maxLocalItems);
+    sessionStorage.setItem(LOCAL_NOTIF_SESSION_KEY, JSON.stringify(payload));
+}
+
+function initializeStoreNotificationPanel() {
+    const list = document.getElementById('store-notifications-list');
+    if (!list) return;
+
+    const storeId = list.getAttribute('data-store-id');
+    if (!storeId) return;
+
+    const payload = getLocalNotificationStore();
+    const entries = payload[storeId] || [];
+    const emptyState = list.querySelector('.store-notification-empty');
+
+    if (entries.length) {
+        if (emptyState) {
+            emptyState.remove();
+        }
+        entries.forEach((entry) => {
+            list.appendChild(buildNotificationItem(entry));
+        });
+    }
+
+    list.addEventListener('click', (event) => {
+        const dismissBtn = event.target.closest('.notification-dismiss');
+        if (!dismissBtn) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const item = dismissBtn.closest('.notification-item');
+        if (!item) {
+            return;
+        }
+
+        item.remove();
+        if (!list.querySelector('.notification-item') && !list.querySelector('.store-notification-empty')) {
+            const empty = document.createElement('p');
+            empty.className = 'store-notification-empty';
+            empty.setAttribute('data-i18n', 'store.no_notifications');
+            empty.textContent = t('store.no_notifications');
+            list.appendChild(empty);
+        }
+        persistLocalNotifications(storeId, list);
+    });
 }
 
 function initializeRealtimeNotifications() {
@@ -641,8 +814,11 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
         });
         
         if (response.ok) {
+            const payload = await response.json();
+            const resolvedShelfCount = payload?.newShelfCount ?? newShelfCount;
+            const resolvedStockCount = payload?.newStockCount ?? newStockCount;
             console.log(`[BUY] Success for ${inventoryItemId}`);
-            updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount);
+            updateInventoryItemUI(inventoryItemId, resolvedShelfCount, resolvedStockCount);
             showNotification('Compra Exitosa', 'Stock actualizado en tiempo real', 'success');
         } else {
             console.error(`[BUY] PATCH failed with status ${response.status}`);
@@ -979,14 +1155,13 @@ function updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount) {
         return;
     }
     
-    // Update the Stock column (6th column, index 5)
-    const stockCell = tr.querySelector('td:nth-child(6)');
+    const stockCell = tr.querySelector('.inventory-stock-cell') || tr.querySelector('td:nth-child(6)');
     if (stockCell) {
         stockCell.textContent = Math.max(0, newStockCount);
     }
     
     // Update the Shelf Quantity column (7th column, index 6)
-    const shelfCell = tr.querySelector('td:nth-child(7)');
+    const shelfCell = tr.querySelector('.inventory-shelf-cell') || tr.querySelector('td:nth-child(7)');
     if (shelfCell) {
         shelfCell.textContent = Math.max(0, newShelfCount);
     }
@@ -1113,14 +1288,15 @@ function setupDeleteButtons() {
                 fetch(endpoint, { method: 'DELETE' })
                     .then(r => {
                         if (r.ok) {
-                            window.location.reload();
+                            showNotification('Eliminado', 'Entidad eliminada correctamente', 'success');
+                            setTimeout(() => window.location.reload(), 250);
                         } else {
-                            alert('Error al borrar. Intenta de nuevo.');
+                            showNotification('Error', 'No se pudo eliminar la entidad', 'error');
                         }
                     })
                     .catch(err => {
                         console.error('Delete error:', err);
-                        alert('Error al conectar con el servidor.');
+                        showNotification('Error de Conexión', 'No se pudo conectar con el servidor.', 'error');
                     });
             }
         });

@@ -544,6 +544,29 @@ label {
     margin-top: var(--spacing-sm);
 }
 
+.notification-dismiss {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.notification-dismiss:hover,
+.notification-dismiss:focus-visible {
+    color: var(--accent);
+    background: rgba(0, 0, 0, 0.08);
+    outline: none;
+}
+
 .store-notifications-list .notification-item {
     align-items: flex-start;
 }

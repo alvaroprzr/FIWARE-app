@@ -133,7 +133,7 @@
                         {% set product_id = item.refProduct.value %}
                         {% set product = products_dict.get(product_id) %}
                         {% set color_hex = product.color.value if product and product.color else '#999999' %}
-                        <tr class="inventory-product-row">
+                        <tr class="inventory-product-row" data-product-id="{{ product_id }}" data-inventoryitem-id="{{ item.id }}">
                             <td>
                                 {% if product and product.image and product.image.value %}
                                     <img src="{{ product.image.value }}" class="product-image" alt="{{ product.name.value if product and product.name else 'Product' }}">
@@ -148,8 +148,8 @@
                                 <span class="color-swatch" style="background-color: {{ color_hex }};"></span>
                                 <span>{{ color_hex }}</span>
                             </td>
-                            <td>{{ item.stockCount.value if item.stockCount else 0 }}</td>
-                            <td>{{ item.shelfCount.value if item.shelfCount else 0 }}</td>
+                            <td class="inventory-stock-cell" data-product-id="{{ product_id }}">{{ item.stockCount.value if item.stockCount else 0 }}</td>
+                            <td class="inventory-shelf-cell">{{ item.shelfCount.value if item.shelfCount else 0 }}</td>
                             <td>
                                 <a href="#"
                                     role="button"

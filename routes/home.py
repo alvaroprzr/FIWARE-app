@@ -11,6 +11,15 @@ logger = logging.getLogger(__name__)
 
 bp = Blueprint('home', __name__, url_prefix='')
 
+
+def _project_stores(stores):
+    return [
+        store for store in stores
+        if isinstance(store.get('id'), str)
+        and store.get('id', '').startswith('urn:ngsi-ld:Store:')
+        and not store.get('id', '').split(':')[-1].isdigit()
+    ]
+
 # ============================================================================
 # GET / - Main dashboard
 # ============================================================================
@@ -25,7 +34,7 @@ def home():
     """
     try:
         # Get entity counts
-        stores = orion.get_entities(entity_type='Store')
+        stores = _project_stores(orion.get_entities(entity_type='Store'))
         products = orion.get_entities(entity_type='Product')
         shelves = orion.get_entities(entity_type='Shelf')
         employees = orion.get_entities(entity_type='Employee')
@@ -56,7 +65,7 @@ def home():
 def get_stats():
     """Return JSON statistics for API clients."""
     try:
-        stores = orion.get_entities(entity_type='Store')
+        stores = _project_stores(orion.get_entities(entity_type='Store'))
         products = orion.get_entities(entity_type='Product')
         shelves = orion.get_entities(entity_type='Shelf')
         employees = orion.get_entities(entity_type='Employee')

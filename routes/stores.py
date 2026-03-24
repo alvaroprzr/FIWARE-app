@@ -39,6 +39,16 @@ def _is_valid_store_id(store_id: str) -> bool:
     return isinstance(store_id, str) and store_id.startswith('urn:ngsi-ld:Store:') and bool(store_id.split(':')[-1])
 
 
+def _is_project_store_id(store_id: str) -> bool:
+    """
+    Keep application stores and exclude tutorial numeric IDs (Store:001..).
+    """
+    if not _is_valid_store_id(store_id):
+        return False
+    suffix = store_id.split(':')[-1]
+    return not suffix.isdigit()
+
+
 def _has_valid_store_name(store: dict) -> bool:
     name_attr = store.get('name')
     if not isinstance(name_attr, dict):
@@ -77,7 +87,7 @@ def list_stores():
         _cleanup_invalid_stores(stores)
         stores = [
             store for store in stores
-            if _is_valid_store_id(store.get('id')) and _has_valid_store_name(store)
+            if _is_project_store_id(store.get('id')) and _has_valid_store_name(store)
         ]
         
         # Get shelf count for each store
@@ -398,6 +408,7 @@ def stores_map():
     """
     try:
         stores = orion.get_entities(entity_type='Store', limit=1000)
+        stores = [store for store in stores if _is_project_store_id(store.get('id'))]
         return render_template('stores_map.html', stores=stores)
     except Exception as e:
         logger.error(f"Error rendering map: {e}")
@@ -609,6 +620,19 @@ def buy_inventory_item(inventory_item_id):
     try:
         inventory_item_id = _normalize_urn(inventory_item_id, 'InventoryItem')
 
+        target_item = orion.get_entity(inventory_item_id)
+        if not target_item:
+            return {'error': 'Inventory item not found'}, 404
+
+        current_shelf_count = _safe_number(target_item.get('shelfCount', {}).get('value'), 0)
+        current_stock_count = _safe_number(target_item.get('stockCount', {}).get('value'), 0)
+
+        if current_shelf_count <= 0:
+            return {'error': 'No stock available on this shelf'}, 400
+
+        if current_stock_count <= 0:
+            return {'error': 'No stock available for this inventory item'}, 400
+
         attrs = {
             'shelfCount': {
                 'type': 'Integer',
@@ -622,9 +646,14 @@ def buy_inventory_item(inventory_item_id):
 
         success = orion.update_entity_attributes(inventory_item_id, attrs)
         if not success:
-            return {'error': 'Could not update inventory item in Orion'}, 400
+            return {'error': f'Could not update inventory item {inventory_item_id} in Orion'}, 400
 
-        return {'success': True}, 200
+        return {
+            'success': True,
+            'inventoryItemId': inventory_item_id,
+            'newShelfCount': current_shelf_count - 1,
+            'newStockCount': current_stock_count - 1
+        }, 200
     except Exception as e:
         logger.error(f"Error buying inventory item {inventory_item_id}: {e}")
         return {'error': str(e)}, 500
@@ -786,6 +815,7 @@ def api_list_stores():
     try:
         limit = request.args.get('limit', 1000, type=int)
         stores = orion.get_entities(entity_type='Store', limit=limit)
+        stores = [store for store in stores if _is_project_store_id(store.get('id'))]
         return {'stores': stores}, 200
     except Exception as e:
         logger.error(f"Error fetching stores: {e}")

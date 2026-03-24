@@ -73,6 +73,38 @@ if [ "$DEBUG" = "1" ]; then
   log "DEBUG MODE ENABLED: Saving JSON dumps to $DEBUG_DIR"
 fi
 
+delete_entities_by_type() {
+  local entity_type="$1"
+  local deleted=0
+  local ids
+
+      ids=$(curl -s "${ORION_URL}/v2/entities?type=${entity_type}&limit=1000&options=keyValues" | python3 -c "import json,sys; data=json.load(sys.stdin); data=data if isinstance(data,list) else []; [print(e.get('id')) for e in data if isinstance(e,dict) and e.get('id')]")
+
+  if [ -z "$ids" ]; then
+    log "No existing entities to delete for type=${entity_type}"
+    return 0
+  fi
+
+  while IFS= read -r entity_id; do
+    [ -z "$entity_id" ] && continue
+    local code
+    code=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "${ORION_URL}/v2/entities/${entity_id}")
+    if [ "$code" != "204" ] && [ "$code" != "404" ]; then
+      log "[ERROR] Failed deleting ${entity_id} (HTTP ${code})"
+      exit 1
+    fi
+    deleted=$((deleted + 1))
+  done <<< "$ids"
+
+  log "Deleted ${deleted} entities for type=${entity_type}"
+}
+
+log "=== LIMPIANDO DATOS EXISTENTES ==="
+# Orden para mantener coherencia referencial durante limpieza.
+for entity_type in InventoryItem Shelf Employee Product Store; do
+  delete_entities_by_type "$entity_type"
+done
+
 # ============================================================================
 # 4 STORES (ciudades europeas con coordenadas reales)
 # ============================================================================
