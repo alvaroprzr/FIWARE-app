@@ -801,8 +801,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 // Make PATCH request to Orion
-                const success = await buyInventoryItem(inventoryItemId, shelfCount, stockCount);
-                if (!success && shouldDisableNow) {
+                const result = await buyInventoryItem(inventoryItemId, shelfCount, stockCount);
+                if (!result.success && shouldDisableNow && !result.outOfStock) {
                     button.classList.remove('disabled');
                     button.setAttribute('aria-disabled', 'false');
                 }
@@ -849,7 +849,7 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
             console.log(`[BUY] Success for ${inventoryItemId}`);
             updateInventoryItemUI(inventoryItemId, resolvedShelfCount, resolvedStockCount);
             showNotification('Compra Exitosa', 'Stock actualizado en tiempo real', 'success');
-            return true;
+            return { success: true, outOfStock: false };
         } else {
             const errorPayload = await response.json().catch(() => ({}));
             const errorMessage = errorPayload?.error || `HTTP ${response.status}`;
@@ -857,17 +857,17 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
             if (response.status === 400 && /No stock available on this shelf/i.test(errorMessage)) {
                 updateInventoryItemUI(inventoryItemId, 0, Math.max(0, currentStockCount));
                 showNotification('Sin Stock', 'No hay disponible en esta ubicación', 'warning');
-                return false;
+                return { success: false, outOfStock: true };
             }
 
             console.error(`[BUY] PATCH failed with status ${response.status}: ${errorMessage}`);
             showNotification('Error', `No se pudo actualizar el stock (${errorMessage})`, 'error');
-            return false;
+            return { success: false, outOfStock: false };
         }
     } catch (error) {
         console.error('[BUY] Error:', error);
         showNotification('Error de Conexión', `No se pudo conectar a Orion: ${error.message}`, 'error');
-        return false;
+        return { success: false, outOfStock: false };
     }
 }
 
