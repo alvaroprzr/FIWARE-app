@@ -702,6 +702,9 @@ function initializeRealtimeNotifications() {
     socket.on('price_change', (data) => {
         const productId = data?.product_id;
         const newPrice = data?.new_price;
+        const affectedStoreIds = Array.isArray(data?.store_ids) ? data.store_ids : [];
+        const storeNotifications = document.getElementById('store-notifications-list');
+        const currentStoreId = storeNotifications?.getAttribute('data-store-id');
         const title = t('notifications.price_change_title');
         const message = interpolate(t('notifications.price_change_message'), {
             product: productId || '-',
@@ -712,6 +715,10 @@ function initializeRealtimeNotifications() {
 
         updateProductPriceUI(productId, newPrice);
         showNotification({ title, message, level: 'info', icon: 'tag' });
+
+        if (currentStoreId && affectedStoreIds.includes(currentStoreId)) {
+            appendStoreRealtimeNotification(title, message, 'info');
+        }
     });
 
     socket.on('low_stock', (data) => {
@@ -1155,6 +1162,8 @@ function updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount) {
         return;
     }
     
+    const productId = tr.getAttribute('data-product-id');
+
     const stockCell = tr.querySelector('.inventory-stock-cell') || tr.querySelector('td:nth-child(6)');
     if (stockCell) {
         stockCell.textContent = Math.max(0, newStockCount);
@@ -1164,6 +1173,22 @@ function updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount) {
     const shelfCell = tr.querySelector('.inventory-shelf-cell') || tr.querySelector('td:nth-child(7)');
     if (shelfCell) {
         shelfCell.textContent = Math.max(0, newShelfCount);
+    }
+
+    if (productId) {
+        const rowsForProduct = document.querySelectorAll(`.inventory-product-row[data-product-id="${productId}"]`);
+        const aggregatedStock = Array.from(rowsForProduct).reduce((acc, row) => {
+            const rowShelf = row.querySelector('.inventory-shelf-cell');
+            const shelfValue = parseInt(rowShelf?.textContent || '0', 10);
+            return acc + (Number.isFinite(shelfValue) ? Math.max(0, shelfValue) : 0);
+        }, 0);
+
+        rowsForProduct.forEach((row) => {
+            const rowStockCell = row.querySelector('.inventory-stock-cell');
+            if (rowStockCell) {
+                rowStockCell.textContent = aggregatedStock;
+            }
+        });
     }
     
     // Update button attributes and state

@@ -78,9 +78,20 @@ def notify_price_change():
                 logger.warning(f"Invalid price change payload item: {data_item}")
                 continue
 
+            inventory_items = orion.get_entities(
+                entity_type='InventoryItem',
+                query=f"refProduct=='{product_id}'"
+            )
+            impacted_store_ids = sorted({
+                item.get('refStore', {}).get('value')
+                for item in inventory_items
+                if isinstance(item, dict) and item.get('refStore', {}).get('value')
+            })
+
             event_payload = {
                 'product_id': product_id,
                 'new_price': price,
+                'store_ids': impacted_store_ids,
                 'timestamp': datetime.now(timezone.utc).isoformat()
             }
 

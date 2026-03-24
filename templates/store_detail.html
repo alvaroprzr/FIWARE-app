@@ -148,7 +148,7 @@
                                 <span class="color-swatch" style="background-color: {{ color_hex }};"></span>
                                 <span>{{ color_hex }}</span>
                             </td>
-                            <td class="inventory-stock-cell" data-product-id="{{ product_id }}">{{ item.stockCount.value if item.stockCount else 0 }}</td>
+                            <td class="inventory-stock-cell" data-product-id="{{ product_id }}">{{ item.displayStockCount if item.displayStockCount is defined else (item.stockCount.value if item.stockCount else 0) }}</td>
                             <td class="inventory-shelf-cell">{{ item.shelfCount.value if item.shelfCount else 0 }}</td>
                             <td>
                                 <a href="#"

@@ -190,11 +190,20 @@ def store_detail(store_id):
         
         # Build inventory structure by shelf
         inventory_by_shelf = {}
+        product_total_stock = {}
         for item in inventory_items:
             shelf_id = item.get('refShelf', {}).get('value', 'Unknown')
+            product_id = item.get('refProduct', {}).get('value')
+            shelf_count = _safe_number(item.get('shelfCount', {}).get('value', 0), 0)
             if shelf_id not in inventory_by_shelf:
                 inventory_by_shelf[shelf_id] = []
+            if product_id:
+                product_total_stock[product_id] = product_total_stock.get(product_id, 0) + shelf_count
             inventory_by_shelf[shelf_id].append(item)
+
+        for item in inventory_items:
+            product_id = item.get('refProduct', {}).get('value')
+            item['displayStockCount'] = product_total_stock.get(product_id, 0) if product_id else 0
         
         # Calculate dynamic numberOfItems and capacity for each shelf
         for shelf in shelves:
