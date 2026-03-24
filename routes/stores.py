@@ -39,6 +39,16 @@ def _is_valid_store_id(store_id: str) -> bool:
     return isinstance(store_id, str) and store_id.startswith('urn:ngsi-ld:Store:') and bool(store_id.split(':')[-1])
 
 
+def _is_project_store_id(store_id: str) -> bool:
+    """
+    Keep application stores and exclude tutorial numeric IDs (Store:001..).
+    """
+    if not _is_valid_store_id(store_id):
+        return False
+    suffix = store_id.split(':')[-1]
+    return not suffix.isdigit()
+
+
 def _has_valid_store_name(store: dict) -> bool:
     name_attr = store.get('name')
     if not isinstance(name_attr, dict):
@@ -77,7 +87,7 @@ def list_stores():
         _cleanup_invalid_stores(stores)
         stores = [
             store for store in stores
-            if _is_valid_store_id(store.get('id')) and _has_valid_store_name(store)
+            if _is_project_store_id(store.get('id')) and _has_valid_store_name(store)
         ]
         
         # Get shelf count for each store
@@ -180,11 +190,20 @@ def store_detail(store_id):
         
         # Build inventory structure by shelf
         inventory_by_shelf = {}
+        product_total_stock = {}
         for item in inventory_items:
             shelf_id = item.get('refShelf', {}).get('value', 'Unknown')
+            product_id = item.get('refProduct', {}).get('value')
+            shelf_count = _safe_number(item.get('shelfCount', {}).get('value', 0), 0)
             if shelf_id not in inventory_by_shelf:
                 inventory_by_shelf[shelf_id] = []
+            if product_id:
+                product_total_stock[product_id] = product_total_stock.get(product_id, 0) + shelf_count
             inventory_by_shelf[shelf_id].append(item)
+
+        for item in inventory_items:
+            product_id = item.get('refProduct', {}).get('value')
+            item['displayStockCount'] = product_total_stock.get(product_id, 0) if product_id else 0
         
         # Calculate dynamic numberOfItems and capacity for each shelf
         for shelf in shelves:
@@ -398,6 +417,7 @@ def stores_map():
     """
     try:
         stores = orion.get_entities(entity_type='Store', limit=1000)
+        stores = [store for store in stores if _is_project_store_id(store.get('id'))]
         return render_template('stores_map.html', stores=stores)
     except Exception as e:
         logger.error(f"Error rendering map: {e}")
@@ -502,7 +522,7 @@ def update_shelf(shelf_id):
 def add_product_to_shelf(shelf_id):
     """
     API endpoint to create an InventoryItem from selected product and shelf.
-    Body: {productId, shelfCount?, stockCount?}
+    Body: {productId, shelfCount?}
     """
     try:
         shelf_id = _normalize_urn(shelf_id, 'Shelf')
@@ -513,16 +533,16 @@ def add_product_to_shelf(shelf_id):
             return {'error': 'productId is required'}, 400
 
         shelf_count = _safe_number(data.get('shelfCount'), 1)
-        stock_count = _safe_number(data.get('stockCount'), shelf_count)
-
-        if shelf_count <= 0 or stock_count <= 0:
+        if shelf_count <= 0:
             return {'error': 'Counts must be greater than 0'}, 400
-        if shelf_count > stock_count:
-            return {'error': 'shelfCount must be less or equal than stockCount'}, 400
 
         shelf = orion.get_entity(shelf_id)
         if not shelf:
             return {'error': 'Shelf not found'}, 404
+
+        max_capacity = _safe_number(shelf.get('maxCapacity', {}).get('value'), 0)
+        if max_capacity <= 0:
+            return {'error': 'Shelf has invalid capacity'}, 400
 
         product = orion.get_entity(product_id)
         if not product:
@@ -531,6 +551,18 @@ def add_product_to_shelf(shelf_id):
         store_id = shelf.get('refStore', {}).get('value')
         if not store_id:
             return {'error': 'Shelf has no valid refStore'}, 400
+
+        # stockCount is store-level total for this product. Recompute from shelfCount values.
+        store_inventory_items = orion.get_entities(
+            entity_type='InventoryItem',
+            query=f"refStore=='{store_id}'"
+        )
+        current_total_store_stock = sum(
+            _safe_number(item.get('shelfCount', {}).get('value'), 0)
+            for item in store_inventory_items
+            if item.get('refProduct', {}).get('value') == product_id
+        )
+        updated_total_store_stock = current_total_store_stock + shelf_count
 
         # Prevent duplicated rows per (shelf, product): merge counts into existing item.
         shelf_items = orion.get_entities(
@@ -548,11 +580,24 @@ def add_product_to_shelf(shelf_id):
         if existing_item:
             existing_id = existing_item.get('id')
             current_shelf_count = _safe_number(existing_item.get('shelfCount', {}).get('value'), 0)
-            current_stock_count = _safe_number(existing_item.get('stockCount', {}).get('value'), 0)
+            new_shelf_count = current_shelf_count + shelf_count
+
+            # Validate that new total does not exceed shelf capacity
+            if new_shelf_count > max_capacity:
+                return {
+                    'error': 'Shelf capacity exceeded',
+                    'errorCode': 'SHELF_CAPACITY_EXCEEDED',
+                    'details': {
+                        'current': current_shelf_count,
+                        'requested': shelf_count,
+                        'capacity': max_capacity,
+                        'maximumAllowed': max(0, max_capacity - current_shelf_count)
+                    }
+                }, 400
 
             merged_attrs = {
-                'shelfCount': orion.build_attr(current_shelf_count + shelf_count, 'Number'),
-                'stockCount': orion.build_attr(current_stock_count + stock_count, 'Number')
+                'shelfCount': orion.build_attr(new_shelf_count, 'Number'),
+                'stockCount': orion.build_attr(updated_total_store_stock, 'Number')
             }
 
             success = orion.update_entity_attributes(existing_id, merged_attrs)
@@ -567,8 +612,8 @@ def add_product_to_shelf(shelf_id):
                     'refProduct': orion.build_attr(product_id, 'Relationship'),
                     'refShelf': orion.build_attr(shelf_id, 'Relationship'),
                     'refStore': orion.build_attr(store_id, 'Relationship'),
-                    'shelfCount': orion.build_attr(current_shelf_count + shelf_count, 'Number'),
-                    'stockCount': orion.build_attr(current_stock_count + stock_count, 'Number')
+                    'shelfCount': orion.build_attr(new_shelf_count, 'Number'),
+                    'stockCount': orion.build_attr(updated_total_store_stock, 'Number')
                 }
             }, 200
 
@@ -577,6 +622,19 @@ def add_product_to_shelf(shelf_id):
             f"{shelf_id.split(':')[-1]}-{product_id.split(':')[-1]}-{uuid.uuid4().hex[:8]}"
         )
 
+        # Validate that initial shelf count does not exceed shelf capacity
+        if shelf_count > max_capacity:
+            return {
+                'error': 'Shelf capacity exceeded',
+                'errorCode': 'SHELF_CAPACITY_EXCEEDED',
+                'details': {
+                    'current': 0,
+                    'requested': shelf_count,
+                    'capacity': max_capacity,
+                    'maximumAllowed': max_capacity
+                }
+            }, 400
+
         inventory_item = {
             'id': inventory_id,
             'type': 'InventoryItem',
@@ -584,7 +642,7 @@ def add_product_to_shelf(shelf_id):
             'refShelf': orion.build_attr(shelf_id, 'Relationship'),
             'refStore': orion.build_attr(store_id, 'Relationship'),
             'shelfCount': orion.build_attr(shelf_count, 'Number'),
-            'stockCount': orion.build_attr(stock_count, 'Number')
+            'stockCount': orion.build_attr(updated_total_store_stock, 'Number')
         }
 
         success = orion.create_entity(inventory_item)
@@ -609,6 +667,19 @@ def buy_inventory_item(inventory_item_id):
     try:
         inventory_item_id = _normalize_urn(inventory_item_id, 'InventoryItem')
 
+        target_item = orion.get_entity(inventory_item_id)
+        if not target_item:
+            return {'error': 'Inventory item not found'}, 404
+
+        current_shelf_count = _safe_number(target_item.get('shelfCount', {}).get('value'), 0)
+        current_stock_count = _safe_number(target_item.get('stockCount', {}).get('value'), 0)
+
+        if current_shelf_count <= 0:
+            return {'error': 'No stock available on this shelf'}, 400
+
+        if current_stock_count <= 0:
+            return {'error': 'No stock available for this inventory item'}, 400
+
         attrs = {
             'shelfCount': {
                 'type': 'Integer',
@@ -622,9 +693,14 @@ def buy_inventory_item(inventory_item_id):
 
         success = orion.update_entity_attributes(inventory_item_id, attrs)
         if not success:
-            return {'error': 'Could not update inventory item in Orion'}, 400
+            return {'error': f'Could not update inventory item {inventory_item_id} in Orion'}, 400
 
-        return {'success': True}, 200
+        return {
+            'success': True,
+            'inventoryItemId': inventory_item_id,
+            'newShelfCount': current_shelf_count - 1,
+            'newStockCount': current_stock_count - 1
+        }, 200
     except Exception as e:
         logger.error(f"Error buying inventory item {inventory_item_id}: {e}")
         return {'error': str(e)}, 500
@@ -786,6 +862,7 @@ def api_list_stores():
     try:
         limit = request.args.get('limit', 1000, type=int)
         stores = orion.get_entities(entity_type='Store', limit=limit)
+        stores = [store for store in stores if _is_project_store_id(store.get('id'))]
         return {'stores': stores}, 200
     except Exception as e:
         logger.error(f"Error fetching stores: {e}")

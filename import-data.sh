@@ -73,6 +73,38 @@ if [ "$DEBUG" = "1" ]; then
   log "DEBUG MODE ENABLED: Saving JSON dumps to $DEBUG_DIR"
 fi
 
+delete_entities_by_type() {
+  local entity_type="$1"
+  local deleted=0
+  local ids
+
+      ids=$(curl -s "${ORION_URL}/v2/entities?type=${entity_type}&limit=1000&options=keyValues" | python3 -c "import json,sys; data=json.load(sys.stdin); data=data if isinstance(data,list) else []; [print(e.get('id')) for e in data if isinstance(e,dict) and e.get('id')]")
+
+  if [ -z "$ids" ]; then
+    log "No existing entities to delete for type=${entity_type}"
+    return 0
+  fi
+
+  while IFS= read -r entity_id; do
+    [ -z "$entity_id" ] && continue
+    local code
+    code=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE "${ORION_URL}/v2/entities/${entity_id}")
+    if [ "$code" != "204" ] && [ "$code" != "404" ]; then
+      log "[ERROR] Failed deleting ${entity_id} (HTTP ${code})"
+      exit 1
+    fi
+    deleted=$((deleted + 1))
+  done <<< "$ids"
+
+  log "Deleted ${deleted} entities for type=${entity_type}"
+}
+
+log "=== LIMPIANDO DATOS EXISTENTES ==="
+# Orden para mantener coherencia referencial durante limpieza.
+for entity_type in InventoryItem Shelf Employee Product Store; do
+  delete_entities_by_type "$entity_type"
+done
+
 # ============================================================================
 # 4 STORES (ciudades europeas con coordenadas reales)
 # ============================================================================
@@ -656,10 +688,7 @@ EOF
 )
 post_entity "$ITEM"
 
-# [Analogamente para Barcelona, Paris, Milan - omitido por brevedad en comentario]
-# Patron: cada Shelf 4+ productos unicos, shelfCount < stockCount para coherencia
-
-# Barcelona Shelves (simplificado - cada Shelf 4 productos)
+# Barcelona Shelves
 INVENTORY_BARCELONA='
 {
   "id": "urn:ngsi-ld:InventoryItem:barcelona-b1-prod1",
@@ -683,18 +712,78 @@ post_entity "$INVENTORY_BARCELONA"
 INVENTORY_BARCELONA='{"id": "urn:ngsi-ld:InventoryItem:barcelona-b1-prod8", "type": "InventoryItem", "refProduct": {"type": "Relationship", "value": "urn:ngsi-ld:Product:ssd-samsung"}, "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:barcelona-shelf-b1"}, "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:barcelona-port"}, "shelfCount": {"type": "Number", "value": 2}, "stockCount": {"type": "Number", "value": 2}}'
 post_entity "$INVENTORY_BARCELONA"
 
-# [Resto de Barcelona B2-B4 y Paris y Milan - simplicidad: 1 item por Shelf como placeholder]
-# Cada uno con 4 productos distintos
+# Helpers para mapear producto y generar items en lote por shelf.
+product_urn_from_num() {
+  case "$1" in
+    1) echo "urn:ngsi-ld:Product:laptop-asus" ;;
+    2) echo "urn:ngsi-ld:Product:monitor-lg" ;;
+    3) echo "urn:ngsi-ld:Product:mouse-logitech" ;;
+    4) echo "urn:ngsi-ld:Product:keyboard-mechanical" ;;
+    5) echo "urn:ngsi-ld:Product:headphones-sony" ;;
+    6) echo "urn:ngsi-ld:Product:webcam-logitech" ;;
+    7) echo "urn:ngsi-ld:Product:usb-dock" ;;
+    8) echo "urn:ngsi-ld:Product:ssd-samsung" ;;
+    9) echo "urn:ngsi-ld:Product:ram-corsair" ;;
+    10) echo "urn:ngsi-ld:Product:power-supply" ;;
+    *) return 1 ;;
+  esac
+}
 
-for shelf in "barcelona-shelf-b2:prod2,5,7,9" "barcelona-shelf-b3:prod3,6,8,10" "barcelona-shelf-b4:prod1,2,4,5"; do
-  IFS=':' read shelf_id prods <<< "$shelf"
-  IFS=',' read -ra prod_array <<< "$prods"
-  prod=${prod_array[0]}
-  prod_urn="urn:ngsi-ld:Product:$(echo $prod | sed 's/prod//' | awk '{if($1==1) print "laptop-asus"; else if($1==2) print "monitor-lg"; else if($1==3) print "mouse-logitech"; else if($1==4) print "keyboard-mechanical"; else if($1==5) print "headphones-sony"; else if($1==6) print "webcam-logitech"; else if($1==7) print "usb-dock"; else if($1==8) print "ssd-samsung"; else if($1==9) print "ram-corsair"; else print "power-supply"}')"
-  
-  ITEM="{\"id\": \"urn:ngsi-ld:InventoryItem:barcelona-$(echo $shelf_id | sed 's/-shelf-//')--$prod\", \"type\": \"InventoryItem\", \"refProduct\": {\"type\": \"Relationship\", \"value\": \"$prod_urn\"}, \"refShelf\": {\"type\": \"Relationship\", \"value\": \"urn:ngsi-ld:Shelf:$shelf_id\"}, \"refStore\": {\"type\": \"Relationship\", \"value\": \"urn:ngsi-ld:Store:barcelona-port\"}, \"shelfCount\": {\"type\": \"Integer\", \"value\": 4}, \"stockCount\": {\"type\": \"Integer\", \"value\": 4}}"
-  post_entity "$ITEM"
-done
+create_inventory_for_shelf() {
+  local store_slug="$1"
+  local store_urn="$2"
+  local shelf_id="$3"
+  local products_csv="$4"
+  local shelf_count_base="$5"
+  local index=0
+
+  IFS=',' read -ra products <<< "$products_csv"
+  for prod_num in "${products[@]}"; do
+    local prod_urn
+    local shelf_count
+    local stock_count
+    prod_urn=$(product_urn_from_num "$prod_num") || {
+      log "[ERROR] Producto no soportado en mapping: $prod_num"
+      exit 1
+    }
+
+    # shelfCount positivo y visible para UI (stockCount >= shelfCount)
+    shelf_count=$((shelf_count_base + (index % 2)))
+    stock_count=$((shelf_count + 2))
+
+    ITEM=$(cat <<EOF
+{
+  "id": "urn:ngsi-ld:InventoryItem:${store_slug}-$(echo "$shelf_id" | sed 's/.*-shelf-//')-prod${prod_num}",
+  "type": "InventoryItem",
+  "refProduct": {"type": "Relationship", "value": "${prod_urn}"},
+  "refShelf": {"type": "Relationship", "value": "urn:ngsi-ld:Shelf:${shelf_id}"},
+  "refStore": {"type": "Relationship", "value": "${store_urn}"},
+  "shelfCount": {"type": "Number", "value": ${shelf_count}},
+  "stockCount": {"type": "Number", "value": ${stock_count}}
+}
+EOF
+)
+    post_entity "$ITEM"
+    index=$((index + 1))
+  done
+}
+
+# Barcelona B2-B4 (4 productos por shelf)
+create_inventory_for_shelf "barcelona" "urn:ngsi-ld:Store:barcelona-port" "barcelona-shelf-b2" "2,5,7,9" 4
+create_inventory_for_shelf "barcelona" "urn:ngsi-ld:Store:barcelona-port" "barcelona-shelf-b3" "3,6,8,10" 4
+create_inventory_for_shelf "barcelona" "urn:ngsi-ld:Store:barcelona-port" "barcelona-shelf-b4" "1,2,4,5" 4
+
+# Paris C1-C4 (4 productos por shelf)
+create_inventory_for_shelf "paris" "urn:ngsi-ld:Store:paris-nord" "paris-shelf-c1" "1,3,5,7" 3
+create_inventory_for_shelf "paris" "urn:ngsi-ld:Store:paris-nord" "paris-shelf-c2" "2,4,6,8" 3
+create_inventory_for_shelf "paris" "urn:ngsi-ld:Store:paris-nord" "paris-shelf-c3" "3,7,9,10" 3
+create_inventory_for_shelf "paris" "urn:ngsi-ld:Store:paris-nord" "paris-shelf-c4" "1,2,8,9" 3
+
+# Milan D1-D4 (4 productos por shelf)
+create_inventory_for_shelf "milano" "urn:ngsi-ld:Store:milano-sud" "milano-shelf-d1" "1,5,8,10" 3
+create_inventory_for_shelf "milano" "urn:ngsi-ld:Store:milano-sud" "milano-shelf-d2" "2,4,7,9" 3
+create_inventory_for_shelf "milano" "urn:ngsi-ld:Store:milano-sud" "milano-shelf-d3" "3,5,6,10" 3
+create_inventory_for_shelf "milano" "urn:ngsi-ld:Store:milano-sud" "milano-shelf-d4" "1,2,3,4" 3
 
 log "=== Importacion de datos completada ==="
 log "Verificar en Orion: curl http://localhost:1026/v2/entities"

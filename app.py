@@ -37,6 +37,7 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 ORION_URL = os.getenv('ORION_URL', 'http://localhost:1026')
 APP_PORT = int(os.getenv('APP_PORT', 5000))
 WEBHOOK_URL_BASE = os.getenv('WEBHOOK_URL_BASE', 'http://host.docker.internal:5000')
+APP_BOOT_ID = datetime.utcnow().isoformat()
 
 logger.info(f"Configuración cargada:")
 logger.info(f"  ORION_URL: {ORION_URL}")
@@ -59,6 +60,12 @@ app.register_blueprint(products.bp)
 app.register_blueprint(stores.bp)
 app.register_blueprint(employees.bp)
 app.register_blueprint(notifications.bp)
+
+
+@app.context_processor
+def inject_app_metadata():
+    """Expose runtime metadata to templates."""
+    return {'app_boot_id': APP_BOOT_ID}
 
 # ============================================================================
 # Application startup - Initialize Orion integration
@@ -158,5 +165,6 @@ if __name__ == '__main__':
         app,
         host='0.0.0.0',
         port=APP_PORT,
-        debug=False
+        debug=False,
+        allow_unsafe_werkzeug=True
     )

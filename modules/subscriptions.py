@@ -24,6 +24,30 @@ def _subscription_exists(description: str) -> bool:
             return True
     return False
 
+
+def _delete_subscriptions_by_description(descriptions) -> int:
+    """
+    Delete all subscriptions whose description is in the provided list/set.
+    Returns the number of deleted subscriptions.
+    """
+    if isinstance(descriptions, str):
+        descriptions = {descriptions}
+    else:
+        descriptions = set(descriptions)
+
+    deleted = 0
+    subscriptions = orion.get_subscriptions()
+    for subscription in subscriptions:
+        if subscription.get('description') not in descriptions:
+            continue
+        sub_id = subscription.get('id')
+        if not sub_id:
+            continue
+        if orion.delete_subscription(sub_id):
+            deleted += 1
+            logger.info(f"Deleted stale subscription: {subscription.get('description')} ({sub_id})")
+    return deleted
+
 # ============================================================================
 # Subscription 1: Price Change Notifications
 # ============================================================================
@@ -77,15 +101,19 @@ def register_price_change_subscription():
 
 def register_low_stock_subscription():
     """
-    Register a subscription for low inventory on Shelf entities.
-    Triggers notification when shelf item count drops below 3.
+    Register a subscription for inventory changes.
+    Low-stock threshold is evaluated in webhook using total store stock.
     Webhook: POST /notify/low-stock
     """
-    description = 'Low stock notifications for inventory items'
+    description = 'Low stock notifications by store stock'
 
-    if _subscription_exists(description):
-        logger.info("Low stock subscription already exists, skipping creation")
-        return True
+    # Clean stale/legacy subscriptions to avoid duplicate or inconsistent low-stock events.
+    deleted = _delete_subscriptions_by_description({
+        'Low stock notifications by store stock',
+        'Low stock notifications for inventory items'
+    })
+    if deleted:
+        logger.info(f"Low stock subscription reset: removed {deleted} old subscription(s)")
 
     subscription = {
         'description': description,
@@ -97,17 +125,14 @@ def register_low_stock_subscription():
                 }
             ],
             'condition': {
-                'attrs': ['shelfCount'],
-                'expression': {
-                    'q': 'shelfCount<3'
-                }
+                'attrs': ['shelfCount', 'stockCount']
             }
         },
         'notification': {
             'http': {
                 'url': f"{WEBHOOK_URL_BASE}/notify/low-stock"
             },
-            'attrs': ['shelfCount', 'refProduct', 'refShelf', 'refStore'],
+            'attrs': ['shelfCount', 'stockCount', 'refProduct', 'refShelf', 'refStore'],
             'attrsFormat': 'normalized'
         },
         'expires': '2099-12-31T23:59:59Z'

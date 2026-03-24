@@ -133,7 +133,7 @@
                         {% set product_id = item.refProduct.value %}
                         {% set product = products_dict.get(product_id) %}
                         {% set color_hex = product.color.value if product and product.color else '#999999' %}
-                        <tr class="inventory-product-row">
+                        <tr class="inventory-product-row" data-product-id="{{ product_id }}" data-inventoryitem-id="{{ item.id }}">
                             <td>
                                 {% if product and product.image and product.image.value %}
                                     <img src="{{ product.image.value }}" class="product-image" alt="{{ product.name.value if product and product.name else 'Product' }}">
@@ -148,8 +148,8 @@
                                 <span class="color-swatch" style="background-color: {{ color_hex }};"></span>
                                 <span>{{ color_hex }}</span>
                             </td>
-                            <td>{{ item.stockCount.value if item.stockCount else 0 }}</td>
-                            <td>{{ item.shelfCount.value if item.shelfCount else 0 }}</td>
+                            <td class="inventory-stock-cell" data-product-id="{{ product_id }}">{{ item.displayStockCount if item.displayStockCount is defined else (item.stockCount.value if item.stockCount else 0) }}</td>
+                            <td class="inventory-shelf-cell">{{ item.shelfCount.value if item.shelfCount else 0 }}</td>
                             <td>
                                 <a href="#"
                                     role="button"
@@ -195,7 +195,10 @@
     </div>
 
     <div class="section realtime-store-notifications">
-        <h2 data-i18n="store.realtime_notifications">Notificaciones en tiempo real</h2>
+        <div class="inventory-header-row">
+            <h2 data-i18n="store.realtime_notifications">Notificaciones en tiempo real</h2>
+            <button id="clear-store-notifications" class="btn btn-secondary btn-small" type="button" data-i18n="notifications.clear_all">Borrar todas</button>
+        </div>
         <div id="store-notifications-list" class="store-notifications-list" data-store-id="{{ store.id }}">
             <p class="store-notification-empty" data-i18n="store.no_notifications">No hay notificaciones recientes</p>
         </div>
@@ -280,11 +283,8 @@
                 <option value="" data-i18n="store.select_product">Selecciona un producto</option>
             </select>
 
-            <label for="add-product-shelf-count" data-i18n="store.table.shelf">shelfCount</label>
+            <label for="add-product-shelf-count" data-i18n="store.form.product_count">Numero de productos</label>
             <input id="add-product-shelf-count" name="shelfCount" type="number" min="1" value="1" required>
-
-            <label for="add-product-stock-count" data-i18n="store.table.stock">stockCount</label>
-            <input id="add-product-stock-count" name="stockCount" type="number" min="1" value="1" required>
 
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" data-close-modal="add-product-modal" data-i18n="store.cancel">Cancelar</button>

@@ -20,6 +20,42 @@ const i18n = {
         'lang.spanish': 'Español',
         'lang.english': 'English',
         'notifications.title': 'Notificaciones',
+        'notifications.dismiss': 'Cerrar notificacion',
+        'notifications.clear_all': 'Borrar todas',
+        'notifications.price_change_title': 'Cambio de Precio',
+        'notifications.price_change_message': 'Producto {product} - Nuevo precio: €{price}',
+        'notifications.low_stock_title': 'Stock Bajo en Almacen',
+        'notifications.low_stock_message': 'Atencion: quedan {count} unidades de {product}',
+        'notifications.local_low_stock_message': 'Atencion: quedan {count} unidades de {product}',
+        'notifications.no_stock_title': 'Sin Stock',
+        'notifications.no_stock_message': 'No hay disponible en esta ubicacion',
+        'notifications.purchase_success_title': 'Compra Exitosa',
+        'notifications.purchase_success_message': 'Stock actualizado en tiempo real',
+        'notifications.error_title': 'Error',
+        'notifications.connection_error_title': 'Error de Conexion',
+        'notifications.update_stock_error_message': 'No se pudo actualizar el stock ({error})',
+        'notifications.connect_orion_error_message': 'No se pudo conectar a Orion: {error}',
+        'notifications.shelf_created_title': 'Shelf creada',
+        'notifications.shelf_created_message': 'Nueva shelf anadida correctamente',
+        'notifications.shelf_create_error_message': 'No se pudo crear la shelf: {error}',
+        'notifications.shelf_updated_title': 'Shelf actualizada',
+        'notifications.shelf_updated_message': 'Cambios guardados correctamente',
+        'notifications.shelf_update_error_message': 'No se pudo actualizar la shelf: {error}',
+        'notifications.product_added_title': 'Producto anadido',
+        'notifications.product_added_message': 'InventoryItem creado correctamente',
+        'notifications.product_add_error_message': 'No se pudo anadir el producto: {error}',
+        'notifications.capacity_exceeded_message': 'No caben mas unidades en la estanteria. Capacidad: {capacity}, actuales: {current}, intentadas: {requested}, maximo que puedes anadir ahora: {maximumAllowed}',
+        'notifications.validation_positive_counts': 'Las cantidades deben ser mayores que 0',
+        'notifications.validation_shelf_gt_stock': 'shelfCount no puede ser mayor que stockCount',
+        'notifications.inventory_created_title': 'InventoryItem creado',
+        'notifications.inventory_created_message': 'El producto se anadio correctamente a la estanteria',
+        'notifications.inventory_create_error_message': 'No se pudo crear el InventoryItem: {error}',
+        'notifications.load_shelves_error_message': 'No se pudo cargar estanterias disponibles: {error}',
+        'notifications.load_products_error_message': 'No se pudo cargar productos disponibles: {error}',
+        'notifications.deleted_title': 'Eliminado',
+        'notifications.deleted_message': 'Entidad eliminada correctamente',
+        'notifications.delete_error_message': 'No se pudo eliminar la entidad',
+        'notifications.server_connection_error_message': 'No se pudo conectar con el servidor.',
         'footer.text': 'Almacén Inteligente FIWARE © 2024',
         'footer.connecting': 'Conectando...',
         'home.title': 'Almacén Inteligente FIWARE',
@@ -44,6 +80,7 @@ const i18n = {
         'products.title': 'Catálogo de Productos',
         'products.add': '+ Añadir Producto',
         'products.view': 'Ver',
+        'products.actions': 'Acciones',
         'product.inventory_distribution': 'Distribución de Inventario',
         'product.store': 'Almacén',
         'product.shelf': 'Estantería',
@@ -56,6 +93,7 @@ const i18n = {
         'stores.title': 'Almacenes',
         'stores.add': '+ Añadir Almacén',
         'stores.view_map': 'Ver Mapa',
+        'stores.actions': 'Acciones',
         'store.climate': 'Clima del Almacén',
         'store.temperature': 'Temperatura',
         'store.humidity': 'Humedad Relativa',
@@ -78,6 +116,7 @@ const i18n = {
         'store.cancel': 'Cancelar',
         'store.save': 'Guardar',
         'store.product': 'Producto',
+        'store.form.product_count': 'Numero de productos',
         'store.select_product': 'Selecciona un producto',
         'store.no_products_in_shelf': 'No hay productos en esta shelf',
         'store.units_on_shelf': 'unidades en shelf',
@@ -90,6 +129,7 @@ const i18n = {
         'store.table.shelf': 'shelfCount',
         'employees.title': 'Equipo de Trabajo',
         'employees.add': '+ Añadir Empleado',
+        'employees.actions': 'Acciones',
         'employee.skills': 'Competencias',
         'employee.details': 'Detalles de Empleo',
         'employee.hire_date': 'Fecha de Contratación',
@@ -116,6 +156,42 @@ const i18n = {
         'lang.spanish': 'Español',
         'lang.english': 'English',
         'notifications.title': 'Notifications',
+        'notifications.dismiss': 'Dismiss notification',
+        'notifications.clear_all': 'Clear all',
+        'notifications.price_change_title': 'Price Change',
+        'notifications.price_change_message': 'Product {product} - New price: €{price}',
+        'notifications.low_stock_title': 'Low Store Stock',
+        'notifications.low_stock_message': 'Alert: {count} units of {product} remain',
+        'notifications.local_low_stock_message': 'Alert: {count} units of {product} remain',
+        'notifications.no_stock_title': 'Out of Stock',
+        'notifications.no_stock_message': 'No units available in this location',
+        'notifications.purchase_success_title': 'Purchase Successful',
+        'notifications.purchase_success_message': 'Stock updated in real time',
+        'notifications.error_title': 'Error',
+        'notifications.connection_error_title': 'Connection Error',
+        'notifications.update_stock_error_message': 'Could not update stock ({error})',
+        'notifications.connect_orion_error_message': 'Could not connect to Orion: {error}',
+        'notifications.shelf_created_title': 'Shelf created',
+        'notifications.shelf_created_message': 'New shelf added successfully',
+        'notifications.shelf_create_error_message': 'Could not create shelf: {error}',
+        'notifications.shelf_updated_title': 'Shelf updated',
+        'notifications.shelf_updated_message': 'Changes saved successfully',
+        'notifications.shelf_update_error_message': 'Could not update shelf: {error}',
+        'notifications.product_added_title': 'Product added',
+        'notifications.product_added_message': 'Inventory item created successfully',
+        'notifications.product_add_error_message': 'Could not add product: {error}',
+        'notifications.capacity_exceeded_message': 'No more units fit in this shelf. Capacity: {capacity}, current: {current}, requested: {requested}, maximum you can add now: {maximumAllowed}',
+        'notifications.validation_positive_counts': 'Counts must be greater than 0',
+        'notifications.validation_shelf_gt_stock': 'shelfCount cannot be greater than stockCount',
+        'notifications.inventory_created_title': 'Inventory item created',
+        'notifications.inventory_created_message': 'Product added to the shelf successfully',
+        'notifications.inventory_create_error_message': 'Could not create inventory item: {error}',
+        'notifications.load_shelves_error_message': 'Could not load available shelves: {error}',
+        'notifications.load_products_error_message': 'Could not load available products: {error}',
+        'notifications.deleted_title': 'Deleted',
+        'notifications.deleted_message': 'Entity deleted successfully',
+        'notifications.delete_error_message': 'Could not delete entity',
+        'notifications.server_connection_error_message': 'Could not connect to server.',
         'footer.text': 'Smart Warehouse FIWARE © 2024',
         'footer.connecting': 'Connecting...',
         'home.title': 'FIWARE Smart Warehouse',
@@ -140,6 +216,7 @@ const i18n = {
         'products.title': 'Product Catalog',
         'products.add': '+ Add Product',
         'products.view': 'View',
+        'products.actions': 'Actions',
         'product.inventory_distribution': 'Inventory Distribution',
         'product.store': 'Store',
         'product.shelf': 'Shelf',
@@ -152,6 +229,7 @@ const i18n = {
         'stores.title': 'Stores',
         'stores.add': '+ Add Store',
         'stores.view_map': 'View Map',
+        'stores.actions': 'Actions',
         'store.climate': 'Store Climate',
         'store.temperature': 'Temperature',
         'store.humidity': 'Relative Humidity',
@@ -174,6 +252,7 @@ const i18n = {
         'store.cancel': 'Cancel',
         'store.save': 'Save',
         'store.product': 'Product',
+        'store.form.product_count': 'Number of products',
         'store.select_product': 'Select a product',
         'store.no_products_in_shelf': 'There are no products in this shelf',
         'store.units_on_shelf': 'units on shelf',
@@ -186,6 +265,7 @@ const i18n = {
         'store.table.shelf': 'shelfCount',
         'employees.title': 'Team',
         'employees.add': '+ Add Employee',
+        'employees.actions': 'Actions',
         'employee.skills': 'Skills',
         'employee.details': 'Employment Details',
         'employee.hire_date': 'Hire Date',
@@ -206,6 +286,30 @@ const i18n = {
 };
 
 let currentLanguage = localStorage.getItem('language') || 'es';
+const notificationState = {
+    unreadCount: 0,
+    isPanelOpen: false,
+    maxGlobalItems: 80,
+    maxLocalItems: 20
+};
+const APP_BOOT_ID = window.appBootId || 'unknown-boot';
+const GLOBAL_NOTIF_SESSION_KEY = `fiware.notifications.global.${APP_BOOT_ID}`;
+const LOCAL_NOTIF_SESSION_KEY = `fiware.notifications.local.${APP_BOOT_ID}`;
+const LOW_STOCK_DUP_WINDOW_MS = 5000;
+const lowStockEventCache = new Map();
+
+function clearLegacyNotificationStorage() {
+    const keepKeys = new Set([GLOBAL_NOTIF_SESSION_KEY, LOCAL_NOTIF_SESSION_KEY]);
+    const keysToDelete = [];
+    for (let i = 0; i < sessionStorage.length; i += 1) {
+        const key = sessionStorage.key(i);
+        if (!key) continue;
+        if (!key.startsWith('fiware.notifications.')) continue;
+        if (keepKeys.has(key)) continue;
+        keysToDelete.push(key);
+    }
+    keysToDelete.forEach((key) => sessionStorage.removeItem(key));
+}
 
 function t(key) {
     return i18n[currentLanguage]?.[key] || key;
@@ -267,9 +371,12 @@ document.getElementById('theme-toggle')?.addEventListener('click', () => {
 // ============================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    clearLegacyNotificationStorage();
     initializeTheme();
     updateLanguageSelector();
     updateUIText();
+    initializeGlobalNotificationsPanel();
+    initializeStoreNotificationPanel();
     initializeNavbarActive();
     initializeStoreDetailForms();
     initializeProductDetailForms();
@@ -308,31 +415,226 @@ function initializeNavbarActive() {
 // Notification helpers
 // ============================================================================
 
-function showNotification(title, message, level = 'info') {
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function interpolate(template, values) {
+    return Object.entries(values).reduce((acc, [key, val]) => {
+        return acc.replace(new RegExp(`\\{${key}\\}`, 'g'), String(val ?? ''));
+    }, template);
+}
+
+function toNumber(value, fallback = 0) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function isDuplicateLowStockEvent(data) {
+    const storeId = data?.store_id || data?.storeId || '-';
+    const productId = data?.product_id || data?.productId || '-';
+    const totalStoreStock = data?.totalStoreStock ?? data?.total_store_stock ?? data?.stockCount ?? data?.stock_count;
+    const cacheKey = `${storeId}|${productId}|${totalStoreStock}`;
+    const now = Date.now();
+    const previous = lowStockEventCache.get(cacheKey);
+
+    for (const [key, ts] of lowStockEventCache.entries()) {
+        if (now - ts > LOW_STOCK_DUP_WINDOW_MS) {
+            lowStockEventCache.delete(key);
+        }
+    }
+
+    if (previous && now - previous < LOW_STOCK_DUP_WINDOW_MS) {
+        return true;
+    }
+
+    lowStockEventCache.set(cacheKey, now);
+    return false;
+}
+
+function formatInventoryAddError(errorData, status) {
+    const code = errorData?.errorCode;
+    const details = errorData?.details || {};
+    const fallbackError = errorData?.error || `HTTP ${status}`;
+
+    if (code === 'SHELF_CAPACITY_EXCEEDED') {
+        return interpolate(t('notifications.capacity_exceeded_message'), {
+            capacity: toNumber(details.capacity, 0),
+            current: toNumber(details.current, 0),
+            requested: toNumber(details.requested, 0),
+            maximumAllowed: toNumber(details.maximumAllowed, 0)
+        });
+    }
+
+    return interpolate(t('notifications.product_add_error_message'), {
+        error: fallbackError
+    });
+}
+
+function formatNotificationTime(date = new Date()) {
+    return date.toLocaleTimeString(currentLanguage, {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    });
+}
+
+function setNotificationBadgeCount(count) {
+    const badge = document.getElementById('notification-count');
+    if (!badge) return;
+
+    notificationState.unreadCount = Math.max(0, Number(count) || 0);
+    badge.textContent = String(notificationState.unreadCount);
+    badge.classList.toggle('hidden', notificationState.unreadCount === 0);
+}
+
+function incrementNotificationBadge() {
+    setNotificationBadgeCount(notificationState.unreadCount + 1);
+}
+
+function openNotificationsPanel() {
+    const panel = document.getElementById('notifications-panel');
+    const toggle = document.getElementById('notification-toggle');
+    if (!panel || !toggle) return;
+
+    panel.classList.add('open');
+    panel.setAttribute('aria-hidden', 'false');
+    toggle.setAttribute('aria-expanded', 'true');
+    notificationState.isPanelOpen = true;
+    setNotificationBadgeCount(0);
+}
+
+function closeNotificationsPanel() {
+    const panel = document.getElementById('notifications-panel');
+    const toggle = document.getElementById('notification-toggle');
+    if (!panel || !toggle) return;
+
+    panel.classList.remove('open');
+    panel.setAttribute('aria-hidden', 'true');
+    toggle.setAttribute('aria-expanded', 'false');
+    notificationState.isPanelOpen = false;
+}
+
+function initializeGlobalNotificationsPanel() {
+    const toggle = document.getElementById('notification-toggle');
+    const closeBtn = document.getElementById('close-notifications');
+    const clearBtn = document.getElementById('clear-notifications');
+    const panel = document.getElementById('notifications-panel');
+    const list = document.getElementById('notifications-list');
+
+    if (!toggle || !panel) {
+        return;
+    }
+
+    restoreGlobalNotifications();
+    setNotificationBadgeCount(0);
+
+    toggle.addEventListener('click', (event) => {
+        event.stopPropagation();
+        if (notificationState.isPanelOpen) {
+            closeNotificationsPanel();
+        } else {
+            openNotificationsPanel();
+        }
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        closeNotificationsPanel();
+    });
+
+    clearBtn?.addEventListener('click', () => {
+        if (!list) return;
+        list.innerHTML = '';
+        persistGlobalNotifications();
+        setNotificationBadgeCount(0);
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!notificationState.isPanelOpen) {
+            return;
+        }
+
+        const target = event.target;
+        if (panel.contains(target) || toggle.contains(target)) {
+            return;
+        }
+
+        closeNotificationsPanel();
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && notificationState.isPanelOpen) {
+            closeNotificationsPanel();
+        }
+    });
+
+    list?.addEventListener('click', (event) => {
+        const dismissBtn = event.target.closest('.notification-dismiss');
+        if (!dismissBtn) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const item = dismissBtn.closest('.notification-item');
+        if (!item) {
+            return;
+        }
+
+        item.remove();
+        persistGlobalNotifications();
+    });
+}
+
+function showNotification(titleOrOptions, message, level = 'info', icon) {
     const list = document.getElementById('notifications-list');
     if (!list) return;
+
+    const opts = typeof titleOrOptions === 'object'
+        ? titleOrOptions
+        : { title: titleOrOptions, message, level, icon };
+
+    const resolvedLevel = opts.level || 'info';
+    const resolvedIcon = opts.icon || getIcon(resolvedLevel);
+    const title = opts.title || '';
+    const body = opts.message || '';
+    const timestamp = formatNotificationTime(new Date());
     
     const item = document.createElement('div');
-    item.className = `notification-item ${level}`;
+    item.className = `notification-item ${resolvedLevel}`;
+    item.dataset.level = resolvedLevel;
+    item.dataset.icon = resolvedIcon;
+    item.dataset.title = title;
+    item.dataset.message = body;
+    item.dataset.time = timestamp;
     item.innerHTML = `
-        <i class="fas fa-${getIcon(level)}"></i>
+        <i class="fas fa-${escapeHtml(resolvedIcon)}" aria-hidden="true"></i>
         <div>
-            <strong>${title}</strong>
-            <p>${message}</p>
+            <strong>${escapeHtml(title)}</strong>
+            <p>${escapeHtml(body)}</p>
+            <small>${escapeHtml(timestamp)}</small>
         </div>
-        <small>${new Date().toLocaleTimeString()}</small>
+        <button type="button" class="notification-dismiss" aria-label="${escapeHtml(t('notifications.dismiss'))}">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
     `;
     
     list.prepend(item);
-    
-    // Update badge
-    const badge = document.getElementById('notification-count');
-    if (badge) {
-        badge.textContent = parseInt(badge.textContent || 0) + 1;
+    while (list.children.length > notificationState.maxGlobalItems) {
+        list.removeChild(list.lastElementChild);
     }
+
+    persistGlobalNotifications();
     
-    // Auto remove after 5 seconds
-    setTimeout(() => item.remove(), 5000);
+    if (!notificationState.isPanelOpen) {
+        incrementNotificationBadge();
+    }
 }
 
 function getIcon(level) {
@@ -366,6 +668,7 @@ function updateProductPriceUI(productId, newPrice) {
 function appendStoreRealtimeNotification(title, message, level = 'info') {
     const list = document.getElementById('store-notifications-list');
     if (!list) return;
+    const storeId = list.getAttribute('data-store-id');
 
     const emptyState = list.querySelector('.store-notification-empty');
     if (emptyState) {
@@ -374,14 +677,164 @@ function appendStoreRealtimeNotification(title, message, level = 'info') {
 
     const item = document.createElement('div');
     item.className = `notification-item ${level}`;
+    const icon = level === 'warning' ? 'exclamation-triangle' : 'tag';
     item.innerHTML = `
+        <i class="fas fa-${icon}" aria-hidden="true"></i>
         <div>
-            <strong>${title}</strong>
-            <p>${message}</p>
-            <small>${new Date().toLocaleTimeString()}</small>
+            <strong>${escapeHtml(title)}</strong>
+            <p>${escapeHtml(message)}</p>
+            <small>${escapeHtml(formatNotificationTime(new Date()))}</small>
         </div>
+        <button type="button" class="notification-dismiss" aria-label="${escapeHtml(t('notifications.dismiss'))}">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
     `;
     list.prepend(item);
+
+    while (list.children.length > notificationState.maxLocalItems) {
+        list.removeChild(list.lastElementChild);
+    }
+
+    persistLocalNotifications(storeId, list);
+}
+
+function serializeNotificationItem(item) {
+    return {
+        level: item.dataset.level || 'info',
+        icon: item.dataset.icon || getIcon(item.dataset.level || 'info'),
+        title: item.dataset.title || item.querySelector('strong')?.textContent || '',
+        message: item.dataset.message || item.querySelector('p')?.textContent || '',
+        time: item.dataset.time || item.querySelector('small')?.textContent || formatNotificationTime(new Date())
+    };
+}
+
+function buildNotificationItem(entry) {
+    const item = document.createElement('div');
+    item.className = `notification-item ${entry.level || 'info'}`;
+    item.dataset.level = entry.level || 'info';
+    item.dataset.icon = entry.icon || getIcon(entry.level || 'info');
+    item.dataset.title = entry.title || '';
+    item.dataset.message = entry.message || '';
+    item.dataset.time = entry.time || formatNotificationTime(new Date());
+
+    item.innerHTML = `
+        <i class="fas fa-${escapeHtml(item.dataset.icon)}" aria-hidden="true"></i>
+        <div>
+            <strong>${escapeHtml(item.dataset.title)}</strong>
+            <p>${escapeHtml(item.dataset.message)}</p>
+            <small>${escapeHtml(item.dataset.time)}</small>
+        </div>
+        <button type="button" class="notification-dismiss" aria-label="${escapeHtml(t('notifications.dismiss'))}">
+            <i class="fas fa-times" aria-hidden="true"></i>
+        </button>
+    `;
+
+    return item;
+}
+
+function persistGlobalNotifications() {
+    const list = document.getElementById('notifications-list');
+    if (!list) return;
+
+    const items = Array.from(list.querySelectorAll('.notification-item')).map(serializeNotificationItem);
+    sessionStorage.setItem(GLOBAL_NOTIF_SESSION_KEY, JSON.stringify(items.slice(0, notificationState.maxGlobalItems)));
+}
+
+function restoreGlobalNotifications() {
+    const list = document.getElementById('notifications-list');
+    if (!list) return;
+
+    let stored = [];
+    try {
+        stored = JSON.parse(sessionStorage.getItem(GLOBAL_NOTIF_SESSION_KEY) || '[]');
+    } catch (error) {
+        stored = [];
+    }
+
+    if (!Array.isArray(stored) || !stored.length) {
+        return;
+    }
+
+    list.innerHTML = '';
+    stored.forEach((entry) => {
+        list.appendChild(buildNotificationItem(entry));
+    });
+}
+
+function getLocalNotificationStore() {
+    try {
+        const parsed = JSON.parse(sessionStorage.getItem(LOCAL_NOTIF_SESSION_KEY) || '{}');
+        return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (error) {
+        return {};
+    }
+}
+
+function persistLocalNotifications(storeId, list) {
+    if (!storeId || !list) return;
+
+    const payload = getLocalNotificationStore();
+    payload[storeId] = Array.from(list.querySelectorAll('.notification-item'))
+        .map(serializeNotificationItem)
+        .slice(0, notificationState.maxLocalItems);
+    sessionStorage.setItem(LOCAL_NOTIF_SESSION_KEY, JSON.stringify(payload));
+}
+
+function initializeStoreNotificationPanel() {
+    const list = document.getElementById('store-notifications-list');
+    const clearBtn = document.getElementById('clear-store-notifications');
+    if (!list) return;
+
+    const storeId = list.getAttribute('data-store-id');
+    if (!storeId) return;
+
+    const payload = getLocalNotificationStore();
+    const entries = payload[storeId] || [];
+    const emptyState = list.querySelector('.store-notification-empty');
+
+    if (entries.length) {
+        if (emptyState) {
+            emptyState.remove();
+        }
+        entries.forEach((entry) => {
+            list.appendChild(buildNotificationItem(entry));
+        });
+    }
+
+    list.addEventListener('click', (event) => {
+        const dismissBtn = event.target.closest('.notification-dismiss');
+        if (!dismissBtn) {
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const item = dismissBtn.closest('.notification-item');
+        if (!item) {
+            return;
+        }
+
+        item.remove();
+        if (!list.querySelector('.notification-item') && !list.querySelector('.store-notification-empty')) {
+            const empty = document.createElement('p');
+            empty.className = 'store-notification-empty';
+            empty.setAttribute('data-i18n', 'store.no_notifications');
+            empty.textContent = t('store.no_notifications');
+            list.appendChild(empty);
+        }
+        persistLocalNotifications(storeId, list);
+    });
+
+    clearBtn?.addEventListener('click', () => {
+        list.innerHTML = '';
+        const empty = document.createElement('p');
+        empty.className = 'store-notification-empty';
+        empty.setAttribute('data-i18n', 'store.no_notifications');
+        empty.textContent = t('store.no_notifications');
+        list.appendChild(empty);
+        persistLocalNotifications(storeId, list);
+    });
 }
 
 function initializeRealtimeNotifications() {
@@ -395,34 +848,65 @@ function initializeRealtimeNotifications() {
     socket.on('price_change', (data) => {
         const productId = data?.product_id;
         const newPrice = data?.new_price;
+        const affectedStoreIds = Array.isArray(data?.store_ids) ? data.store_ids : [];
+        const storeNotifications = document.getElementById('store-notifications-list');
+        const currentStoreId = storeNotifications?.getAttribute('data-store-id');
+        const title = t('notifications.price_change_title');
+        const message = interpolate(t('notifications.price_change_message'), {
+            product: productId || '-',
+            price: formatPriceValue(newPrice)
+        });
+
+        console.log('Socket event price_change:', data);
 
         updateProductPriceUI(productId, newPrice);
-        showNotification(
-            'Cambio de Precio',
-            `Producto ${productId} - Nuevo precio: €${formatPriceValue(newPrice)}`,
-            'info'
-        );
-        appendStoreRealtimeNotification(
-            'Cambio de Precio',
-            `Producto ${productId} actualizado a €${formatPriceValue(newPrice)}`,
-            'info'
-        );
+        showNotification({ title, message, level: 'info', icon: 'tag' });
+
+        if (currentStoreId && affectedStoreIds.includes(currentStoreId)) {
+            appendStoreRealtimeNotification(title, message, 'info');
+        }
     });
 
     socket.on('low_stock', (data) => {
+        if (isDuplicateLowStockEvent(data)) {
+            console.log('Skipping duplicated low_stock event:', data);
+            return;
+        }
+
         const storeNotifications = document.getElementById('store-notifications-list');
         const currentStoreId = storeNotifications?.getAttribute('data-store-id');
-
-        showNotification(
-            'Stock Bajo',
-            `Apenas ${data?.shelf_count} unidades en ${data?.shelf_id}`,
-            'warning'
+        const shelfCount = toNumber(data?.shelfCount ?? data?.shelf_count ?? 0, 0);
+        const totalStoreStock = toNumber(
+            data?.totalStoreStock ?? data?.total_store_stock ?? data?.stockCount ?? data?.stock_count ?? 0,
+            0
         );
+        const productName = data?.product_name || data?.product_id || '-';
+        const storeName = data?.store_name || data?.store_id || '-';
+        const shelfName = data?.shelf_name || data?.shelf_id || '-';
+        const title = t('notifications.low_stock_title');
+        const remainingCount = totalStoreStock;
+        const globalMessage = interpolate(t('notifications.low_stock_message'), {
+            count: remainingCount,
+            product: productName,
+            store: storeName,
+            shelf: shelfName,
+            total: totalStoreStock
+        });
+
+        console.log('Socket event low_stock:', data);
+
+        showNotification({ title, message: globalMessage, level: 'warning', icon: 'exclamation-triangle' });
 
         if (currentStoreId && data?.store_id === currentStoreId) {
+            const localMessage = interpolate(t('notifications.local_low_stock_message'), {
+                product: productName,
+                count: remainingCount,
+                shelf: shelfName,
+                total: totalStoreStock
+            });
             appendStoreRealtimeNotification(
-                'Stock Bajo',
-                `Producto ${data?.product_id} con ${data?.shelf_count} unidades en ${data?.shelf_id}`,
+                title,
+                localMessage,
                 'warning'
             );
         }
@@ -448,7 +932,11 @@ document.addEventListener('DOMContentLoaded', () => {
         button.addEventListener('click', async (e) => {
             e.preventDefault();
 
-            if (button.getAttribute('aria-disabled') === 'true' || button.classList.contains('disabled')) {
+            if (
+                button.getAttribute('aria-disabled') === 'true' ||
+                button.classList.contains('disabled') ||
+                button.dataset.buyPending === 'true'
+            ) {
                 return;
             }
             
@@ -458,12 +946,38 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Validate shelf count
             if (shelfCount <= 0) {
-                showNotification('Sin Stock', 'No hay disponible en esta ubicación', 'warning');
+                button.classList.add('disabled');
+                button.setAttribute('aria-disabled', 'true');
+                showNotification(t('notifications.no_stock_title'), t('notifications.no_stock_message'), 'warning');
                 return;
             }
-            
-            // Make PATCH request to Orion
-            await buyInventoryItem(inventoryItemId, shelfCount, stockCount);
+
+            button.dataset.buyPending = 'true';
+            const shouldDisableNow = shelfCount === 1;
+            if (shouldDisableNow) {
+                // Instant UI feedback when the last unit is bought.
+                updateInventoryItemUI(
+                    inventoryItemId,
+                    0,
+                    Math.max(0, stockCount - 1)
+                );
+            }
+
+            try {
+                // Make PATCH request to Orion
+                const result = await buyInventoryItem(inventoryItemId, shelfCount, stockCount);
+                if (result.outOfStock) {
+                    // Safety net: keep clicked button disabled even if table lookup fails.
+                    button.classList.add('disabled');
+                    button.setAttribute('aria-disabled', 'true');
+                    button.setAttribute('data-shelf-count', '0');
+                }
+                if (!result.success && shouldDisableNow && !result.outOfStock) {
+                    updateInventoryItemUI(inventoryItemId, shelfCount, stockCount);
+                }
+            } finally {
+                button.dataset.buyPending = 'false';
+            }
         });
     });
 });
@@ -498,16 +1012,48 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
         });
         
         if (response.ok) {
+            const payload = await response.json();
+            const resolvedShelfCount = payload?.newShelfCount ?? newShelfCount;
+            const resolvedStockCount = payload?.newStockCount ?? newStockCount;
             console.log(`[BUY] Success for ${inventoryItemId}`);
-            updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount);
-            showNotification('Compra Exitosa', 'Stock actualizado en tiempo real', 'success');
+            updateInventoryItemUI(inventoryItemId, resolvedShelfCount, resolvedStockCount);
+            showNotification(t('notifications.purchase_success_title'), t('notifications.purchase_success_message'), 'success');
+            return { success: true, outOfStock: false };
         } else {
-            console.error(`[BUY] PATCH failed with status ${response.status}`);
-            showNotification('Error', `No se pudo actualizar el stock (HTTP ${response.status})`, 'error');
+            const errorPayload = await response.json().catch(() => ({}));
+            const errorMessage = errorPayload?.error || `HTTP ${response.status}`;
+            const normalizedErrorMessage = String(errorMessage).toLowerCase();
+            const isOutOfStock = (
+                response.status === 400 &&
+                (
+                    normalizedErrorMessage.includes('no stock available on this shelf') ||
+                    normalizedErrorMessage.includes('no stock available for this inventory item') ||
+                    normalizedErrorMessage.includes('no stock available')
+                )
+            );
+
+            if (isOutOfStock) {
+                updateInventoryItemUI(inventoryItemId, 0, Math.max(0, currentStockCount));
+                showNotification(t('notifications.no_stock_title'), t('notifications.no_stock_message'), 'warning');
+                return { success: false, outOfStock: true };
+            }
+
+            console.error(`[BUY] PATCH failed with status ${response.status}: ${errorMessage}`);
+            showNotification(
+                t('notifications.error_title'),
+                interpolate(t('notifications.update_stock_error_message'), { error: errorMessage }),
+                'error'
+            );
+            return { success: false, outOfStock: false };
         }
     } catch (error) {
         console.error('[BUY] Error:', error);
-        showNotification('Error de Conexión', `No se pudo conectar a Orion: ${error.message}`, 'error');
+        showNotification(
+            t('notifications.connection_error_title'),
+            interpolate(t('notifications.connect_orion_error_message'), { error: error.message }),
+            'error'
+        );
+        return { success: false, outOfStock: false };
     }
 }
 
@@ -564,11 +1110,15 @@ function initializeStoreDetailForms() {
                     throw new Error(errorData.error || `HTTP ${response.status}`);
                 }
 
-                showNotification('Shelf creada', 'Nueva shelf añadida correctamente', 'success');
+                showNotification(t('notifications.shelf_created_title'), t('notifications.shelf_created_message'), 'success');
                 closeModal('add-shelf-modal');
                 window.location.reload();
             } catch (error) {
-                showNotification('Error', `No se pudo crear la shelf: ${error.message}`, 'error');
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.shelf_create_error_message'), { error: error.message }),
+                    'error'
+                );
             }
         });
     }
@@ -596,11 +1146,15 @@ function initializeStoreDetailForms() {
                     throw new Error(errorData.error || `HTTP ${response.status}`);
                 }
 
-                showNotification('Shelf actualizada', 'Cambios guardados correctamente', 'success');
+                showNotification(t('notifications.shelf_updated_title'), t('notifications.shelf_updated_message'), 'success');
                 closeModal('edit-shelf-modal');
                 window.location.reload();
             } catch (error) {
-                showNotification('Error', `No se pudo actualizar la shelf: ${error.message}`, 'error');
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.shelf_update_error_message'), { error: error.message }),
+                    'error'
+                );
             }
         });
     }
@@ -613,8 +1167,7 @@ function initializeStoreDetailForms() {
             const shelfId = formData.get('shelfId');
             const payload = {
                 productId: formData.get('productId'),
-                shelfCount: parseInt(formData.get('shelfCount'), 10),
-                stockCount: parseInt(formData.get('stockCount'), 10)
+                shelfCount: parseInt(formData.get('shelfCount'), 10)
             };
 
             try {
@@ -626,14 +1179,23 @@ function initializeStoreDetailForms() {
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || `HTTP ${response.status}`);
+                    showNotification(
+                        t('notifications.error_title'),
+                        formatInventoryAddError(errorData, response.status),
+                        'error'
+                    );
+                    return;
                 }
 
-                showNotification('Producto añadido', 'InventoryItem creado correctamente', 'success');
+                showNotification(t('notifications.product_added_title'), t('notifications.product_added_message'), 'success');
                 closeModal('add-product-modal');
                 window.location.reload();
             } catch (error) {
-                showNotification('Error', `No se pudo añadir el producto: ${error.message}`, 'error');
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.product_add_error_message'), { error: error.message }),
+                    'error'
+                );
             }
         });
     }
@@ -686,12 +1248,12 @@ function initializeProductDetailForms() {
         const stockCount = shelfCount;
 
         if (Number.isNaN(shelfCount) || Number.isNaN(stockCount) || shelfCount <= 0 || stockCount <= 0) {
-            showNotification('Error', 'Las cantidades deben ser mayores que 0', 'error');
+            showNotification(t('notifications.error_title'), t('notifications.validation_positive_counts'), 'error');
             return;
         }
 
         if (shelfCount > stockCount) {
-            showNotification('Error', 'shelfCount no puede ser mayor que stockCount', 'error');
+            showNotification(t('notifications.error_title'), t('notifications.validation_shelf_gt_stock'), 'error');
             return;
         }
 
@@ -710,14 +1272,23 @@ function initializeProductDetailForms() {
 
             const data = await response.json().catch(() => ({}));
             if (!response.ok) {
-                throw new Error(data.error || `HTTP ${response.status}`);
+                showNotification(
+                    t('notifications.error_title'),
+                    formatInventoryAddError(data, response.status),
+                    'error'
+                );
+                return;
             }
 
-            showNotification('InventoryItem creado', 'El producto se añadió correctamente a la estantería', 'success');
+            showNotification(t('notifications.inventory_created_title'), t('notifications.inventory_created_message'), 'success');
             closeModal('add-inventory-modal');
             window.location.reload();
         } catch (error) {
-            showNotification('Error', `No se pudo crear el InventoryItem: ${error.message}`, 'error');
+            showNotification(
+                t('notifications.error_title'),
+                interpolate(t('notifications.inventory_create_error_message'), { error: error.message }),
+                'error'
+            );
         }
     });
 }
@@ -762,7 +1333,11 @@ async function prepareAddInventoryForm(button) {
             select.appendChild(option);
         });
     } catch (error) {
-        showNotification('Error', `No se pudo cargar estanterías disponibles: ${error.message}`, 'error');
+        showNotification(
+            t('notifications.error_title'),
+            interpolate(t('notifications.load_shelves_error_message'), { error: error.message }),
+            'error'
+        );
     }
 }
 
@@ -815,7 +1390,11 @@ async function prepareAddProductForm(button) {
             select.appendChild(option);
         });
     } catch (error) {
-        showNotification('Error', `No se pudo cargar productos disponibles: ${error.message}`, 'error');
+        showNotification(
+            t('notifications.error_title'),
+            interpolate(t('notifications.load_products_error_message'), { error: error.message }),
+            'error'
+        );
     }
 }
 
@@ -823,8 +1402,8 @@ async function prepareAddProductForm(button) {
  * Update UI to reflect new inventory counts without page reload
  */
 function updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount) {
-    // Find the button element
-    const button = document.querySelector(`[data-inventoryitem-id="${inventoryItemId}"]`);
+    // Find the buy button element (the row also has this data attribute).
+    const button = document.querySelector(`.btn-buy[data-inventoryitem-id="${inventoryItemId}"]`);
     if (!button) {
         console.warn(`[UPDATE] Button not found for ${inventoryItemId}`);
         return;
@@ -836,16 +1415,33 @@ function updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount) {
         return;
     }
     
-    // Update the Stock column (6th column, index 5)
-    const stockCell = tr.querySelector('td:nth-child(6)');
+    const productId = tr.getAttribute('data-product-id');
+
+    const stockCell = tr.querySelector('.inventory-stock-cell') || tr.querySelector('td:nth-child(6)');
     if (stockCell) {
         stockCell.textContent = Math.max(0, newStockCount);
     }
     
     // Update the Shelf Quantity column (7th column, index 6)
-    const shelfCell = tr.querySelector('td:nth-child(7)');
+    const shelfCell = tr.querySelector('.inventory-shelf-cell') || tr.querySelector('td:nth-child(7)');
     if (shelfCell) {
         shelfCell.textContent = Math.max(0, newShelfCount);
+    }
+
+    if (productId) {
+        const rowsForProduct = document.querySelectorAll(`.inventory-product-row[data-product-id="${productId}"]`);
+        const aggregatedStock = Array.from(rowsForProduct).reduce((acc, row) => {
+            const rowShelf = row.querySelector('.inventory-shelf-cell');
+            const shelfValue = parseInt(rowShelf?.textContent || '0', 10);
+            return acc + (Number.isFinite(shelfValue) ? Math.max(0, shelfValue) : 0);
+        }, 0);
+
+        rowsForProduct.forEach((row) => {
+            const rowStockCell = row.querySelector('.inventory-stock-cell');
+            if (rowStockCell) {
+                rowStockCell.textContent = aggregatedStock;
+            }
+        });
     }
     
     // Update button attributes and state
@@ -970,14 +1566,19 @@ function setupDeleteButtons() {
                 fetch(endpoint, { method: 'DELETE' })
                     .then(r => {
                         if (r.ok) {
-                            window.location.reload();
+                            showNotification(t('notifications.deleted_title'), t('notifications.deleted_message'), 'success');
+                            setTimeout(() => window.location.reload(), 250);
                         } else {
-                            alert('Error al borrar. Intenta de nuevo.');
+                            showNotification(t('notifications.error_title'), t('notifications.delete_error_message'), 'error');
                         }
                     })
                     .catch(err => {
                         console.error('Delete error:', err);
-                        alert('Error al conectar con el servidor.');
+                        showNotification(
+                            t('notifications.connection_error_title'),
+                            t('notifications.server_connection_error_message'),
+                            'error'
+                        );
                     });
             }
         });
