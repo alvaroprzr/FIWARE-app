@@ -806,6 +806,12 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 // Make PATCH request to Orion
                 const result = await buyInventoryItem(inventoryItemId, shelfCount, stockCount);
+                if (result.outOfStock) {
+                    // Safety net: keep clicked button disabled even if table lookup fails.
+                    button.classList.add('disabled');
+                    button.setAttribute('aria-disabled', 'true');
+                    button.setAttribute('data-shelf-count', '0');
+                }
                 if (!result.success && shouldDisableNow && !result.outOfStock) {
                     updateInventoryItemUI(inventoryItemId, shelfCount, stockCount);
                 }
@@ -856,8 +862,17 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
         } else {
             const errorPayload = await response.json().catch(() => ({}));
             const errorMessage = errorPayload?.error || `HTTP ${response.status}`;
+            const normalizedErrorMessage = String(errorMessage).toLowerCase();
+            const isOutOfStock = (
+                response.status === 400 &&
+                (
+                    normalizedErrorMessage.includes('no stock available on this shelf') ||
+                    normalizedErrorMessage.includes('no stock available for this inventory item') ||
+                    normalizedErrorMessage.includes('no stock available')
+                )
+            );
 
-            if (response.status === 400 && /No stock available on this shelf/i.test(errorMessage)) {
+            if (isOutOfStock) {
                 updateInventoryItemUI(inventoryItemId, 0, Math.max(0, currentStockCount));
                 showNotification('Sin Stock', 'No hay disponible en esta ubicación', 'warning');
                 return { success: false, outOfStock: true };
