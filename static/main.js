@@ -481,6 +481,26 @@ function getCurrentStoreId() {
     return listStoreId || rootStoreId || null;
 }
 
+function hasProductInCurrentStore(productId) {
+    const normalizedProductId = normalizeEntityId(productId);
+    if (!normalizedProductId) {
+        return false;
+    }
+
+    const productRows = document.querySelectorAll('.inventory-product-row[data-product-id]');
+    if (!productRows.length) {
+        return false;
+    }
+
+    return Array.from(productRows).some((row) => {
+        const rowProductId = normalizeEntityId(row.getAttribute('data-product-id'));
+        if (!rowProductId) {
+            return false;
+        }
+        return rowProductId === normalizedProductId || extractEntitySuffix(rowProductId) === extractEntitySuffix(normalizedProductId);
+    });
+}
+
 function isDuplicateLowStockEvent(data) {
     const storeId = data?.store_id || data?.storeId || '-';
     const productId = data?.product_id || data?.productId || '-';
@@ -900,6 +920,7 @@ function initializeRealtimeNotifications() {
         const newPrice = data?.new_price;
         const affectedStoreIds = Array.isArray(data?.store_ids) ? data.store_ids : [];
         const currentStoreId = getCurrentStoreId();
+        const currentStoreHasProduct = hasProductInCurrentStore(productId);
         const title = t('notifications.price_change_title');
         const message = interpolate(t('notifications.price_change_message'), {
             product: productName,
@@ -911,7 +932,8 @@ function initializeRealtimeNotifications() {
         updateProductPriceUI(productId, newPrice);
         showNotification({ title, message, level: 'info', icon: 'tag' });
 
-        if (currentStoreId && affectedStoreIds.some((storeId) => isSameStoreId(storeId, currentStoreId))) {
+        const isCurrentStoreImpacted = affectedStoreIds.some((storeId) => isSameStoreId(storeId, currentStoreId));
+        if (currentStoreId && (isCurrentStoreImpacted || currentStoreHasProduct)) {
             appendStoreRealtimeNotification(title, message, 'info');
         }
     });
