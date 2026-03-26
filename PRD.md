@@ -158,6 +158,37 @@ Conjunto de vistas HTML + CSS + JavaScript que proporcionan:
 
 ---
 
+## 20. Notificaciones Realtime - Correcciones de Entrega y Mensajeria (Issue #21)
+
+### Objetivo funcional
+
+Corregir la entrega de notificaciones realtime para que los eventos lleguen tanto a la campanita global como al panel local del Store detail cuando corresponda.
+
+### Cambios funcionales
+
+- `low_stock`:
+  - El panel local del Store detail filtra por tienda con comparacion robusta de IDs.
+  - La deduplicacion prioriza `item_id` y usa `shelf_id` como fallback.
+- `price_change`:
+  - El payload incluye `product_name` para mensajes legibles.
+  - El mensaje de UI muestra nombre de producto, no solo URN.
+  - La entrega local por tienda contempla IDs robustos y persistencia por `store_id` en sesion.
+
+### Comportamiento esperado en UI
+
+- Campanita global: mantiene visibilidad de todos los eventos realtime.
+- Panel local Store detail:
+  - Muestra eventos de la tienda activa en tiempo real.
+  - Restaura eventos de `price_change` por tienda al abrir el detalle, aunque el evento haya ocurrido en otra vista.
+
+### Resultado
+
+- Menor perdida de notificaciones locales por diferencias de formato de identificadores.
+- Mensajes entendibles para usuarios finales.
+- Consistencia entre notificacion global y contexto local de tienda.
+
+---
+
 ## 15. Rediseño Recorrido Virtual 3D en Store Detail (Issue #14)
 
 ### Requisito funcional cubierto

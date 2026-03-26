@@ -28,6 +28,45 @@ Información de personal con autenticación, cualificaciones y asignación a un 
 
 ---
 
+## 12. Contrato de Eventos Realtime y Semantica de Identificadores (Issue #21)
+
+Issue #21 no introduce nuevas entidades NGSIv2 ni nuevos atributos persistidos en Orion.
+Los cambios se concentran en la semantica del contrato de eventos realtime consumido por la UI.
+
+### Evento `price_change`
+
+Campos relevantes usados por frontend:
+
+- `product_id`
+- `product_name` (preferido para mensajeria)
+- `new_price`
+- `store_ids` (tiendas impactadas)
+- `timestamp`
+
+### Evento `low_stock`
+
+Campos relevantes usados por frontend:
+
+- Identificacion de contexto: `item_id`, `product_id`, `store_id`, `shelf_id`
+- Cantidades: `shelfCount`, `stockCount`, `totalStoreStock`
+- Nombres de presentacion: `product_name`, `store_name`, `shelf_name`
+- Compatibilidad: aliases snake_case (`shelf_count`, `stock_count`, `total_store_stock`)
+
+### Reglas de interpretacion en cliente
+
+- Comparacion de IDs robusta: igualdad por URN completa o por sufijo.
+- Deduplicacion `low_stock`:
+  - Clave primaria por `item_id`.
+  - Fallback por `shelf_id` cuando no exista `item_id`.
+
+### Alcance de modelo
+
+- Sin cambios estructurales de modelo de datos.
+- Sin nuevas relaciones entre entidades.
+- Cambios centrados en contrato de eventos y su consumo.
+
+---
+
 ## Nota de Integración de Modelo para Recorrido 3D (Issue #14)
 
 ### Objetivo de modelado en UI 3D

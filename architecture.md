@@ -320,6 +320,42 @@ La vista de inventario pasa a **una sola tabla agrupada por Shelf**:
 
 ---
 
+## 19. Ajustes de Arquitectura Realtime para Notificaciones (Issue #21)
+
+### Backend (`routes/notifications.py`)
+
+- `POST /notify/price-change`:
+  - Enriquecimiento de evento con `product_name`.
+  - Resolucion robusta de `store_ids` impactados por producto para mejorar el enrutado local.
+- `POST /notify/low-stock`:
+  - Se mantiene emision global.
+  - El contrato conserva compatibilidad con campos snake_case y camelCase.
+
+### Frontend (`static/main.js`)
+
+- Canal global:
+  - `showNotification(...)` se mantiene como mecanismo central de campanita.
+- Canal local Store detail:
+  - Matching robusto de IDs de tienda (URN completa y sufijo).
+  - Persistencia por tienda en `sessionStorage` para restauracion de panel local.
+  - Filtro de deduplicacion `low_stock` reforzado con prioridad por `item_id`.
+
+### Flujo de entrega actualizado
+
+1. Orion notifica webhook en Flask.
+2. Flask emite evento Socket.IO enriquecido.
+3. Cliente actualiza campanita global.
+4. Cliente enruta al panel local de tienda con filtros robustos.
+5. Cliente persiste eventos locales por `store_id` para rehidratacion en Store detail.
+
+### Impacto arquitectonico
+
+- Menor dependencia de igualdad estricta entre formatos de IDs.
+- Reduccion de eventos perdidos en panel local.
+- Mejor trazabilidad y legibilidad de mensajes de negocio en tiempo real.
+
+---
+
 ## 6. Rediseño Arquitectónico del Recorrido 3D (Issue #14)
 
 ### Arquitectura de render en Store Detail
