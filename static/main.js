@@ -54,6 +54,7 @@ const i18n = {
         'notifications.load_products_error_message': 'No se pudo cargar productos disponibles: {error}',
         'notifications.deleted_title': 'Eliminado',
         'notifications.deleted_message': 'Entidad eliminada correctamente',
+        'notifications.deleted_message_named': 'Elemento "{name}" eliminado correctamente',
         'notifications.delete_error_message': 'No se pudo eliminar la entidad',
         'notifications.server_connection_error_message': 'No se pudo conectar con el servidor.',
         'footer.text': 'Almacén Inteligente FIWARE © 2024',
@@ -190,6 +191,7 @@ const i18n = {
         'notifications.load_products_error_message': 'Could not load available products: {error}',
         'notifications.deleted_title': 'Deleted',
         'notifications.deleted_message': 'Entity deleted successfully',
+        'notifications.deleted_message_named': 'Item "{name}" deleted successfully',
         'notifications.delete_error_message': 'Could not delete entity',
         'notifications.server_connection_error_message': 'Could not connect to server.',
         'footer.text': 'Smart Warehouse FIWARE © 2024',
@@ -1699,6 +1701,11 @@ function setupDeleteButtons() {
             e.preventDefault();
             const entityId = btn.getAttribute('data-id');
             if (!entityId) return;
+
+            const row = btn.closest('tr');
+            const rowName = row?.querySelector('.name-cell a, .name-cell')?.textContent?.trim();
+            const fallbackName = entityId.split(':').pop();
+            const entityName = rowName || fallbackName;
             
             // Determine entity type and endpoint from current URL or data attribute
             const currentPath = window.location.pathname;
@@ -1718,7 +1725,10 @@ function setupDeleteButtons() {
                 fetch(endpoint, { method: 'DELETE' })
                     .then(r => {
                         if (r.ok) {
-                            showNotification(t('notifications.deleted_title'), t('notifications.deleted_message'), 'success');
+                            const deletedMessage = entityName
+                                ? interpolate(t('notifications.deleted_message_named'), { name: entityName })
+                                : t('notifications.deleted_message');
+                            showNotification(t('notifications.deleted_title'), deletedMessage, 'success');
                             setTimeout(() => window.location.reload(), 250);
                         } else {
                             showNotification(t('notifications.error_title'), t('notifications.delete_error_message'), 'error');
