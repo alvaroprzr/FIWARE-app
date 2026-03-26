@@ -247,6 +247,9 @@ function buildShelfDetails(shelfMesh, shelfIndex) {
 function populateShelfWithProducts(shelfMesh, productRows) {
   const distinctRows = [];
   const seenProducts = new Set();
+  const shelfSurfaceY = [-1.15, -0.32, 0.52, 1.28];
+  const productYOffset = 0.22;
+  const lanesPerLevel = 2;
 
   productRows.forEach((row, index) => {
     const key = row.productId || row.name || String(index);
@@ -259,14 +262,16 @@ function populateShelfWithProducts(shelfMesh, productRows) {
 
   distinctRows.forEach((row, index) => {
     const visual = createProductVisual(row.productId, index);
-    const lane = index % 4;
-    const shelfLevel = Math.floor(index / 4) % 3;
-    const depthOffset = index % 2 === 0 ? 0.62 : 0.4;
+    const level = index % shelfSurfaceY.length;
+    const lane = Math.floor(index / shelfSurfaceY.length) % lanesPerLevel;
+    const depthBand = Math.floor(index / (shelfSurfaceY.length * lanesPerLevel)) % 2;
+    const x = lane === 0 ? -0.88 : 0.88;
+    const z = depthBand === 0 ? 0.56 : 0.34;
 
     visual.position.set(
-      -1.2 + lane * 0.78,
-      -0.92 + shelfLevel * 0.84,
-      depthOffset
+      x,
+      shelfSurfaceY[level] + productYOffset,
+      z
     );
 
     shelfMesh.add(visual);
