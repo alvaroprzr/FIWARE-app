@@ -1080,48 +1080,9 @@ function getMermaidTheme() {
 }
 
 function getMermaidConfig() {
-    const mode = getMermaidTheme();
-
-    if (mode === 'dark') {
-        return {
-            startOnLoad: false,
-            theme: 'base',
-            themeVariables: {
-                background: '#202124',
-                primaryColor: '#2c5d9f',
-                primaryTextColor: '#e8eaed',
-                primaryBorderColor: '#4b80c9',
-                lineColor: '#8fb5e7',
-                secondaryColor: '#273645',
-                secondaryTextColor: '#d7dee8',
-                tertiaryColor: '#1f2a36',
-                tertiaryTextColor: '#e8eaed',
-                nodeTextColor: '#e8eaed',
-                edgeLabelBackground: '#2a3441',
-                fontFamily: 'Inter, Roboto, sans-serif',
-                fontSize: '14px'
-            }
-        };
-    }
-
     return {
         startOnLoad: false,
-        theme: 'base',
-        themeVariables: {
-            background: '#ffffff',
-            primaryColor: '#d8e6f8',
-            primaryTextColor: '#1f2d3d',
-            primaryBorderColor: '#4c7fc7',
-            lineColor: '#4f79a8',
-            secondaryColor: '#eef3f9',
-            secondaryTextColor: '#1f2d3d',
-            tertiaryColor: '#f4f7fb',
-            tertiaryTextColor: '#1f2d3d',
-            nodeTextColor: '#223445',
-            edgeLabelBackground: '#eff4fb',
-            fontFamily: 'Inter, Roboto, sans-serif',
-            fontSize: '14px'
-        }
+        theme: getMermaidTheme() === 'dark' ? 'dark' : 'default'
     };
 }
 
