@@ -7,6 +7,10 @@ let store3DState = null;
 
 const SHELF_EMISSIVE_BASE = 0x081a32;
 const SHELF_EMISSIVE_HOVER = 0x1b78d6;
+const SHELF_GRID_COLUMNS = 4;
+const SHELF_GRID_LEVELS = 4;
+const SHELF_GRID_DEPTH = 2;
+const SHELF_ABSOLUTE_CAPACITY = SHELF_GRID_COLUMNS * SHELF_GRID_LEVELS * SHELF_GRID_DEPTH;
 
 const TOUR_TEXT = {
   es: {
@@ -234,41 +238,40 @@ function buildShelfDetails(shelfMesh, shelfIndex) {
 }
 
 function populateShelfWithProducts(shelfMesh, productRows) {
-  const distinctRows = [];
-  const seenProducts = new Set();
   const shelfSurfaceY = [-1.15, -0.32, 0.52, 1.28];
+  const xSlots = [-1.18, -0.4, 0.4, 1.18];
+  const zSlots = [0.6, -0.1];
   const productYOffset = 0.22;
-  const slotsPerLevel = 4;
-  const slotCoordinates = [
-    { x: -0.95, z: 0.56 },
-    { x: -0.32, z: 0.38 },
-    { x: 0.32, z: 0.56 },
-    { x: 0.95, z: 0.38 }
-  ];
+  const units = [];
 
-  productRows.forEach((row, index) => {
-    const key = row.productId || row.name || String(index);
-    if (seenProducts.has(key)) {
-      return;
+  productRows.forEach((row, rowIndex) => {
+    const totalUnits = Math.max(0, Math.floor(Number(row?.shelfCount) || 0));
+    for (let unitIndex = 0; unitIndex < totalUnits; unitIndex += 1) {
+      units.push({
+        productId: row?.productId,
+        fallbackIndex: rowIndex
+      });
     }
-    seenProducts.add(key);
-    distinctRows.push(row);
   });
 
-  distinctRows.forEach((row, index) => {
-    const visual = createProductVisual(row.productId, index);
-    const level = index % shelfSurfaceY.length;
-    const slot = Math.floor(index / shelfSurfaceY.length) % slotsPerLevel;
-    const position = slotCoordinates[slot];
+  const visibleUnits = Math.min(units.length, SHELF_ABSOLUTE_CAPACITY);
 
+  for (let index = 0; index < visibleUnits; index += 1) {
+    const slotInLevel = SHELF_GRID_COLUMNS * SHELF_GRID_DEPTH;
+    const level = Math.floor(index / slotInLevel) % SHELF_GRID_LEVELS;
+    const column = Math.floor(index / SHELF_GRID_DEPTH) % SHELF_GRID_COLUMNS;
+    const depth = index % SHELF_GRID_DEPTH;
+
+    const visual = createProductVisual(units[index].productId, index + units[index].fallbackIndex);
+    visual.scale.set(0.86, 0.86, 0.86);
     visual.position.set(
-      position.x,
+      xSlots[column],
       shelfSurfaceY[level] + productYOffset,
-      position.z
+      zSlots[depth]
     );
 
     shelfMesh.add(visual);
-  });
+  }
 }
 
 function createProductVisual(productId, index) {

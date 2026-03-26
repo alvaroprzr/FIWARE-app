@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 
 bp = Blueprint('stores', __name__, url_prefix='')
 
+SHELF_GRID_COLUMNS = 4
+SHELF_GRID_LEVELS = 4
+SHELF_GRID_DEPTH = 2
+SHELF_ABSOLUTE_CAPACITY = SHELF_GRID_COLUMNS * SHELF_GRID_LEVELS * SHELF_GRID_DEPTH
+
 
 def _normalize_urn(entity_id: str, entity_type: str) -> str:
     """
@@ -33,6 +38,14 @@ def _safe_number(value, default: int = 0) -> int:
         return int(value)
     except (TypeError, ValueError):
         return default
+
+
+def _get_shelf_units(shelf_id: str) -> int:
+    """
+    Return total physical units currently placed in a shelf.
+    """
+    items = orion.get_entities(entity_type='InventoryItem', query=f"refShelf=='{shelf_id}'")
+    return sum(_safe_number(item.get('shelfCount', {}).get('value'), 0) for item in items)
 
 
 def _is_valid_store_id(store_id: str) -> bool:
@@ -444,6 +457,15 @@ def create_store_shelf(store_id):
             return {'error': 'Shelf name is required'}, 400
         if max_capacity <= 0:
             return {'error': 'maxCapacity must be greater than 0'}, 400
+        if max_capacity > SHELF_ABSOLUTE_CAPACITY:
+            return {
+                'error': f'maxCapacity cannot exceed physical shelf limit ({SHELF_ABSOLUTE_CAPACITY})',
+                'errorCode': 'SHELF_MAX_CAPACITY_ABSOLUTE_EXCEEDED',
+                'details': {
+                    'maximumAllowed': SHELF_ABSOLUTE_CAPACITY,
+                    'requested': max_capacity
+                }
+            }, 400
 
         store = orion.get_entity(store_id)
         if not store:
@@ -503,6 +525,26 @@ def update_shelf(shelf_id):
             max_capacity = _safe_number(data.get('maxCapacity'), 0)
             if max_capacity <= 0:
                 return {'error': 'maxCapacity must be greater than 0'}, 400
+            if max_capacity > SHELF_ABSOLUTE_CAPACITY:
+                return {
+                    'error': f'maxCapacity cannot exceed physical shelf limit ({SHELF_ABSOLUTE_CAPACITY})',
+                    'errorCode': 'SHELF_MAX_CAPACITY_ABSOLUTE_EXCEEDED',
+                    'details': {
+                        'maximumAllowed': SHELF_ABSOLUTE_CAPACITY,
+                        'requested': max_capacity
+                    }
+                }, 400
+
+            current_units = _get_shelf_units(shelf_id)
+            if max_capacity < current_units:
+                return {
+                    'error': 'maxCapacity cannot be lower than current shelf occupancy',
+                    'errorCode': 'SHELF_MAX_CAPACITY_BELOW_OCCUPANCY',
+                    'details': {
+                        'current': current_units,
+                        'requested': max_capacity
+                    }
+                }, 400
             attrs['maxCapacity'] = orion.build_attr(max_capacity, 'Number')
 
         if not attrs:
@@ -543,6 +585,7 @@ def add_product_to_shelf(shelf_id):
         max_capacity = _safe_number(shelf.get('maxCapacity', {}).get('value'), 0)
         if max_capacity <= 0:
             return {'error': 'Shelf has invalid capacity'}, 400
+        effective_capacity = min(max_capacity, SHELF_ABSOLUTE_CAPACITY)
 
         product = orion.get_entity(product_id)
         if not product:
@@ -569,6 +612,25 @@ def add_product_to_shelf(shelf_id):
             entity_type='InventoryItem',
             query=f"refShelf=='{shelf_id}'"
         )
+        current_shelf_units = sum(
+            _safe_number(item.get('shelfCount', {}).get('value'), 0)
+            for item in shelf_items
+        )
+        maximum_allowed = max(0, effective_capacity - current_shelf_units)
+
+        # Validate against total occupancy in the shelf, not only one product row.
+        if shelf_count > maximum_allowed:
+            return {
+                'error': 'Shelf capacity exceeded',
+                'errorCode': 'SHELF_CAPACITY_EXCEEDED',
+                'details': {
+                    'current': current_shelf_units,
+                    'requested': shelf_count,
+                    'capacity': effective_capacity,
+                    'maximumAllowed': maximum_allowed
+                }
+            }, 400
+
         existing_item = next(
             (
                 item for item in shelf_items
@@ -581,19 +643,6 @@ def add_product_to_shelf(shelf_id):
             existing_id = existing_item.get('id')
             current_shelf_count = _safe_number(existing_item.get('shelfCount', {}).get('value'), 0)
             new_shelf_count = current_shelf_count + shelf_count
-
-            # Validate that new total does not exceed shelf capacity
-            if new_shelf_count > max_capacity:
-                return {
-                    'error': 'Shelf capacity exceeded',
-                    'errorCode': 'SHELF_CAPACITY_EXCEEDED',
-                    'details': {
-                        'current': current_shelf_count,
-                        'requested': shelf_count,
-                        'capacity': max_capacity,
-                        'maximumAllowed': max(0, max_capacity - current_shelf_count)
-                    }
-                }, 400
 
             merged_attrs = {
                 'shelfCount': orion.build_attr(new_shelf_count, 'Number'),
@@ -621,19 +670,6 @@ def add_product_to_shelf(shelf_id):
             f"urn:ngsi-ld:InventoryItem:"
             f"{shelf_id.split(':')[-1]}-{product_id.split(':')[-1]}-{uuid.uuid4().hex[:8]}"
         )
-
-        # Validate that initial shelf count does not exceed shelf capacity
-        if shelf_count > max_capacity:
-            return {
-                'error': 'Shelf capacity exceeded',
-                'errorCode': 'SHELF_CAPACITY_EXCEEDED',
-                'details': {
-                    'current': 0,
-                    'requested': shelf_count,
-                    'capacity': max_capacity,
-                    'maximumAllowed': max_capacity
-                }
-            }, 400
 
         inventory_item = {
             'id': inventory_id,

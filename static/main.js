@@ -45,6 +45,8 @@ const i18n = {
         'notifications.product_added_message': 'InventoryItem creado correctamente',
         'notifications.product_add_error_message': 'No se pudo anadir el producto: {error}',
         'notifications.capacity_exceeded_message': 'No caben mas unidades en la estanteria. Capacidad: {capacity}, actuales: {current}, intentadas: {requested}, maximo que puedes anadir ahora: {maximumAllowed}',
+        'notifications.shelf_absolute_limit_message': 'La capacidad maxima de una shelf no puede superar {limit} (4 columnas x 4 niveles x 2 profundidades).',
+        'notifications.shelf_remaining_capacity_message': 'La shelf seleccionada solo admite {maximumAllowed} unidades adicionales en este momento.',
         'notifications.validation_positive_counts': 'Las cantidades deben ser mayores que 0',
         'notifications.validation_shelf_gt_stock': 'shelfCount no puede ser mayor que stockCount',
         'notifications.inventory_created_title': 'InventoryItem creado',
@@ -184,6 +186,8 @@ const i18n = {
         'notifications.product_added_message': 'Inventory item created successfully',
         'notifications.product_add_error_message': 'Could not add product: {error}',
         'notifications.capacity_exceeded_message': 'No more units fit in this shelf. Capacity: {capacity}, current: {current}, requested: {requested}, maximum you can add now: {maximumAllowed}',
+        'notifications.shelf_absolute_limit_message': 'Shelf max capacity cannot exceed {limit} (4 columns x 4 levels x 2 depth slots).',
+        'notifications.shelf_remaining_capacity_message': 'The selected shelf only allows {maximumAllowed} additional units right now.',
         'notifications.validation_positive_counts': 'Counts must be greater than 0',
         'notifications.validation_shelf_gt_stock': 'shelfCount cannot be greater than stockCount',
         'notifications.inventory_created_title': 'Inventory item created',
@@ -1269,6 +1273,7 @@ function initializeStoreDetailForms() {
     }
 
     const storeId = root.getAttribute('data-store-id');
+    const shelfAbsoluteCapacity = 32;
 
     document.querySelectorAll('[data-open-modal]').forEach((button) => {
         button.addEventListener('click', async () => {
@@ -1294,9 +1299,23 @@ function initializeStoreDetailForms() {
         addShelfForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(addShelfForm);
+            const maxCapacity = parseInt(formData.get('maxCapacity'), 10);
+            if (Number.isNaN(maxCapacity) || maxCapacity <= 0) {
+                showNotification(t('notifications.error_title'), t('notifications.validation_positive_counts'), 'error');
+                return;
+            }
+            if (maxCapacity > shelfAbsoluteCapacity) {
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.shelf_absolute_limit_message'), { limit: shelfAbsoluteCapacity }),
+                    'error'
+                );
+                return;
+            }
+
             const payload = {
                 name: formData.get('name'),
-                maxCapacity: parseInt(formData.get('maxCapacity'), 10)
+                maxCapacity
             };
 
             try {
@@ -1330,9 +1349,23 @@ function initializeStoreDetailForms() {
             e.preventDefault();
             const formData = new FormData(editShelfForm);
             const shelfId = formData.get('shelfId');
+            const maxCapacity = parseInt(formData.get('maxCapacity'), 10);
+            if (Number.isNaN(maxCapacity) || maxCapacity <= 0) {
+                showNotification(t('notifications.error_title'), t('notifications.validation_positive_counts'), 'error');
+                return;
+            }
+            if (maxCapacity > shelfAbsoluteCapacity) {
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.shelf_absolute_limit_message'), { limit: shelfAbsoluteCapacity }),
+                    'error'
+                );
+                return;
+            }
+
             const payload = {
                 name: formData.get('name'),
-                maxCapacity: parseInt(formData.get('maxCapacity'), 10)
+                maxCapacity
             };
 
             try {
@@ -1366,9 +1399,20 @@ function initializeStoreDetailForms() {
             e.preventDefault();
             const formData = new FormData(addProductForm);
             const shelfId = formData.get('shelfId');
+            const maxAllowed = parseInt(addProductForm.getAttribute('data-max-allowed') || '', 10);
+            const shelfCount = parseInt(formData.get('shelfCount'), 10);
+            if (!Number.isNaN(maxAllowed) && maxAllowed >= 0 && shelfCount > maxAllowed) {
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.shelf_remaining_capacity_message'), { maximumAllowed: maxAllowed }),
+                    'error'
+                );
+                return;
+            }
+
             const payload = {
                 productId: formData.get('productId'),
-                shelfCount: parseInt(formData.get('shelfCount'), 10)
+                shelfCount
             };
 
             try {
@@ -1553,20 +1597,39 @@ function fillEditShelfForm(button) {
 
     shelfIdField.value = button.getAttribute('data-shelf-id') || '';
     shelfNameField.value = button.getAttribute('data-shelf-name') || '';
+    const currentUnits = parseInt(button.getAttribute('data-shelf-current') || '0', 10);
     shelfCapacityField.value = button.getAttribute('data-shelf-capacity') || 1;
+    shelfCapacityField.min = String(Number.isNaN(currentUnits) ? 1 : Math.max(1, currentUnits));
+    shelfCapacityField.max = '32';
 }
 
 async function prepareAddProductForm(button) {
     const shelfId = button.getAttribute('data-shelf-id') || '';
+    const shelfCapacity = parseInt(button.getAttribute('data-shelf-capacity') || '0', 10);
+    const shelfCurrent = parseInt(button.getAttribute('data-shelf-current') || '0', 10);
     const select = document.getElementById('add-product-select');
     const shelfIdField = document.getElementById('add-product-shelf-id');
+    const shelfCountField = document.getElementById('add-product-shelf-count');
+    const addProductForm = document.getElementById('add-product-form');
+    const submitButton = addProductForm?.querySelector('button[type="submit"]');
 
-    if (!select || !shelfIdField) {
+    if (!select || !shelfIdField || !shelfCountField || !addProductForm) {
         return;
     }
 
     shelfIdField.value = shelfId;
     select.innerHTML = `<option value="">${t('store.select_product')}</option>`;
+
+    const effectiveCapacity = Math.min(Number.isNaN(shelfCapacity) ? 0 : shelfCapacity, 32);
+    const currentUnits = Number.isNaN(shelfCurrent) ? 0 : shelfCurrent;
+    const maxAllowed = Math.max(0, effectiveCapacity - currentUnits);
+
+    shelfCountField.max = String(Math.max(1, maxAllowed));
+    shelfCountField.value = String(Math.max(1, Math.min(parseInt(shelfCountField.value || '1', 10) || 1, Math.max(1, maxAllowed))));
+    addProductForm.setAttribute('data-max-allowed', String(maxAllowed));
+    if (submitButton) {
+        submitButton.disabled = maxAllowed <= 0;
+    }
 
     try {
         const response = await fetch(`/api/shelves/${encodeURIComponent(shelfId)}/available-products`);
@@ -1581,7 +1644,18 @@ async function prepareAddProductForm(button) {
             option.value = '';
             option.textContent = t('store.no_products_in_shelf');
             select.appendChild(option);
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
             return;
+        }
+
+        if (maxAllowed <= 0) {
+            showNotification(
+                t('notifications.error_title'),
+                interpolate(t('notifications.shelf_remaining_capacity_message'), { maximumAllowed: 0 }),
+                'error'
+            );
         }
 
         availableProducts.forEach((product) => {
