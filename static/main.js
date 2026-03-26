@@ -435,11 +435,60 @@ function toNumber(value, fallback = 0) {
     return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function normalizeEntityId(value) {
+    if (typeof value !== 'string') {
+        return '';
+    }
+    return value.trim();
+}
+
+function extractEntitySuffix(entityId) {
+    const normalized = normalizeEntityId(entityId);
+    if (!normalized) {
+        return '';
+    }
+    const parts = normalized.split(':');
+    return parts[parts.length - 1] || '';
+}
+
+function isSameStoreId(leftId, rightId) {
+    const left = normalizeEntityId(leftId);
+    const right = normalizeEntityId(rightId);
+    if (!left || !right) {
+        return false;
+    }
+    if (left === right) {
+        return true;
+    }
+    return extractEntitySuffix(left) === extractEntitySuffix(right);
+}
+
+function getCurrentStoreId() {
+    const listStoreId = normalizeEntityId(
+        document.getElementById('store-notifications-list')?.getAttribute('data-store-id')
+    );
+    const rootStoreId = normalizeEntityId(
+        document.getElementById('store-detail-root')?.getAttribute('data-store-id')
+    );
+
+    if (listStoreId && rootStoreId && listStoreId !== rootStoreId) {
+        console.warn('Store detail ID mismatch between root and notifications list:', {
+            listStoreId,
+            rootStoreId
+        });
+    }
+
+    return listStoreId || rootStoreId || null;
+}
+
 function isDuplicateLowStockEvent(data) {
     const storeId = data?.store_id || data?.storeId || '-';
     const productId = data?.product_id || data?.productId || '-';
+    const itemId = data?.item_id || data?.itemId;
+    const shelfId = data?.shelf_id || data?.shelfId || '-';
+    const dedupScope = itemId || shelfId;
     const totalStoreStock = data?.totalStoreStock ?? data?.total_store_stock ?? data?.stockCount ?? data?.stock_count;
-    const cacheKey = `${storeId}|${productId}|${totalStoreStock}`;
+    const cacheKey = `${storeId}|${productId}|${dedupScope}|${totalStoreStock}`;
     const now = Date.now();
     const previous = lowStockEventCache.get(cacheKey);
 
@@ -873,8 +922,8 @@ function initializeRealtimeNotifications() {
             return;
         }
 
-        const storeNotifications = document.getElementById('store-notifications-list');
-        const currentStoreId = storeNotifications?.getAttribute('data-store-id');
+        const currentStoreId = getCurrentStoreId();
+        const eventStoreId = data?.store_id || data?.storeId;
         const shelfCount = toNumber(data?.shelfCount ?? data?.shelf_count ?? 0, 0);
         const totalStoreStock = toNumber(
             data?.totalStoreStock ?? data?.total_store_stock ?? data?.stockCount ?? data?.stock_count ?? 0,
@@ -897,7 +946,7 @@ function initializeRealtimeNotifications() {
 
         showNotification({ title, message: globalMessage, level: 'warning', icon: 'exclamation-triangle' });
 
-        if (currentStoreId && data?.store_id === currentStoreId) {
+        if (currentStoreId && isSameStoreId(currentStoreId, eventStoreId)) {
             const localMessage = interpolate(t('notifications.local_low_stock_message'), {
                 product: productName,
                 count: remainingCount,
