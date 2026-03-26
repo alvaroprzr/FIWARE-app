@@ -318,52 +318,33 @@ function getProductBoxMaterial(productId, imageUrl, colorHex, index) {
   PRODUCT_MATERIAL_CACHE.set(cacheKey, material);
 
   if (imageUrl) {
-    getProductTexture(imageUrl)
-      .then((texture) => {
-        if (!texture) {
-          return;
+    const cachedTexture = PRODUCT_TEXTURE_CACHE.get(imageUrl);
+    if (cachedTexture) {
+      material.map = cachedTexture;
+      material.color.setHex(0xffffff);
+      material.needsUpdate = true;
+    } else {
+      const loader = getTextureLoader();
+      loader.load(
+        imageUrl,
+        (texture) => {
+          if ('colorSpace' in texture && THREE.SRGBColorSpace) {
+            texture.colorSpace = THREE.SRGBColorSpace;
+          }
+          PRODUCT_TEXTURE_CACHE.set(imageUrl, texture);
+          material.map = texture;
+          material.color.setHex(0xffffff);
+          material.needsUpdate = true;
+        },
+        undefined,
+        () => {
+          // Keep solid fallback color when image cannot be loaded.
         }
-
-        material.map = texture;
-        material.needsUpdate = true;
-      })
-      .catch(() => {
-        // Keep color fallback if external texture fails.
-      });
+      );
+    }
   }
 
   return material;
-}
-
-function getProductTexture(imageUrl) {
-  if (!imageUrl) {
-    return Promise.resolve(null);
-  }
-
-  const cached = PRODUCT_TEXTURE_CACHE.get(imageUrl);
-  if (cached) {
-    return cached;
-  }
-
-  const loader = getTextureLoader();
-  const texturePromise = new Promise((resolve, reject) => {
-    loader.load(
-      imageUrl,
-      (texture) => {
-        if ('colorSpace' in texture && THREE.SRGBColorSpace) {
-          texture.colorSpace = THREE.SRGBColorSpace;
-        }
-        resolve(texture);
-      },
-      undefined,
-      (error) => {
-        reject(error);
-      }
-    );
-  });
-
-  PRODUCT_TEXTURE_CACHE.set(imageUrl, texturePromise);
-  return texturePromise;
 }
 
 function getTextureLoader() {
