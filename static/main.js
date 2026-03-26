@@ -442,8 +442,12 @@ function normalizeEntityId(value) {
     return value.trim();
 }
 
+function normalizeComparableEntityId(value) {
+    return normalizeEntityId(value).toLowerCase();
+}
+
 function extractEntitySuffix(entityId) {
-    const normalized = normalizeEntityId(entityId);
+    const normalized = normalizeComparableEntityId(entityId);
     if (!normalized) {
         return '';
     }
@@ -452,8 +456,8 @@ function extractEntitySuffix(entityId) {
 }
 
 function isSameStoreId(leftId, rightId) {
-    const left = normalizeEntityId(leftId);
-    const right = normalizeEntityId(rightId);
+    const left = normalizeComparableEntityId(leftId);
+    const right = normalizeComparableEntityId(rightId);
     if (!left || !right) {
         return false;
     }
@@ -482,9 +486,30 @@ function getCurrentStoreId() {
 }
 
 function hasProductInCurrentStore(productId) {
-    const normalizedProductId = normalizeEntityId(productId);
+    const normalizedProductId = normalizeComparableEntityId(productId);
     if (!normalizedProductId) {
         return false;
+    }
+
+    // Prefer inventory payload rendered by store_detail template when available.
+    const inventoryItems = Array.isArray(window.inventoryData?.inventory_items)
+        ? window.inventoryData.inventory_items
+        : [];
+    if (inventoryItems.length) {
+        const foundInInventoryData = inventoryItems.some((item) => {
+            if (!item || typeof item !== 'object') {
+                return false;
+            }
+            const refProduct = normalizeComparableEntityId(item?.refProduct?.value);
+            if (!refProduct) {
+                return false;
+            }
+            return refProduct === normalizedProductId || extractEntitySuffix(refProduct) === extractEntitySuffix(normalizedProductId);
+        });
+
+        if (foundInInventoryData) {
+            return true;
+        }
     }
 
     const productRows = document.querySelectorAll('.inventory-product-row[data-product-id]');
@@ -493,7 +518,7 @@ function hasProductInCurrentStore(productId) {
     }
 
     return Array.from(productRows).some((row) => {
-        const rowProductId = normalizeEntityId(row.getAttribute('data-product-id'));
+        const rowProductId = normalizeComparableEntityId(row.getAttribute('data-product-id'));
         if (!rowProductId) {
             return false;
         }
@@ -727,11 +752,15 @@ function updateProductPriceUI(productId, newPrice) {
     if (!productId) return;
 
     const formatted = formatPriceValue(newPrice);
+    let updatedCount = 0;
     document.querySelectorAll(`.product-price-cell[data-product-id="${productId}"]`).forEach((cell) => {
         const isDetailPrice = cell.classList.contains('price');
         const hasCurrency = isDetailPrice || cell.textContent.trim().startsWith('€');
         cell.textContent = hasCurrency ? `€${formatted}` : formatted;
+        updatedCount += 1;
     });
+
+    return updatedCount;
 }
 
 function appendStoreRealtimeNotification(title, message, level = 'info') {
@@ -849,6 +878,18 @@ function persistLocalNotifications(storeId, list) {
     sessionStorage.setItem(LOCAL_NOTIF_SESSION_KEY, JSON.stringify(payload));
 }
 
+function persistLocalNotificationEntry(storeId, entry) {
+    const normalizedStoreId = normalizeEntityId(storeId);
+    if (!normalizedStoreId || !entry) {
+        return;
+    }
+
+    const payload = getLocalNotificationStore();
+    const existingEntries = Array.isArray(payload[normalizedStoreId]) ? payload[normalizedStoreId] : [];
+    payload[normalizedStoreId] = [entry, ...existingEntries].slice(0, notificationState.maxLocalItems);
+    sessionStorage.setItem(LOCAL_NOTIF_SESSION_KEY, JSON.stringify(payload));
+}
+
 function initializeStoreNotificationPanel() {
     const list = document.getElementById('store-notifications-list');
     const clearBtn = document.getElementById('clear-store-notifications');
@@ -928,16 +969,52 @@ function initializeRealtimeNotifications() {
             product: productName,
             price: formatPriceValue(newPrice)
         });
+        const localEntry = {
+            level: 'info',
+            icon: 'tag',
+            title,
+            message,
+            time: formatNotificationTime(new Date())
+        };
 
         console.log('Socket event price_change:', data);
 
-        updateProductPriceUI(productId, newPrice);
+        const updatedPriceCells = updateProductPriceUI(productId, newPrice) || 0;
         showNotification({ title, message, level: 'info', icon: 'tag' });
 
         const isCurrentStoreImpacted = Boolean(currentStoreId) &&
             affectedStoreIds.some((storeId) => isSameStoreId(storeId, currentStoreId));
+        const eventProductIsRendered = updatedPriceCells > 0;
 
-        if (isStoreDetailPage && (isCurrentStoreImpacted || currentStoreHasProduct)) {
+        const targetStoreIds = [];
+        const seenStores = new Set();
+        affectedStoreIds.forEach((storeId) => {
+            const normalized = normalizeComparableEntityId(storeId);
+            if (!normalized || seenStores.has(normalized)) {
+                return;
+            }
+            seenStores.add(normalized);
+            targetStoreIds.push(storeId);
+        });
+
+        const shouldNotifyCurrentStore = isStoreDetailPage && (isCurrentStoreImpacted || currentStoreHasProduct || eventProductIsRendered);
+        if (shouldNotifyCurrentStore && currentStoreId) {
+            const currentNormalized = normalizeComparableEntityId(currentStoreId);
+            if (currentNormalized && !seenStores.has(currentNormalized)) {
+                seenStores.add(currentNormalized);
+                targetStoreIds.push(currentStoreId);
+            }
+        }
+
+        targetStoreIds.forEach((storeId) => {
+            if (isStoreDetailPage && currentStoreId && isSameStoreId(storeId, currentStoreId)) {
+                appendStoreRealtimeNotification(title, message, 'info');
+                return;
+            }
+            persistLocalNotificationEntry(storeId, localEntry);
+        });
+
+        if (shouldNotifyCurrentStore && !targetStoreIds.length) {
             appendStoreRealtimeNotification(title, message, 'info');
         }
     });
