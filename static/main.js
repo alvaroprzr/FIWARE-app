@@ -68,6 +68,7 @@ const i18n = {
         'home.inventory': 'Items de Inventario',
         'home.total': 'Total de Entidades',
         'home.data_model': 'Modelo de Datos',
+        'home.diagram_title': 'Diagrama de Entidad-Relacion',
         'home.diagram_toggle': 'Mostrar u ocultar diagrama',
         'home.quick_links': 'Enlaces Rápidos',
         'home.view_stores': 'Ver Almacenes',
@@ -206,6 +207,7 @@ const i18n = {
         'home.inventory': 'Inventory Items',
         'home.total': 'Total Entities',
         'home.data_model': 'Data Model',
+        'home.diagram_title': 'Entity-Relationship Diagram',
         'home.diagram_toggle': 'Show or hide diagram',
         'home.quick_links': 'Quick Links',
         'home.view_stores': 'View Stores',
@@ -1096,7 +1098,7 @@ function getMermaidConfig() {
                 tertiaryTextColor: '#e8eaed',
                 nodeTextColor: '#e8eaed',
                 edgeLabelBackground: '#2a3441',
-                fontFamily: 'Segoe UI, Arial, sans-serif',
+                fontFamily: 'Inter, Roboto, sans-serif',
                 fontSize: '14px'
             }
         };
@@ -1117,7 +1119,7 @@ function getMermaidConfig() {
             tertiaryTextColor: '#1f2d3d',
             nodeTextColor: '#223445',
             edgeLabelBackground: '#eff4fb',
-            fontFamily: 'Segoe UI, Arial, sans-serif',
+            fontFamily: 'Inter, Roboto, sans-serif',
             fontSize: '14px'
         }
     };
