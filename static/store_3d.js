@@ -5,6 +5,18 @@
 
 let store3DState = null;
 
+const SHELF_EMISSIVE_BASE = 0x081a32;
+const SHELF_EMISSIVE_HOVER = 0x1b78d6;
+const SHELF_GRID_COLUMNS = 4;
+const SHELF_GRID_LEVELS = 4;
+const SHELF_GRID_DEPTH = 2;
+const SHELF_ABSOLUTE_CAPACITY = SHELF_GRID_COLUMNS * SHELF_GRID_LEVELS * SHELF_GRID_DEPTH;
+const PRODUCT_FALLBACK_COLORS = [0x5f8dd3, 0x7aa0c4, 0x9db8d5, 0x4a739c, 0x8d99ae, 0xef233c];
+
+const PRODUCT_MATERIAL_CACHE = new Map();
+const PRODUCT_TEXTURE_CACHE = new Map();
+let productTextureLoader = null;
+
 const TOUR_TEXT = {
   es: {
     shelfFallback: 'Shelf',
@@ -54,16 +66,28 @@ function initializeStoreScene(config) {
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
   scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
-  directionalLight.position.set(12, 22, 14);
+  const hemisphereLight = new THREE.HemisphereLight(0xf3f8ff, 0x7d8591, 0.44);
+  scene.add(hemisphereLight);
+
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1.05);
+  directionalLight.position.set(18, 24, 10);
   directionalLight.castShadow = true;
+  directionalLight.shadow.mapSize.width = 2048;
+  directionalLight.shadow.mapSize.height = 2048;
+  directionalLight.shadow.bias = -0.0002;
+  directionalLight.shadow.camera.near = 0.1;
+  directionalLight.shadow.camera.far = 90;
   scene.add(directionalLight);
+
+  const fillLight = new THREE.PointLight(0x9ecbff, 0.35, 180, 2);
+  fillLight.position.set(-14, 14, -10);
+  scene.add(fillLight);
 
   const floorGeometry = new THREE.PlaneGeometry(140, 140);
   const floorMaterial = new THREE.MeshStandardMaterial({
-    color: 0xced4da,
-    roughness: 0.9,
-    metalness: 0.08
+    color: 0xb7c1cb,
+    roughness: 0.84,
+    metalness: 0.15
   });
   const floor = new THREE.Mesh(floorGeometry, floorMaterial);
   floor.rotation.x = -Math.PI / 2;
@@ -144,12 +168,15 @@ function createShelfMeshes(shelves) {
     const shelfItems = store3DState.inventoryByShelf[shelfId] || [];
     const productRows = buildShelfRows(shelfItems, store3DState.productsById);
 
-    const geometry = new THREE.BoxGeometry(3.2, 2.4, 1.6);
+    const geometry = new THREE.BoxGeometry(3.7, 2.9, 1.75);
     const material = new THREE.MeshStandardMaterial({
-      color: 0x1f73db,
-      roughness: 0.45,
-      metalness: 0.12,
-      emissive: 0x000000
+      color: 0x4c79ad,
+      roughness: 0.34,
+      metalness: 0.28,
+      emissive: SHELF_EMISSIVE_BASE,
+      emissiveIntensity: 0.5,
+      transparent: true,
+      opacity: 0.18
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -157,6 +184,9 @@ function createShelfMeshes(shelves) {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.userData = { shelfId };
+
+    buildShelfDetails(mesh, index);
+    populateShelfWithProducts(mesh, productRows);
 
     store3DState.scene.add(mesh);
     store3DState.shelfMeshes.push(mesh);
@@ -171,6 +201,160 @@ function createShelfMeshes(shelves) {
     store3DState.overlayContainer.appendChild(overlayEntry.element);
     store3DState.overlayByShelfId.set(shelfId, overlayEntry);
   });
+}
+
+function buildShelfDetails(shelfMesh, shelfIndex) {
+  const frameMaterial = new THREE.MeshStandardMaterial({
+    color: 0x3f566e,
+    roughness: 0.5,
+    metalness: 0.52
+  });
+
+  const boardMaterial = new THREE.MeshStandardMaterial({
+    color: shelfIndex % 2 === 0 ? 0xd9e0e7 : 0xcfd9e2,
+    roughness: 0.62,
+    metalness: 0.2
+  });
+
+  const frameGeometry = new THREE.BoxGeometry(0.12, 2.86, 0.12);
+  const frameOffsets = [
+    [-1.72, 0, -0.72],
+    [1.72, 0, -0.72],
+    [-1.72, 0, 0.95],
+    [1.72, 0, 0.95]
+  ];
+
+  frameOffsets.forEach(([x, y, z]) => {
+    const post = new THREE.Mesh(frameGeometry, frameMaterial);
+    post.position.set(x, y, z);
+    post.castShadow = true;
+    post.receiveShadow = true;
+    shelfMesh.add(post);
+  });
+
+  const boardGeometry = new THREE.BoxGeometry(3.5, 0.1, 1.72);
+  [-1.15, -0.32, 0.52, 1.28].forEach((levelY) => {
+    const board = new THREE.Mesh(boardGeometry, boardMaterial);
+    board.position.set(0, levelY, 0);
+    board.castShadow = true;
+    board.receiveShadow = true;
+    shelfMesh.add(board);
+  });
+}
+
+function populateShelfWithProducts(shelfMesh, productRows) {
+  const shelfSurfaceY = [-1.15, -0.32, 0.52, 1.28];
+  const xSlots = [-1.18, -0.4, 0.4, 1.18];
+  const zSlots = [0.6, -0.1];
+  const productYOffset = 0.22;
+  const units = [];
+
+  productRows.forEach((row, rowIndex) => {
+    const totalUnits = Math.max(0, Math.floor(Number(row?.shelfCount) || 0));
+    for (let unitIndex = 0; unitIndex < totalUnits; unitIndex += 1) {
+      units.push({
+        productId: row?.productId,
+        imageUrl: row?.imageUrl || '',
+        colorHex: row?.colorHex,
+        fallbackIndex: rowIndex
+      });
+    }
+  });
+
+  const visibleUnits = Math.min(units.length, SHELF_ABSOLUTE_CAPACITY);
+
+  for (let index = 0; index < visibleUnits; index += 1) {
+    const slotInLevel = SHELF_GRID_COLUMNS * SHELF_GRID_DEPTH;
+    const level = Math.floor(index / slotInLevel) % SHELF_GRID_LEVELS;
+    const column = Math.floor(index / SHELF_GRID_DEPTH) % SHELF_GRID_COLUMNS;
+    const depth = index % SHELF_GRID_DEPTH;
+
+    const visual = createProductVisual(
+      units[index].productId,
+      units[index].imageUrl,
+      units[index].colorHex,
+      index + units[index].fallbackIndex
+    );
+    visual.scale.set(0.86, 0.86, 0.86);
+    visual.position.set(
+      xSlots[column],
+      shelfSurfaceY[level] + productYOffset,
+      zSlots[depth]
+    );
+
+    shelfMesh.add(visual);
+  }
+}
+
+function createProductVisual(productId, imageUrl, colorHex, index) {
+  const geometry = new THREE.BoxGeometry(0.34, 0.28, 0.28);
+  const material = getProductBoxMaterial(productId, imageUrl, colorHex, index);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+
+  const rotationOffsets = [0.12, 0.5, -0.25, 0.76, -0.4, 0.32, -0.62, 0.2];
+  mesh.rotation.y = rotationOffsets[index % rotationOffsets.length];
+
+  return mesh;
+}
+
+function getProductBoxMaterial(productId, imageUrl, colorHex, index) {
+  const fallbackColor = Number.isFinite(colorHex)
+    ? colorHex
+    : PRODUCT_FALLBACK_COLORS[index % PRODUCT_FALLBACK_COLORS.length];
+  const cacheKey = `${productId || 'unknown'}|${String(imageUrl || '')}|${fallbackColor}`;
+
+  if (PRODUCT_MATERIAL_CACHE.has(cacheKey)) {
+    return PRODUCT_MATERIAL_CACHE.get(cacheKey);
+  }
+
+  const material = new THREE.MeshStandardMaterial({
+    color: fallbackColor,
+    roughness: 0.55,
+    metalness: 0.08
+  });
+
+  PRODUCT_MATERIAL_CACHE.set(cacheKey, material);
+
+  if (imageUrl) {
+    const cachedTexture = PRODUCT_TEXTURE_CACHE.get(imageUrl);
+    if (cachedTexture) {
+      material.map = cachedTexture;
+      material.color.setHex(0xffffff);
+      material.needsUpdate = true;
+    } else {
+      const loader = getTextureLoader();
+      loader.load(
+        imageUrl,
+        (texture) => {
+          if ('colorSpace' in texture && THREE.SRGBColorSpace) {
+            texture.colorSpace = THREE.SRGBColorSpace;
+          }
+          PRODUCT_TEXTURE_CACHE.set(imageUrl, texture);
+          material.map = texture;
+          material.color.setHex(0xffffff);
+          material.needsUpdate = true;
+        },
+        undefined,
+        () => {
+          // Keep solid fallback color when image cannot be loaded.
+        }
+      );
+    }
+  }
+
+  return material;
+}
+
+function getTextureLoader() {
+  if (productTextureLoader) {
+    return productTextureLoader;
+  }
+
+  productTextureLoader = new THREE.TextureLoader();
+  productTextureLoader.setCrossOrigin('anonymous');
+  return productTextureLoader;
 }
 
 function buildShelfLayout(totalShelves) {
@@ -205,11 +389,31 @@ function buildShelfRows(shelfItems, productsById) {
     const fallbackName = productId ? productId.split(':').pop() : `Product ${index + 1}`;
 
     return {
+      productId,
       name: product?.name?.value || fallbackName,
+      imageUrl: getProductImageUrl(product),
+      colorHex: getProductColorHex(product, index),
       shelfCount: getCountValue(item?.shelfCount),
       stockCount: getCountValue(item?.stockCount)
     };
   });
+}
+
+function getProductImageUrl(product) {
+  const imageUrl = product?.image?.value;
+  return typeof imageUrl === 'string' ? imageUrl.trim() : '';
+}
+
+function getProductColorHex(product, index) {
+  const rawColor = product?.color?.value;
+  if (typeof rawColor === 'string') {
+    const normalized = rawColor.trim();
+    if (/^#([0-9A-Fa-f]{6})$/.test(normalized)) {
+      return parseInt(normalized.slice(1), 16);
+    }
+  }
+
+  return PRODUCT_FALLBACK_COLORS[index % PRODUCT_FALLBACK_COLORS.length];
 }
 
 function getCountValue(attribute) {
@@ -497,7 +701,7 @@ function setHoveredShelf(mesh) {
 
   const prev = store3DState.hoveredShelf;
   if (prev && prev.material) {
-    prev.material.emissive.setHex(0x000000);
+    prev.material.emissive.setHex(SHELF_EMISSIVE_BASE);
     const prevOverlay = store3DState.overlayByShelfId.get(prev.userData?.shelfId);
     if (prevOverlay?.element && store3DState.hoveredOverlayShelfId !== prev.userData?.shelfId) {
       prevOverlay.element.classList.remove('is-hovered');
@@ -507,7 +711,7 @@ function setHoveredShelf(mesh) {
   store3DState.hoveredShelf = mesh;
 
   if (mesh && mesh.material) {
-    mesh.material.emissive.setHex(0x0f4f9f);
+    mesh.material.emissive.setHex(SHELF_EMISSIVE_HOVER);
     const activeOverlay = store3DState.overlayByShelfId.get(mesh.userData?.shelfId);
     if (activeOverlay?.element) {
       activeOverlay.element.classList.add('is-hovered');
@@ -760,7 +964,39 @@ function findShelfMeshById(shelfId) {
 
 function getSceneBackgroundColor() {
   const isDark = document.body.classList.contains('dark-theme');
-  return isDark ? 0x1c1f24 : 0xf2f4f8;
+  return isDark ? 0x111820 : 0xe8eef5;
+}
+
+function disposeMaterial(material) {
+  if (!material) {
+    return;
+  }
+
+  if (Array.isArray(material)) {
+    material.forEach((entry) => {
+      if (entry?.dispose) {
+        entry.dispose();
+      }
+    });
+    return;
+  }
+
+  if (material.dispose) {
+    material.dispose();
+  }
+}
+
+function disposeObject3D(root) {
+  if (!root) {
+    return;
+  }
+
+  root.traverse((node) => {
+    if (node.geometry?.dispose) {
+      node.geometry.dispose();
+    }
+    disposeMaterial(node.material);
+  });
 }
 
 function getTourText(key) {
@@ -809,12 +1045,7 @@ function cleanupStoreScene() {
   }
 
   store3DState.shelfMeshes.forEach((mesh) => {
-    if (mesh.geometry) {
-      mesh.geometry.dispose();
-    }
-    if (mesh.material?.dispose) {
-      mesh.material.dispose();
-    }
+    disposeObject3D(mesh);
     store3DState.scene.remove(mesh);
   });
 

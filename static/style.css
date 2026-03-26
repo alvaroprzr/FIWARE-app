@@ -422,6 +422,150 @@ label {
 }
 
 /* ============================================================================
+   Home Mermaid Diagram
+   ============================================================================ */
+
+.home-diagram-header {
+    margin-bottom: var(--spacing-md);
+}
+
+.diagram-card {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 96%, #dce6f5 4%), var(--surface));
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    margin: 0 auto;
+    max-width: 1160px;
+    overflow: hidden;
+}
+
+.diagram-details {
+    border-radius: inherit;
+}
+
+.diagram-details > *:not(summary) {
+    display: block;
+}
+
+.diagram-details[open] {
+    padding-bottom: 0;
+}
+
+.diagram-toggle {
+    align-items: center;
+    background: #f8f9fa;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, #9fb8de 30%);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+    font-weight: 600;
+    padding: 0.8rem 1rem;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.diagram-toggle:hover {
+    background: #eef2f6;
+}
+
+.diagram-toggle-left {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.55rem;
+}
+
+.diagram-toggle-main-icon {
+    color: var(--primary);
+    font-size: 0.95rem;
+}
+
+.diagram-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.diagram-toggle-caret {
+    color: var(--primary);
+    transform-origin: center;
+    transition: transform 0.2s ease;
+}
+
+.diagram-toggle-label {
+    letter-spacing: 0.01em;
+}
+
+.diagram-details:not([open]) .diagram-toggle-caret {
+    transform: rotate(-90deg);
+}
+
+.diagram-panel {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.32s ease-in-out, opacity 0.28s ease-in-out;
+}
+
+.diagram-details[open] .diagram-panel {
+    max-height: 1700px;
+    opacity: 1;
+}
+
+.diagram-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 0.75rem 0.9rem 0.95rem;
+    overflow-x: auto;
+}
+
+.home-mermaid {
+    margin: 0 auto;
+    min-width: 700px;
+    width: max-content;
+}
+
+.home-mermaid svg {
+    display: block;
+    height: auto;
+    margin: 0 auto;
+    max-width: 100%;
+}
+
+.home-mermaid .node rect,
+.home-mermaid .node polygon,
+.home-mermaid .node path {
+    stroke-width: 1.2px;
+}
+
+body.dark-theme .diagram-card {
+    border-color: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-theme .diagram-toggle {
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom-color: color-mix(in srgb, var(--border) 62%, #356da6 38%);
+}
+
+body.dark-theme .diagram-toggle:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+/* Dark mode Mermaid fallback for robust legibility */
+body.dark-theme .home-mermaid svg rect,
+body.dark-theme .home-mermaid svg polygon,
+body.dark-theme .home-mermaid svg path {
+    stroke: #4a5462 !important;
+}
+
+body.dark-theme .home-mermaid svg text,
+body.dark-theme .home-mermaid svg tspan,
+body.dark-theme .home-mermaid svg .label {
+    fill: #e8eaed !important;
+}
+
+/* ============================================================================
    Footer
    ============================================================================ */
 
@@ -1143,10 +1287,14 @@ label {
 .visualization-container {
     width: 100%;
     min-height: 600px;
-    background: var(--surface);
+    background:
+        radial-gradient(circle at 12% 15%, rgba(31, 115, 219, 0.16), transparent 34%),
+        radial-gradient(circle at 84% 78%, rgba(234, 67, 53, 0.12), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.03)),
+        var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14);
     overflow: hidden;
 }
 
@@ -1168,16 +1316,17 @@ label {
     position: absolute;
     min-width: 210px;
     max-width: 290px;
-    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(8px);
     pointer-events: auto;
     cursor: pointer;
     user-select: none;
     border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
-    padding: 0.55rem 0.7rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+    padding: 0.6rem 0.75rem;
     transform: translate(-50%, -115%);
-    transition: opacity 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+    transition: opacity 0.18s ease, transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
     opacity: 0.94;
 }
 
@@ -1185,6 +1334,7 @@ label {
     border-color: var(--primary);
     opacity: 1;
     transform: translate(-50%, -120%);
+    box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
 }
 
 .shelf-overlay-title {
@@ -1192,6 +1342,7 @@ label {
     font-size: 0.9rem;
     font-weight: 700;
     color: var(--text);
+    letter-spacing: 0.01em;
 }
 
 .shelf-overlay-list {
@@ -1255,6 +1406,19 @@ label {
 }
 
 @media (max-width: 768px) {
+    .diagram-toggle {
+        padding: 0.7rem 0.8rem;
+        font-size: 0.95rem;
+    }
+
+    .diagram-container {
+        padding: 0.6rem 0.7rem 0.8rem;
+    }
+
+    .home-mermaid {
+        min-width: 620px;
+    }
+
     .shelf-group-header {
         flex-direction: column;
         align-items: stretch;

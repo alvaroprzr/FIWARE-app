@@ -75,9 +75,21 @@
     
     <!-- Data Model Diagram -->
     <div class="section">
-        <h2 data-i18n="home.data_model">Modelo de Datos</h2>
-        <div class="diagram-container">
-            <div class="mermaid">
+        <div class="home-diagram-header">
+            <h2 data-i18n="home.data_model">Modelo de Datos</h2>
+        </div>
+        <div class="diagram-card">
+            <details class="diagram-details" open>
+                <summary class="diagram-toggle">
+                    <span class="diagram-toggle-left">
+                        <i class="fas fa-project-diagram diagram-toggle-main-icon" aria-hidden="true"></i>
+                        <span class="diagram-toggle-label" data-i18n="home.diagram_title">Diagrama de Entidad-Relacion</span>
+                    </span>
+                    <i class="fas fa-chevron-down diagram-toggle-caret" aria-hidden="true"></i>
+                </summary>
+                <div class="diagram-panel">
+                    <div class="diagram-container">
+                        <div class="mermaid home-mermaid">
 erDiagram
     EMPLOYEE ||--o{ STORE : "works-in"
     STORE ||--o{ SHELF : "contains"
@@ -139,7 +151,10 @@ erDiagram
         integer shelfCount
         integer stockCount
     }
-            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
         </div>
     </div>
     
@@ -246,14 +261,6 @@ erDiagram
     font-size: 2rem;
     font-weight: bold;
     color: var(--primary);
-}
-
-.diagram-container {
-    background: var(--surface);
-    border-radius: 12px;
-    padding: 2rem;
-    margin: 1.5rem 0;
-    overflow-x: auto;
 }
 
 .quick-links {

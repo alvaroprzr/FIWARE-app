@@ -111,6 +111,7 @@
                                         data-shelf-id="{{ shelf.id }}"
                                         data-shelf-name="{{ shelf.name.value if shelf.name else '' }}"
                                         data-shelf-capacity="{{ shelf.maxCapacity.value if shelf.maxCapacity else 0 }}"
+                                        data-shelf-current="{{ shelf.calculated_item_count }}"
                                         data-i18n="store.edit_shelf">
                                         Modificar
                                     </button>
@@ -120,6 +121,8 @@
                                         data-open-modal="add-product-modal"
                                         data-shelf-id="{{ shelf.id }}"
                                         data-shelf-name="{{ shelf.name.value if shelf.name else '' }}"
+                                        data-shelf-capacity="{{ shelf.maxCapacity.value if shelf.maxCapacity else 0 }}"
+                                        data-shelf-current="{{ shelf.calculated_item_count }}"
                                         data-i18n="store.add_product">
                                         Añadir producto
                                     </button>
@@ -233,7 +236,7 @@
             <span class="field-error" data-error-for="add-shelf-name"></span>
 
             <label for="add-shelf-capacity" data-i18n="store.shelf_capacity">Capacidad máxima</label>
-            <input id="add-shelf-capacity" name="maxCapacity" type="number" min="1" required>
+            <input id="add-shelf-capacity" name="maxCapacity" type="number" min="1" max="32" required>
             <span class="field-error" data-error-for="add-shelf-capacity"></span>
 
             <div class="modal-actions">
@@ -258,7 +261,7 @@
             <span class="field-error" data-error-for="edit-shelf-name"></span>
 
             <label for="edit-shelf-capacity" data-i18n="store.shelf_capacity">Capacidad máxima</label>
-            <input id="edit-shelf-capacity" name="maxCapacity" type="number" min="1" required>
+            <input id="edit-shelf-capacity" name="maxCapacity" type="number" min="1" max="32" required>
             <span class="field-error" data-error-for="edit-shelf-capacity"></span>
 
             <div class="modal-actions">
@@ -284,7 +287,7 @@
             </select>
 
             <label for="add-product-shelf-count" data-i18n="store.form.product_count">Numero de productos</label>
-            <input id="add-product-shelf-count" name="shelfCount" type="number" min="1" value="1" required>
+            <input id="add-product-shelf-count" name="shelfCount" type="number" min="1" max="32" value="1" required>
 
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" data-close-modal="add-product-modal" data-i18n="store.cancel">Cancelar</button>

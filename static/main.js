@@ -45,6 +45,8 @@ const i18n = {
         'notifications.product_added_message': 'InventoryItem creado correctamente',
         'notifications.product_add_error_message': 'No se pudo anadir el producto: {error}',
         'notifications.capacity_exceeded_message': 'No caben mas unidades en la estanteria. Capacidad: {capacity}, actuales: {current}, intentadas: {requested}, maximo que puedes anadir ahora: {maximumAllowed}',
+        'notifications.shelf_absolute_limit_message': 'La capacidad maxima de una shelf no puede superar {limit} (4 columnas x 4 niveles x 2 profundidades).',
+        'notifications.shelf_remaining_capacity_message': 'La shelf seleccionada solo admite {maximumAllowed} unidades adicionales en este momento.',
         'notifications.validation_positive_counts': 'Las cantidades deben ser mayores que 0',
         'notifications.validation_shelf_gt_stock': 'shelfCount no puede ser mayor que stockCount',
         'notifications.inventory_created_title': 'InventoryItem creado',
@@ -68,6 +70,8 @@ const i18n = {
         'home.inventory': 'Items de Inventario',
         'home.total': 'Total de Entidades',
         'home.data_model': 'Modelo de Datos',
+        'home.diagram_title': 'Diagrama de Entidad-Relacion',
+        'home.diagram_toggle': 'Mostrar u ocultar diagrama',
         'home.quick_links': 'Enlaces Rápidos',
         'home.view_stores': 'Ver Almacenes',
         'home.global_map': 'Mapa Global',
@@ -182,6 +186,8 @@ const i18n = {
         'notifications.product_added_message': 'Inventory item created successfully',
         'notifications.product_add_error_message': 'Could not add product: {error}',
         'notifications.capacity_exceeded_message': 'No more units fit in this shelf. Capacity: {capacity}, current: {current}, requested: {requested}, maximum you can add now: {maximumAllowed}',
+        'notifications.shelf_absolute_limit_message': 'Shelf max capacity cannot exceed {limit} (4 columns x 4 levels x 2 depth slots).',
+        'notifications.shelf_remaining_capacity_message': 'The selected shelf only allows {maximumAllowed} additional units right now.',
         'notifications.validation_positive_counts': 'Counts must be greater than 0',
         'notifications.validation_shelf_gt_stock': 'shelfCount cannot be greater than stockCount',
         'notifications.inventory_created_title': 'Inventory item created',
@@ -205,6 +211,8 @@ const i18n = {
         'home.inventory': 'Inventory Items',
         'home.total': 'Total Entities',
         'home.data_model': 'Data Model',
+        'home.diagram_title': 'Entity-Relationship Diagram',
+        'home.diagram_toggle': 'Show or hide diagram',
         'home.quick_links': 'Quick Links',
         'home.view_stores': 'View Stores',
         'home.global_map': 'Global Map',
@@ -1071,10 +1079,53 @@ function initializeRealtimeNotifications() {
 // Mermaid initialization
 // ============================================================================
 
-if (typeof mermaid !== 'undefined') {
-    mermaid.initialize({ startOnLoad: true, theme: 'default' });
-    mermaid.contentLoaded();
+function getMermaidTheme() {
+    return document.body.classList.contains('dark-theme') ? 'dark' : 'light';
 }
+
+function getMermaidConfig() {
+    return {
+        startOnLoad: false,
+        theme: getMermaidTheme() === 'dark' ? 'dark' : 'default'
+    };
+}
+
+async function renderMermaidDiagrams() {
+    if (typeof mermaid === 'undefined') {
+        return;
+    }
+
+    const diagrams = Array.from(document.querySelectorAll('.mermaid'));
+    if (!diagrams.length) {
+        return;
+    }
+
+    mermaid.initialize(getMermaidConfig());
+
+    for (let index = 0; index < diagrams.length; index += 1) {
+        const diagram = diagrams[index];
+        if (!diagram.dataset.mermaidSource) {
+            diagram.dataset.mermaidSource = diagram.textContent.trim();
+        }
+
+        const source = diagram.dataset.mermaidSource;
+        const renderId = `mermaid-${index}-${Date.now()}`;
+
+        try {
+            const renderResult = await mermaid.render(renderId, source);
+            diagram.innerHTML = renderResult.svg;
+            if (typeof renderResult.bindFunctions === 'function') {
+                renderResult.bindFunctions(diagram);
+            }
+        } catch (error) {
+            console.error('Mermaid render error:', error);
+            diagram.textContent = source;
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', renderMermaidDiagrams);
+document.addEventListener('app:theme-changed', renderMermaidDiagrams);
 
 // ============================================================================
 // Inventory Item "Buy" Button Functionality
@@ -1222,6 +1273,7 @@ function initializeStoreDetailForms() {
     }
 
     const storeId = root.getAttribute('data-store-id');
+    const shelfAbsoluteCapacity = 32;
 
     document.querySelectorAll('[data-open-modal]').forEach((button) => {
         button.addEventListener('click', async () => {
@@ -1247,9 +1299,23 @@ function initializeStoreDetailForms() {
         addShelfForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const formData = new FormData(addShelfForm);
+            const maxCapacity = parseInt(formData.get('maxCapacity'), 10);
+            if (Number.isNaN(maxCapacity) || maxCapacity <= 0) {
+                showNotification(t('notifications.error_title'), t('notifications.validation_positive_counts'), 'error');
+                return;
+            }
+            if (maxCapacity > shelfAbsoluteCapacity) {
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.shelf_absolute_limit_message'), { limit: shelfAbsoluteCapacity }),
+                    'error'
+                );
+                return;
+            }
+
             const payload = {
                 name: formData.get('name'),
-                maxCapacity: parseInt(formData.get('maxCapacity'), 10)
+                maxCapacity
             };
 
             try {
@@ -1283,9 +1349,23 @@ function initializeStoreDetailForms() {
             e.preventDefault();
             const formData = new FormData(editShelfForm);
             const shelfId = formData.get('shelfId');
+            const maxCapacity = parseInt(formData.get('maxCapacity'), 10);
+            if (Number.isNaN(maxCapacity) || maxCapacity <= 0) {
+                showNotification(t('notifications.error_title'), t('notifications.validation_positive_counts'), 'error');
+                return;
+            }
+            if (maxCapacity > shelfAbsoluteCapacity) {
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.shelf_absolute_limit_message'), { limit: shelfAbsoluteCapacity }),
+                    'error'
+                );
+                return;
+            }
+
             const payload = {
                 name: formData.get('name'),
-                maxCapacity: parseInt(formData.get('maxCapacity'), 10)
+                maxCapacity
             };
 
             try {
@@ -1319,9 +1399,26 @@ function initializeStoreDetailForms() {
             e.preventDefault();
             const formData = new FormData(addProductForm);
             const shelfId = formData.get('shelfId');
+            const maxAllowed = parseInt(addProductForm.getAttribute('data-max-allowed') || '', 10);
+            const shelfCount = parseInt(formData.get('shelfCount'), 10);
+
+            if (Number.isNaN(shelfCount) || shelfCount <= 0) {
+                showNotification(t('notifications.error_title'), t('notifications.validation_positive_counts'), 'error');
+                return;
+            }
+
+            if (!Number.isNaN(maxAllowed) && maxAllowed >= 0 && shelfCount > maxAllowed) {
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.shelf_remaining_capacity_message'), { maximumAllowed: maxAllowed }),
+                    'error'
+                );
+                return;
+            }
+
             const payload = {
                 productId: formData.get('productId'),
-                shelfCount: parseInt(formData.get('shelfCount'), 10)
+                shelfCount
             };
 
             try {
@@ -1506,20 +1603,50 @@ function fillEditShelfForm(button) {
 
     shelfIdField.value = button.getAttribute('data-shelf-id') || '';
     shelfNameField.value = button.getAttribute('data-shelf-name') || '';
+    const currentUnits = parseInt(button.getAttribute('data-shelf-current') || '0', 10);
     shelfCapacityField.value = button.getAttribute('data-shelf-capacity') || 1;
+    shelfCapacityField.min = String(Number.isNaN(currentUnits) ? 1 : Math.max(1, currentUnits));
+    shelfCapacityField.max = '32';
 }
 
 async function prepareAddProductForm(button) {
     const shelfId = button.getAttribute('data-shelf-id') || '';
+    const shelfCapacity = parseInt(button.getAttribute('data-shelf-capacity') || '0', 10);
+    const shelfCurrent = parseInt(button.getAttribute('data-shelf-current') || '0', 10);
     const select = document.getElementById('add-product-select');
     const shelfIdField = document.getElementById('add-product-shelf-id');
+    const shelfCountField = document.getElementById('add-product-shelf-count');
+    const addProductForm = document.getElementById('add-product-form');
+    const submitButton = addProductForm?.querySelector('button[type="submit"]');
 
-    if (!select || !shelfIdField) {
+    if (!select || !shelfIdField || !shelfCountField || !addProductForm) {
         return;
     }
 
     shelfIdField.value = shelfId;
     select.innerHTML = `<option value="">${t('store.select_product')}</option>`;
+
+    const hasCapacityContext = !Number.isNaN(shelfCapacity) && shelfCapacity > 0 && !Number.isNaN(shelfCurrent) && shelfCurrent >= 0;
+    let maxAllowed = null;
+
+    if (hasCapacityContext) {
+        const effectiveCapacity = Math.min(shelfCapacity, 32);
+        maxAllowed = Math.max(0, effectiveCapacity - shelfCurrent);
+        shelfCountField.max = String(Math.max(1, maxAllowed));
+        shelfCountField.value = String(Math.max(1, Math.min(parseInt(shelfCountField.value || '1', 10) || 1, Math.max(1, maxAllowed))));
+        addProductForm.setAttribute('data-max-allowed', String(maxAllowed));
+        if (submitButton) {
+            submitButton.disabled = maxAllowed <= 0;
+        }
+    } else {
+        // Keep flow usable if template metadata is unavailable; backend still enforces capacity.
+        addProductForm.removeAttribute('data-max-allowed');
+        shelfCountField.max = '32';
+        shelfCountField.value = String(Math.max(1, parseInt(shelfCountField.value || '1', 10) || 1));
+        if (submitButton) {
+            submitButton.disabled = false;
+        }
+    }
 
     try {
         const response = await fetch(`/api/shelves/${encodeURIComponent(shelfId)}/available-products`);
@@ -1534,7 +1661,18 @@ async function prepareAddProductForm(button) {
             option.value = '';
             option.textContent = t('store.no_products_in_shelf');
             select.appendChild(option);
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
             return;
+        }
+
+        if (maxAllowed !== null && maxAllowed <= 0) {
+            showNotification(
+                t('notifications.error_title'),
+                interpolate(t('notifications.shelf_remaining_capacity_message'), { maximumAllowed: 0 }),
+                'error'
+            );
         }
 
         availableProducts.forEach((product) => {
