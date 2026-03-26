@@ -161,11 +161,13 @@ function createShelfMeshes(shelves) {
 
     const geometry = new THREE.BoxGeometry(3.7, 2.9, 1.75);
     const material = new THREE.MeshStandardMaterial({
-      color: 0x2a5f9e,
+      color: 0x4c79ad,
       roughness: 0.34,
       metalness: 0.28,
       emissive: SHELF_EMISSIVE_BASE,
-      emissiveIntensity: 0.42
+      emissiveIntensity: 0.5,
+      transparent: true,
+      opacity: 0.18
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -211,12 +213,12 @@ function buildShelfDetails(shelfMesh, shelfIndex) {
     metalness: 0.16
   });
 
-  const frameGeometry = new THREE.BoxGeometry(0.1, 2.86, 0.1);
+  const frameGeometry = new THREE.BoxGeometry(0.12, 2.86, 0.12);
   const frameOffsets = [
-    [-1.72, 0, -0.8],
-    [1.72, 0, -0.8],
-    [-1.72, 0, 0.8],
-    [1.72, 0, 0.8]
+    [-1.72, 0, -0.72],
+    [1.72, 0, -0.72],
+    [-1.72, 0, 0.95],
+    [1.72, 0, 0.95]
   ];
 
   frameOffsets.forEach(([x, y, z]) => {
@@ -227,7 +229,7 @@ function buildShelfDetails(shelfMesh, shelfIndex) {
     shelfMesh.add(post);
   });
 
-  const boardGeometry = new THREE.BoxGeometry(3.5, 0.1, 1.64);
+  const boardGeometry = new THREE.BoxGeometry(3.5, 0.1, 1.72);
   [-1.15, -0.32, 0.52, 1.28].forEach((levelY) => {
     const board = new THREE.Mesh(boardGeometry, boardMaterial);
     board.position.set(0, levelY, 0);
@@ -236,8 +238,8 @@ function buildShelfDetails(shelfMesh, shelfIndex) {
     shelfMesh.add(board);
   });
 
-  const backPanel = new THREE.Mesh(new THREE.BoxGeometry(3.5, 2.75, 0.06), backPanelMaterial);
-  backPanel.position.set(0, 0.02, -0.83);
+  const backPanel = new THREE.Mesh(new THREE.BoxGeometry(3.5, 2.75, 0.08), backPanelMaterial);
+  backPanel.position.set(0, 0.02, -0.75);
   backPanel.receiveShadow = true;
   shelfMesh.add(backPanel);
 }
@@ -259,7 +261,7 @@ function populateShelfWithProducts(shelfMesh, productRows) {
     const visual = createProductVisual(row.productId, index);
     const lane = index % 4;
     const shelfLevel = Math.floor(index / 4) % 3;
-    const depthOffset = index % 2 === 0 ? 0.24 : -0.12;
+    const depthOffset = index % 2 === 0 ? 0.62 : 0.4;
 
     visual.position.set(
       -1.2 + lane * 0.78,
