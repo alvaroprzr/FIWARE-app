@@ -11,6 +11,11 @@ const SHELF_GRID_COLUMNS = 4;
 const SHELF_GRID_LEVELS = 4;
 const SHELF_GRID_DEPTH = 2;
 const SHELF_ABSOLUTE_CAPACITY = SHELF_GRID_COLUMNS * SHELF_GRID_LEVELS * SHELF_GRID_DEPTH;
+const PRODUCT_FALLBACK_COLORS = [0x5f8dd3, 0x7aa0c4, 0x9db8d5, 0x4a739c, 0x8d99ae, 0xef233c];
+
+const PRODUCT_MATERIAL_CACHE = new Map();
+const PRODUCT_TEXTURE_CACHE = new Map();
+let productTextureLoader = null;
 
 const TOUR_TEXT = {
   es: {
@@ -249,6 +254,8 @@ function populateShelfWithProducts(shelfMesh, productRows) {
     for (let unitIndex = 0; unitIndex < totalUnits; unitIndex += 1) {
       units.push({
         productId: row?.productId,
+        imageUrl: row?.imageUrl || '',
+        colorHex: row?.colorHex,
         fallbackIndex: rowIndex
       });
     }
@@ -262,7 +269,12 @@ function populateShelfWithProducts(shelfMesh, productRows) {
     const column = Math.floor(index / SHELF_GRID_DEPTH) % SHELF_GRID_COLUMNS;
     const depth = index % SHELF_GRID_DEPTH;
 
-    const visual = createProductVisual(units[index].productId, index + units[index].fallbackIndex);
+    const visual = createProductVisual(
+      units[index].productId,
+      units[index].imageUrl,
+      units[index].colorHex,
+      index + units[index].fallbackIndex
+    );
     visual.scale.set(0.86, 0.86, 0.86);
     visual.position.set(
       xSlots[column],
@@ -274,97 +286,94 @@ function populateShelfWithProducts(shelfMesh, productRows) {
   }
 }
 
-function createProductVisual(productId, index) {
-  const style = getProductVisualStyle(productId, index);
-  const group = new THREE.Group();
-
-  const baseMaterial = new THREE.MeshStandardMaterial({
-    color: style.color,
-    roughness: 0.34,
-    metalness: 0.3
-  });
-
-  const accentMaterial = new THREE.MeshStandardMaterial({
-    color: style.accent,
-    roughness: 0.2,
-    metalness: 0.62,
-    emissive: 0x111111,
-    emissiveIntensity: 0.3
-  });
-
-  const baseMesh = new THREE.Mesh(createProductBaseGeometry(style.shape), baseMaterial);
-  baseMesh.castShadow = true;
-  baseMesh.receiveShadow = true;
-  group.add(baseMesh);
-
-  const detailBand = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.08, 0.12), accentMaterial);
-  detailBand.position.set(0, -0.05, 0.21);
-  detailBand.castShadow = true;
-  group.add(detailBand);
-
-  const topDetail = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 12), accentMaterial);
-  topDetail.position.set(0, 0.19, 0);
-  topDetail.castShadow = true;
-  group.add(topDetail);
+function createProductVisual(productId, imageUrl, colorHex, index) {
+  const geometry = new THREE.BoxGeometry(0.34, 0.28, 0.28);
+  const material = getProductBoxMaterial(productId, imageUrl, colorHex, index);
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
 
   const rotationOffsets = [0.12, 0.5, -0.25, 0.76, -0.4, 0.32, -0.62, 0.2];
-  group.rotation.y = rotationOffsets[index % rotationOffsets.length];
+  mesh.rotation.y = rotationOffsets[index % rotationOffsets.length];
 
-  return group;
+  return mesh;
 }
 
-function createProductBaseGeometry(shape) {
-  switch (shape) {
-    case 'cylinder':
-      return new THREE.CylinderGeometry(0.16, 0.16, 0.34, 18);
-    case 'cone':
-      return new THREE.ConeGeometry(0.17, 0.34, 18);
-    case 'sphere':
-      return new THREE.SphereGeometry(0.18, 18, 18);
-    case 'torus':
-      return new THREE.TorusGeometry(0.15, 0.06, 12, 20);
-    case 'dodecahedron':
-      return new THREE.DodecahedronGeometry(0.19, 0);
-    case 'box':
-    default:
-      return new THREE.BoxGeometry(0.34, 0.28, 0.28);
+function getProductBoxMaterial(productId, imageUrl, colorHex, index) {
+  const fallbackColor = Number.isFinite(colorHex)
+    ? colorHex
+    : PRODUCT_FALLBACK_COLORS[index % PRODUCT_FALLBACK_COLORS.length];
+  const cacheKey = `${productId || 'unknown'}|${String(imageUrl || '')}|${fallbackColor}`;
+
+  if (PRODUCT_MATERIAL_CACHE.has(cacheKey)) {
+    return PRODUCT_MATERIAL_CACHE.get(cacheKey);
   }
+
+  const material = new THREE.MeshStandardMaterial({
+    color: fallbackColor,
+    roughness: 0.55,
+    metalness: 0.08
+  });
+
+  PRODUCT_MATERIAL_CACHE.set(cacheKey, material);
+
+  if (imageUrl) {
+    getProductTexture(imageUrl)
+      .then((texture) => {
+        if (!texture) {
+          return;
+        }
+
+        material.map = texture;
+        material.needsUpdate = true;
+      })
+      .catch(() => {
+        // Keep color fallback if external texture fails.
+      });
+  }
+
+  return material;
 }
 
-function getProductVisualStyle(productId, index) {
-  const suffix = (productId || '').split(':').pop();
-
-  switch (suffix) {
-    case 'laptop-asus':
-      return { shape: 'box', color: 0x3f88c5, accent: 0xf8f7ff };
-    case 'monitor-lg':
-      return { shape: 'cylinder', color: 0x1f2933, accent: 0x8da2b8 };
-    case 'mouse-logitech':
-      return { shape: 'sphere', color: 0xc7d3dd, accent: 0x335c67 };
-    case 'keyboard-mechanical':
-      return { shape: 'box', color: 0x2f7dba, accent: 0xff6b6b };
-    case 'headphones-sony':
-      return { shape: 'torus', color: 0x2d3142, accent: 0xf4d35e };
-    case 'webcam-logitech':
-      return { shape: 'sphere', color: 0x4f5d75, accent: 0xffffff };
-    case 'usb-dock':
-      return { shape: 'box', color: 0x8d99ae, accent: 0x2b2d42 };
-    case 'ssd-samsung':
-      return { shape: 'dodecahedron', color: 0xef233c, accent: 0xd7e3fc };
-    case 'ram-corsair':
-      return { shape: 'cone', color: 0x2ec4b6, accent: 0xfdfffc };
-    case 'power-supply':
-      return { shape: 'cylinder', color: 0xf4a261, accent: 0x1d3557 };
-    default: {
-      const fallback = [
-        { shape: 'box', color: 0x5f8dd3, accent: 0xffffff },
-        { shape: 'sphere', color: 0x7aa0c4, accent: 0x1f2933 },
-        { shape: 'cone', color: 0x9db8d5, accent: 0xf6f8fa },
-        { shape: 'cylinder', color: 0x4a739c, accent: 0xf4e8c1 }
-      ];
-      return fallback[index % fallback.length];
-    }
+function getProductTexture(imageUrl) {
+  if (!imageUrl) {
+    return Promise.resolve(null);
   }
+
+  const cached = PRODUCT_TEXTURE_CACHE.get(imageUrl);
+  if (cached) {
+    return cached;
+  }
+
+  const loader = getTextureLoader();
+  const texturePromise = new Promise((resolve, reject) => {
+    loader.load(
+      imageUrl,
+      (texture) => {
+        if ('colorSpace' in texture && THREE.SRGBColorSpace) {
+          texture.colorSpace = THREE.SRGBColorSpace;
+        }
+        resolve(texture);
+      },
+      undefined,
+      (error) => {
+        reject(error);
+      }
+    );
+  });
+
+  PRODUCT_TEXTURE_CACHE.set(imageUrl, texturePromise);
+  return texturePromise;
+}
+
+function getTextureLoader() {
+  if (productTextureLoader) {
+    return productTextureLoader;
+  }
+
+  productTextureLoader = new THREE.TextureLoader();
+  productTextureLoader.setCrossOrigin('anonymous');
+  return productTextureLoader;
 }
 
 function buildShelfLayout(totalShelves) {
@@ -401,10 +410,29 @@ function buildShelfRows(shelfItems, productsById) {
     return {
       productId,
       name: product?.name?.value || fallbackName,
+      imageUrl: getProductImageUrl(product),
+      colorHex: getProductColorHex(product, index),
       shelfCount: getCountValue(item?.shelfCount),
       stockCount: getCountValue(item?.stockCount)
     };
   });
+}
+
+function getProductImageUrl(product) {
+  const imageUrl = product?.image?.value;
+  return typeof imageUrl === 'string' ? imageUrl.trim() : '';
+}
+
+function getProductColorHex(product, index) {
+  const rawColor = product?.color?.value;
+  if (typeof rawColor === 'string') {
+    const normalized = rawColor.trim();
+    if (/^#([0-9A-Fa-f]{6})$/.test(normalized)) {
+      return parseInt(normalized.slice(1), 16);
+    }
+  }
+
+  return PRODUCT_FALLBACK_COLORS[index % PRODUCT_FALLBACK_COLORS.length];
 }
 
 function getCountValue(attribute) {
