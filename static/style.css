@@ -422,6 +422,74 @@ label {
 }
 
 /* ============================================================================
+   Home Mermaid Diagram
+   ============================================================================ */
+
+.home-diagram-header {
+    margin-bottom: var(--spacing-md);
+}
+
+.diagram-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.10);
+    margin: 0 auto;
+    max-width: 1160px;
+}
+
+.diagram-details {
+    border-radius: inherit;
+}
+
+.diagram-details[open] {
+    padding-bottom: var(--spacing-sm);
+}
+
+.diagram-toggle {
+    cursor: pointer;
+    list-style: none;
+    color: var(--text);
+    font-weight: 600;
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border);
+    user-select: none;
+}
+
+.diagram-toggle::-webkit-details-marker {
+    display: none;
+}
+
+.diagram-toggle::before {
+    content: '▾';
+    display: inline-block;
+    margin-right: 0.45rem;
+    color: var(--primary);
+    transform-origin: center;
+    transition: transform 0.18s ease;
+}
+
+.diagram-details:not([open]) .diagram-toggle::before {
+    transform: rotate(-90deg);
+}
+
+.diagram-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: var(--spacing-lg);
+    overflow-x: auto;
+}
+
+.home-mermaid {
+    min-width: 760px;
+}
+
+body.dark-theme .diagram-card {
+    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.34);
+}
+
+/* ============================================================================
    Footer
    ============================================================================ */
 
@@ -1143,10 +1211,14 @@ label {
 .visualization-container {
     width: 100%;
     min-height: 600px;
-    background: var(--surface);
+    background:
+        radial-gradient(circle at 12% 15%, rgba(31, 115, 219, 0.16), transparent 34%),
+        radial-gradient(circle at 84% 78%, rgba(234, 67, 53, 0.12), transparent 38%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(0, 0, 0, 0.03)),
+        var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14);
     overflow: hidden;
 }
 
@@ -1168,16 +1240,17 @@ label {
     position: absolute;
     min-width: 210px;
     max-width: 290px;
-    background: var(--surface);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(8px);
     pointer-events: auto;
     cursor: pointer;
     user-select: none;
     border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
-    padding: 0.55rem 0.7rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+    padding: 0.6rem 0.75rem;
     transform: translate(-50%, -115%);
-    transition: opacity 0.18s ease, transform 0.18s ease, border-color 0.18s ease;
+    transition: opacity 0.18s ease, transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
     opacity: 0.94;
 }
 
@@ -1185,6 +1258,7 @@ label {
     border-color: var(--primary);
     opacity: 1;
     transform: translate(-50%, -120%);
+    box-shadow: 0 14px 26px rgba(0, 0, 0, 0.24);
 }
 
 .shelf-overlay-title {
@@ -1192,6 +1266,7 @@ label {
     font-size: 0.9rem;
     font-weight: 700;
     color: var(--text);
+    letter-spacing: 0.01em;
 }
 
 .shelf-overlay-list {
@@ -1255,6 +1330,19 @@ label {
 }
 
 @media (max-width: 768px) {
+    .diagram-toggle {
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.95rem;
+    }
+
+    .diagram-container {
+        padding: var(--spacing-md);
+    }
+
+    .home-mermaid {
+        min-width: 640px;
+    }
+
     .shelf-group-header {
         flex-direction: column;
         align-items: stretch;

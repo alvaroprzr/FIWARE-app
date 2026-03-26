@@ -68,6 +68,7 @@ const i18n = {
         'home.inventory': 'Items de Inventario',
         'home.total': 'Total de Entidades',
         'home.data_model': 'Modelo de Datos',
+        'home.diagram_toggle': 'Mostrar u ocultar diagrama',
         'home.quick_links': 'Enlaces Rápidos',
         'home.view_stores': 'Ver Almacenes',
         'home.global_map': 'Mapa Global',
@@ -205,6 +206,7 @@ const i18n = {
         'home.inventory': 'Inventory Items',
         'home.total': 'Total Entities',
         'home.data_model': 'Data Model',
+        'home.diagram_toggle': 'Show or hide diagram',
         'home.quick_links': 'Quick Links',
         'home.view_stores': 'View Stores',
         'home.global_map': 'Global Map',
@@ -1071,10 +1073,38 @@ function initializeRealtimeNotifications() {
 // Mermaid initialization
 // ============================================================================
 
-if (typeof mermaid !== 'undefined') {
-    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+function getMermaidTheme() {
+    return document.body.classList.contains('dark-theme') ? 'dark' : 'default';
+}
+
+function renderMermaidDiagrams() {
+    if (typeof mermaid === 'undefined') {
+        return;
+    }
+
+    const diagrams = Array.from(document.querySelectorAll('.mermaid'));
+    if (!diagrams.length) {
+        return;
+    }
+
+    diagrams.forEach((diagram) => {
+        if (!diagram.dataset.mermaidSource) {
+            diagram.dataset.mermaidSource = diagram.textContent.trim();
+        }
+
+        diagram.removeAttribute('data-processed');
+        diagram.textContent = diagram.dataset.mermaidSource;
+    });
+
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: getMermaidTheme()
+    });
     mermaid.contentLoaded();
 }
+
+document.addEventListener('DOMContentLoaded', renderMermaidDiagrams);
+document.addEventListener('app:theme-changed', renderMermaidDiagrams);
 
 // ============================================================================
 // Inventory Item "Buy" Button Functionality
