@@ -207,12 +207,6 @@ function buildShelfDetails(shelfMesh, shelfIndex) {
     metalness: 0.2
   });
 
-  const backPanelMaterial = new THREE.MeshStandardMaterial({
-    color: 0x9db0c3,
-    roughness: 0.74,
-    metalness: 0.16
-  });
-
   const frameGeometry = new THREE.BoxGeometry(0.12, 2.86, 0.12);
   const frameOffsets = [
     [-1.72, 0, -0.72],
@@ -237,11 +231,6 @@ function buildShelfDetails(shelfMesh, shelfIndex) {
     board.receiveShadow = true;
     shelfMesh.add(board);
   });
-
-  const backPanel = new THREE.Mesh(new THREE.BoxGeometry(3.5, 2.75, 0.08), backPanelMaterial);
-  backPanel.position.set(0, 0.02, -0.75);
-  backPanel.receiveShadow = true;
-  shelfMesh.add(backPanel);
 }
 
 function populateShelfWithProducts(shelfMesh, productRows) {
@@ -249,7 +238,13 @@ function populateShelfWithProducts(shelfMesh, productRows) {
   const seenProducts = new Set();
   const shelfSurfaceY = [-1.15, -0.32, 0.52, 1.28];
   const productYOffset = 0.22;
-  const lanesPerLevel = 2;
+  const slotsPerLevel = 4;
+  const slotCoordinates = [
+    { x: -0.95, z: 0.56 },
+    { x: -0.32, z: 0.38 },
+    { x: 0.32, z: 0.56 },
+    { x: 0.95, z: 0.38 }
+  ];
 
   productRows.forEach((row, index) => {
     const key = row.productId || row.name || String(index);
@@ -263,15 +258,13 @@ function populateShelfWithProducts(shelfMesh, productRows) {
   distinctRows.forEach((row, index) => {
     const visual = createProductVisual(row.productId, index);
     const level = index % shelfSurfaceY.length;
-    const lane = Math.floor(index / shelfSurfaceY.length) % lanesPerLevel;
-    const depthBand = Math.floor(index / (shelfSurfaceY.length * lanesPerLevel)) % 2;
-    const x = lane === 0 ? -0.88 : 0.88;
-    const z = depthBand === 0 ? 0.56 : 0.34;
+    const slot = Math.floor(index / shelfSurfaceY.length) % slotsPerLevel;
+    const position = slotCoordinates[slot];
 
     visual.position.set(
-      x,
+      position.x,
       shelfSurfaceY[level] + productYOffset,
-      z
+      position.z
     );
 
     shelfMesh.add(visual);
