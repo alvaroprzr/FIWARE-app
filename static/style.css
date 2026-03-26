@@ -430,12 +430,13 @@ label {
 }
 
 .diagram-card {
-    background: var(--surface);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 94%, #dce6f5 6%), var(--surface));
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.10);
+    box-shadow: 0 20px 36px rgba(15, 23, 42, 0.16), 0 3px 8px rgba(15, 23, 42, 0.12);
     margin: 0 auto;
     max-width: 1160px;
+    overflow: hidden;
 }
 
 .diagram-details {
@@ -443,33 +444,60 @@ label {
 }
 
 .diagram-details[open] {
-    padding-bottom: var(--spacing-sm);
+    padding-bottom: 0;
 }
 
 .diagram-toggle {
-    cursor: pointer;
-    list-style: none;
+    align-items: center;
+    background: color-mix(in srgb, var(--bg) 82%, #dbe8fb 18%);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, #9fb8de 30%);
     color: var(--text);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
     font-weight: 600;
-    padding: var(--spacing-md) var(--spacing-lg);
-    border-bottom: 1px solid var(--border);
+    padding: 0.8rem 1rem;
     user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.diagram-toggle:hover {
+    background: color-mix(in srgb, var(--bg) 74%, #cfe1fb 26%);
+}
+
+.diagram-toggle-left {
+    align-items: center;
+    display: inline-flex;
+    gap: 0.55rem;
 }
 
 .diagram-toggle::-webkit-details-marker {
     display: none;
 }
 
-.diagram-toggle::before {
-    content: '▾';
-    display: inline-block;
-    margin-right: 0.45rem;
+.diagram-toggle-icon {
     color: var(--primary);
     transform-origin: center;
-    transition: transform 0.18s ease;
+    transition: transform 0.2s ease;
 }
 
-.diagram-details:not([open]) .diagram-toggle::before {
+.diagram-toggle-label {
+    letter-spacing: 0.01em;
+}
+
+.diagram-toggle-hint {
+    background: color-mix(in srgb, var(--primary) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--primary) 42%, transparent);
+    border-radius: 999px;
+    color: var(--primary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.12rem 0.48rem;
+}
+
+.diagram-details:not([open]) .diagram-toggle-icon {
     transform: rotate(-90deg);
 }
 
@@ -477,16 +505,40 @@ label {
     display: flex;
     justify-content: center;
     align-items: flex-start;
-    padding: var(--spacing-lg);
+    padding: 0.75rem 0.9rem 0.95rem;
     overflow-x: auto;
 }
 
 .home-mermaid {
-    min-width: 760px;
+    margin: 0 auto;
+    min-width: 700px;
+    width: max-content;
+}
+
+.home-mermaid svg {
+    display: block;
+    height: auto;
+    margin: 0 auto;
+    max-width: 100%;
+}
+
+.home-mermaid .node rect,
+.home-mermaid .node polygon,
+.home-mermaid .node path {
+    stroke-width: 1.2px;
 }
 
 body.dark-theme .diagram-card {
-    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.34);
+    box-shadow: 0 22px 40px rgba(0, 0, 0, 0.44), 0 3px 10px rgba(0, 0, 0, 0.28);
+}
+
+body.dark-theme .diagram-toggle {
+    background: color-mix(in srgb, var(--surface) 78%, #0d3b66 22%);
+    border-bottom-color: color-mix(in srgb, var(--border) 62%, #356da6 38%);
+}
+
+body.dark-theme .diagram-toggle:hover {
+    background: color-mix(in srgb, var(--surface) 68%, #14558f 32%);
 }
 
 /* ============================================================================
@@ -1331,16 +1383,16 @@ body.dark-theme .diagram-card {
 
 @media (max-width: 768px) {
     .diagram-toggle {
-        padding: var(--spacing-sm) var(--spacing-md);
+        padding: 0.7rem 0.8rem;
         font-size: 0.95rem;
     }
 
     .diagram-container {
-        padding: var(--spacing-md);
+        padding: 0.6rem 0.7rem 0.8rem;
     }
 
     .home-mermaid {
-        min-width: 640px;
+        min-width: 620px;
     }
 
     .shelf-group-header {
