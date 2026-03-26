@@ -71,6 +71,16 @@
   - **PATCH directo a Orion:** Botón "Comprar" en InventoryItems ejecuta actualización directa sin pasar por Flask.
   - Actualización de DOM sin recarga de página.
 
+**Detalle arquitectura 3D (Issue #22):**
+
+- `store_3d.js` consume `window.inventoryData` y materializa unidades por `shelfCount`.
+- Posicionamiento determinista por slots en grilla fisica 4x4x2 (maximo 32 unidades por shelf).
+- Pipeline de material de producto:
+  - Inicializacion: `MeshStandardMaterial` con color hexadecimal del producto.
+  - `onLoad` de textura: asigna `material.map`, fuerza `material.color = #FFFFFF`, activa `needsUpdate`.
+  - `onError` de textura: no altera material para preservar fallback de color.
+- Se aplica cache de texturas/materiales para reducir recargas y jitter visual.
+
 **Arquitectura Frontend:**
 
 ```
@@ -298,6 +308,22 @@ La vista de inventario pasa a **una sola tabla agrupada por Shelf**:
 - Fila cabecera por Shelf con nombre, progreso de llenado y acciones.
 - Filas hijas por `InventoryItem` con columnas de producto y acciones.
 - Colores de barra de llenado: verde `<50%`, naranja `50-80%`, rojo `>=80%`.
+
+## 7. Control de Capacidad de Shelf - Issue #22
+
+El control de capacidad se reparte entre frontend y backend con backend autoritativo:
+
+- Frontend (`main.js`): prevalidaciones de formulario y mensajes de capacidad restante.
+- Backend (`routes/stores.py`): validacion definitiva de reglas de negocio.
+
+Reglas aplicadas:
+
+- `maxCapacity` permitido en rango `(0, 32]`.
+- Creacion/edicion de shelf bloqueada si excede limite fisico.
+- Edicion de shelf bloqueada si nuevo `maxCapacity` es menor que ocupacion actual.
+- Alta de inventario bloqueada cuando `ocupacion_actual + solicitado > capacidad_shelf`.
+
+Esto evita inconsistencias UI/API y garantiza coherencia con la representacion 3D fisica.
 
 2. **Pattern Matching en Providers y Subscriptions**
    - Cambio: Uso exclusivo de `"idPattern"` en lugar de `"isPattern"`

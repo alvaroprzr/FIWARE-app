@@ -68,6 +68,24 @@ Conjunto de vistas HTML + CSS + JavaScript que proporcionan:
   - Detalle de empleado con todos los atributos y referencia al store asignado.
 - **Stores Map:** Mapa global Leaflet.js mostrando todos los stores con marcadores personalizados, tooltips con datos ambientales y navegación a detalle.
 
+### 2.5 Módulo: Recorrido 3D Realista de Shelves (Issue #22)
+
+Mejora visual y funcional sobre la escena Three.js del detalle de tienda:
+
+- Cada producto se representa como unidades fisicas en cubos 3D (no geometria abstracta).
+- Distribucion exacta por shelf en grilla 4x4x2 (columnas x niveles x profundidad).
+- Capacidad fisica maxima por shelf: 32 unidades.
+- Texturas de producto por `Product.image` con fallback robusto:
+  - Carga inicial con color solido de `Product.color`.
+  - Si la textura carga correctamente, se aplica `material.map` y se fuerza base blanca para evitar tintado.
+  - Si la textura falla (CORS/404), se mantiene el color fallback sin degradar la experiencia.
+
+Reglas funcionales asociadas:
+
+- No se permite crear o editar shelves con `maxCapacity > 32`.
+- No se permite reducir `maxCapacity` por debajo de la ocupacion actual.
+- Al agregar inventario a shelf, la validacion se hace contra la ocupacion total de la shelf (suma de todos los `shelfCount`), no por fila individual.
+
 ## 3. Requisitos No Funcionales
 
 ### 3.1 Multiidioma (i18n)

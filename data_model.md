@@ -190,6 +190,13 @@ Estantería dentro de almacén.
 - Una Shelf → UN único Store (N:1)
 - Una Shelf ← múltiples InventoryItems (1:N)
 
+**Actualizacion Issue #22 (capacidad fisica):**
+- Limite fisico absoluto por shelf: 32 unidades.
+- Modelo espacial de referencia en UI 3D: grilla 4x4x2.
+- Regla de negocio efectiva:
+  - `0 < maxCapacity <= 32`
+  - No se puede fijar `maxCapacity` por debajo de la ocupacion actual.
+
 ---
 
 ## 5. Entidad: InventoryItem
@@ -211,6 +218,13 @@ Control granular: qué producto, en qué estantería, en qué tienda, cantidades
 - stockCount ≥ 0
 - shelfCount ≤ stockCount SIEMPRE
 - stockCount = suma todos shelfCount para (Product, Store)
+
+**Actualizacion Issue #22 (validacion de ocupacion):**
+- La capacidad se evalua por ocupacion total de la shelf:
+  - `ocupacion_shelf = suma(shelfCount) de todos los InventoryItem de esa shelf`
+- Al agregar o incrementar inventario, debe cumplirse:
+  - `ocupacion_shelf + unidades_nuevas <= maxCapacity_shelf`
+- El incumplimiento devuelve error semantico de capacidad excedida.
 
 **Restricciones - Relaciones:**
 - Cada InventoryItem → UN Product, UNA Shelf, UN Store
@@ -310,6 +324,18 @@ erDiagram
 - **Relationship:** referencias URN (`refStore`, `refProduct`)
 - **StructuredValue:** JSON embebido (`address`)
 - **geo:json:** GeoJSON Point (`location`)
+
+## 13. Semantica de Visualizacion 3D (Issue #22)
+
+Esta seccion no agrega atributos NGSIv2 nuevos; define el contrato de presentacion:
+
+- Cada unidad de `shelfCount` se renderiza como un cubo independiente.
+- Fuente de textura: `Product.image`.
+- Fuente de color fallback: `Product.color`.
+- Regla anti-tintado para texturas:
+  - Material inicia con color fallback.
+  - Si hay textura cargada, el color base se fuerza a blanco para mantener fidelidad cromatica.
+  - Si falla la textura, permanece el color fallback.
 
 ---
 
