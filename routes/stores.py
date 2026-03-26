@@ -35,6 +35,9 @@ def _safe_number(value, default: int = 0) -> int:
     Convert values from NGSI attributes to int safely.
     """
     try:
+        # Orion can return Number values as int, float or numeric strings like "17.0".
+        if isinstance(value, str):
+            return int(float(value.strip()))
         return int(value)
     except (TypeError, ValueError):
         return default

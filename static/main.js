@@ -1401,6 +1401,12 @@ function initializeStoreDetailForms() {
             const shelfId = formData.get('shelfId');
             const maxAllowed = parseInt(addProductForm.getAttribute('data-max-allowed') || '', 10);
             const shelfCount = parseInt(formData.get('shelfCount'), 10);
+
+            if (Number.isNaN(shelfCount) || shelfCount <= 0) {
+                showNotification(t('notifications.error_title'), t('notifications.validation_positive_counts'), 'error');
+                return;
+            }
+
             if (!Number.isNaN(maxAllowed) && maxAllowed >= 0 && shelfCount > maxAllowed) {
                 showNotification(
                     t('notifications.error_title'),
@@ -1620,15 +1626,26 @@ async function prepareAddProductForm(button) {
     shelfIdField.value = shelfId;
     select.innerHTML = `<option value="">${t('store.select_product')}</option>`;
 
-    const effectiveCapacity = Math.min(Number.isNaN(shelfCapacity) ? 0 : shelfCapacity, 32);
-    const currentUnits = Number.isNaN(shelfCurrent) ? 0 : shelfCurrent;
-    const maxAllowed = Math.max(0, effectiveCapacity - currentUnits);
+    const hasCapacityContext = !Number.isNaN(shelfCapacity) && shelfCapacity > 0 && !Number.isNaN(shelfCurrent) && shelfCurrent >= 0;
+    let maxAllowed = null;
 
-    shelfCountField.max = String(Math.max(1, maxAllowed));
-    shelfCountField.value = String(Math.max(1, Math.min(parseInt(shelfCountField.value || '1', 10) || 1, Math.max(1, maxAllowed))));
-    addProductForm.setAttribute('data-max-allowed', String(maxAllowed));
-    if (submitButton) {
-        submitButton.disabled = maxAllowed <= 0;
+    if (hasCapacityContext) {
+        const effectiveCapacity = Math.min(shelfCapacity, 32);
+        maxAllowed = Math.max(0, effectiveCapacity - shelfCurrent);
+        shelfCountField.max = String(Math.max(1, maxAllowed));
+        shelfCountField.value = String(Math.max(1, Math.min(parseInt(shelfCountField.value || '1', 10) || 1, Math.max(1, maxAllowed))));
+        addProductForm.setAttribute('data-max-allowed', String(maxAllowed));
+        if (submitButton) {
+            submitButton.disabled = maxAllowed <= 0;
+        }
+    } else {
+        // Keep flow usable if template metadata is unavailable; backend still enforces capacity.
+        addProductForm.removeAttribute('data-max-allowed');
+        shelfCountField.max = '32';
+        shelfCountField.value = String(Math.max(1, parseInt(shelfCountField.value || '1', 10) || 1));
+        if (submitButton) {
+            submitButton.disabled = false;
+        }
     }
 
     try {
@@ -1650,7 +1667,7 @@ async function prepareAddProductForm(button) {
             return;
         }
 
-        if (maxAllowed <= 0) {
+        if (maxAllowed !== null && maxAllowed <= 0) {
             showNotification(
                 t('notifications.error_title'),
                 interpolate(t('notifications.shelf_remaining_capacity_message'), { maximumAllowed: 0 }),
