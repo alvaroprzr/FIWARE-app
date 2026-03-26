@@ -54,6 +54,7 @@ const i18n = {
         'notifications.load_products_error_message': 'No se pudo cargar productos disponibles: {error}',
         'notifications.deleted_title': 'Eliminado',
         'notifications.deleted_message': 'Entidad eliminada correctamente',
+        'notifications.deleted_message_named': 'Elemento "{name}" eliminado correctamente',
         'notifications.delete_error_message': 'No se pudo eliminar la entidad',
         'notifications.server_connection_error_message': 'No se pudo conectar con el servidor.',
         'footer.text': 'Almacén Inteligente FIWARE © 2024',
@@ -190,6 +191,7 @@ const i18n = {
         'notifications.load_products_error_message': 'Could not load available products: {error}',
         'notifications.deleted_title': 'Deleted',
         'notifications.deleted_message': 'Entity deleted successfully',
+        'notifications.deleted_message_named': 'Item "{name}" deleted successfully',
         'notifications.delete_error_message': 'Could not delete entity',
         'notifications.server_connection_error_message': 'Could not connect to server.',
         'footer.text': 'Smart Warehouse FIWARE © 2024',
@@ -435,11 +437,105 @@ function toNumber(value, fallback = 0) {
     return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function normalizeEntityId(value) {
+    if (typeof value !== 'string') {
+        return '';
+    }
+    return value.trim();
+}
+
+function normalizeComparableEntityId(value) {
+    return normalizeEntityId(value).toLowerCase();
+}
+
+function extractEntitySuffix(entityId) {
+    const normalized = normalizeComparableEntityId(entityId);
+    if (!normalized) {
+        return '';
+    }
+    const parts = normalized.split(':');
+    return parts[parts.length - 1] || '';
+}
+
+function isSameStoreId(leftId, rightId) {
+    const left = normalizeComparableEntityId(leftId);
+    const right = normalizeComparableEntityId(rightId);
+    if (!left || !right) {
+        return false;
+    }
+    if (left === right) {
+        return true;
+    }
+    return extractEntitySuffix(left) === extractEntitySuffix(right);
+}
+
+function getCurrentStoreId() {
+    const listStoreId = normalizeEntityId(
+        document.getElementById('store-notifications-list')?.getAttribute('data-store-id')
+    );
+    const rootStoreId = normalizeEntityId(
+        document.getElementById('store-detail-root')?.getAttribute('data-store-id')
+    );
+
+    if (listStoreId && rootStoreId && listStoreId !== rootStoreId) {
+        console.warn('Store detail ID mismatch between root and notifications list:', {
+            listStoreId,
+            rootStoreId
+        });
+    }
+
+    return listStoreId || rootStoreId || null;
+}
+
+function hasProductInCurrentStore(productId) {
+    const normalizedProductId = normalizeComparableEntityId(productId);
+    if (!normalizedProductId) {
+        return false;
+    }
+
+    // Prefer inventory payload rendered by store_detail template when available.
+    const inventoryItems = Array.isArray(window.inventoryData?.inventory_items)
+        ? window.inventoryData.inventory_items
+        : [];
+    if (inventoryItems.length) {
+        const foundInInventoryData = inventoryItems.some((item) => {
+            if (!item || typeof item !== 'object') {
+                return false;
+            }
+            const refProduct = normalizeComparableEntityId(item?.refProduct?.value);
+            if (!refProduct) {
+                return false;
+            }
+            return refProduct === normalizedProductId || extractEntitySuffix(refProduct) === extractEntitySuffix(normalizedProductId);
+        });
+
+        if (foundInInventoryData) {
+            return true;
+        }
+    }
+
+    const productRows = document.querySelectorAll('.inventory-product-row[data-product-id]');
+    if (!productRows.length) {
+        return false;
+    }
+
+    return Array.from(productRows).some((row) => {
+        const rowProductId = normalizeComparableEntityId(row.getAttribute('data-product-id'));
+        if (!rowProductId) {
+            return false;
+        }
+        return rowProductId === normalizedProductId || extractEntitySuffix(rowProductId) === extractEntitySuffix(normalizedProductId);
+    });
+}
+
 function isDuplicateLowStockEvent(data) {
     const storeId = data?.store_id || data?.storeId || '-';
     const productId = data?.product_id || data?.productId || '-';
+    const itemId = data?.item_id || data?.itemId;
+    const shelfId = data?.shelf_id || data?.shelfId || '-';
+    const dedupScope = itemId || shelfId;
     const totalStoreStock = data?.totalStoreStock ?? data?.total_store_stock ?? data?.stockCount ?? data?.stock_count;
-    const cacheKey = `${storeId}|${productId}|${totalStoreStock}`;
+    const cacheKey = `${storeId}|${productId}|${dedupScope}|${totalStoreStock}`;
     const now = Date.now();
     const previous = lowStockEventCache.get(cacheKey);
 
@@ -658,11 +754,15 @@ function updateProductPriceUI(productId, newPrice) {
     if (!productId) return;
 
     const formatted = formatPriceValue(newPrice);
+    let updatedCount = 0;
     document.querySelectorAll(`.product-price-cell[data-product-id="${productId}"]`).forEach((cell) => {
         const isDetailPrice = cell.classList.contains('price');
         const hasCurrency = isDetailPrice || cell.textContent.trim().startsWith('€');
         cell.textContent = hasCurrency ? `€${formatted}` : formatted;
+        updatedCount += 1;
     });
+
+    return updatedCount;
 }
 
 function appendStoreRealtimeNotification(title, message, level = 'info') {
@@ -780,6 +880,18 @@ function persistLocalNotifications(storeId, list) {
     sessionStorage.setItem(LOCAL_NOTIF_SESSION_KEY, JSON.stringify(payload));
 }
 
+function persistLocalNotificationEntry(storeId, entry) {
+    const normalizedStoreId = normalizeEntityId(storeId);
+    if (!normalizedStoreId || !entry) {
+        return;
+    }
+
+    const payload = getLocalNotificationStore();
+    const existingEntries = Array.isArray(payload[normalizedStoreId]) ? payload[normalizedStoreId] : [];
+    payload[normalizedStoreId] = [entry, ...existingEntries].slice(0, notificationState.maxLocalItems);
+    sessionStorage.setItem(LOCAL_NOTIF_SESSION_KEY, JSON.stringify(payload));
+}
+
 function initializeStoreNotificationPanel() {
     const list = document.getElementById('store-notifications-list');
     const clearBtn = document.getElementById('clear-store-notifications');
@@ -847,22 +959,64 @@ function initializeRealtimeNotifications() {
 
     socket.on('price_change', (data) => {
         const productId = data?.product_id;
+        const productName = data?.product_name || productId || '-';
         const newPrice = data?.new_price;
         const affectedStoreIds = Array.isArray(data?.store_ids) ? data.store_ids : [];
         const storeNotifications = document.getElementById('store-notifications-list');
-        const currentStoreId = storeNotifications?.getAttribute('data-store-id');
+        const isStoreDetailPage = Boolean(storeNotifications);
+        const currentStoreId = getCurrentStoreId();
+        const currentStoreHasProduct = hasProductInCurrentStore(productId);
         const title = t('notifications.price_change_title');
         const message = interpolate(t('notifications.price_change_message'), {
-            product: productId || '-',
+            product: productName,
             price: formatPriceValue(newPrice)
         });
+        const localEntry = {
+            level: 'info',
+            icon: 'tag',
+            title,
+            message,
+            time: formatNotificationTime(new Date())
+        };
 
         console.log('Socket event price_change:', data);
 
-        updateProductPriceUI(productId, newPrice);
+        const updatedPriceCells = updateProductPriceUI(productId, newPrice) || 0;
         showNotification({ title, message, level: 'info', icon: 'tag' });
 
-        if (currentStoreId && affectedStoreIds.includes(currentStoreId)) {
+        const isCurrentStoreImpacted = Boolean(currentStoreId) &&
+            affectedStoreIds.some((storeId) => isSameStoreId(storeId, currentStoreId));
+        const eventProductIsRendered = updatedPriceCells > 0;
+
+        const targetStoreIds = [];
+        const seenStores = new Set();
+        affectedStoreIds.forEach((storeId) => {
+            const normalized = normalizeComparableEntityId(storeId);
+            if (!normalized || seenStores.has(normalized)) {
+                return;
+            }
+            seenStores.add(normalized);
+            targetStoreIds.push(storeId);
+        });
+
+        const shouldNotifyCurrentStore = isStoreDetailPage && (isCurrentStoreImpacted || currentStoreHasProduct || eventProductIsRendered);
+        if (shouldNotifyCurrentStore && currentStoreId) {
+            const currentNormalized = normalizeComparableEntityId(currentStoreId);
+            if (currentNormalized && !seenStores.has(currentNormalized)) {
+                seenStores.add(currentNormalized);
+                targetStoreIds.push(currentStoreId);
+            }
+        }
+
+        targetStoreIds.forEach((storeId) => {
+            if (isStoreDetailPage && currentStoreId && isSameStoreId(storeId, currentStoreId)) {
+                appendStoreRealtimeNotification(title, message, 'info');
+                return;
+            }
+            persistLocalNotificationEntry(storeId, localEntry);
+        });
+
+        if (shouldNotifyCurrentStore && !targetStoreIds.length) {
             appendStoreRealtimeNotification(title, message, 'info');
         }
     });
@@ -873,8 +1027,8 @@ function initializeRealtimeNotifications() {
             return;
         }
 
-        const storeNotifications = document.getElementById('store-notifications-list');
-        const currentStoreId = storeNotifications?.getAttribute('data-store-id');
+        const currentStoreId = getCurrentStoreId();
+        const eventStoreId = data?.store_id || data?.storeId;
         const shelfCount = toNumber(data?.shelfCount ?? data?.shelf_count ?? 0, 0);
         const totalStoreStock = toNumber(
             data?.totalStoreStock ?? data?.total_store_stock ?? data?.stockCount ?? data?.stock_count ?? 0,
@@ -897,7 +1051,7 @@ function initializeRealtimeNotifications() {
 
         showNotification({ title, message: globalMessage, level: 'warning', icon: 'exclamation-triangle' });
 
-        if (currentStoreId && data?.store_id === currentStoreId) {
+        if (currentStoreId && isSameStoreId(currentStoreId, eventStoreId)) {
             const localMessage = interpolate(t('notifications.local_low_stock_message'), {
                 product: productName,
                 count: remainingCount,
@@ -1547,6 +1701,11 @@ function setupDeleteButtons() {
             e.preventDefault();
             const entityId = btn.getAttribute('data-id');
             if (!entityId) return;
+
+            const row = btn.closest('tr');
+            const rowName = row?.querySelector('.name-cell a, .name-cell')?.textContent?.trim();
+            const fallbackName = entityId.split(':').pop();
+            const entityName = rowName || fallbackName;
             
             // Determine entity type and endpoint from current URL or data attribute
             const currentPath = window.location.pathname;
@@ -1566,7 +1725,10 @@ function setupDeleteButtons() {
                 fetch(endpoint, { method: 'DELETE' })
                     .then(r => {
                         if (r.ok) {
-                            showNotification(t('notifications.deleted_title'), t('notifications.deleted_message'), 'success');
+                            const deletedMessage = entityName
+                                ? interpolate(t('notifications.deleted_message_named'), { name: entityName })
+                                : t('notifications.deleted_message');
+                            showNotification(t('notifications.deleted_title'), deletedMessage, 'success');
                             setTimeout(() => window.location.reload(), 250);
                         } else {
                             showNotification(t('notifications.error_title'), t('notifications.delete_error_message'), 'error');

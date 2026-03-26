@@ -52,6 +52,39 @@ def _safe_int(value, default=None):
     except (TypeError, ValueError):
         return default
 
+
+def _normalize_entity_id(value):
+    """
+    Normalize entity IDs for tolerant comparisons.
+    """
+    if not isinstance(value, str):
+        return ''
+    return value.strip()
+
+
+def _entity_suffix(entity_id):
+    """
+    Extract last token from Orion-style identifiers.
+    """
+    normalized = _normalize_entity_id(entity_id)
+    if not normalized:
+        return ''
+    return normalized.split(':')[-1]
+
+
+def _same_entity_id(left_id, right_id):
+    """
+    Compare IDs by full value first and suffix as fallback.
+    """
+    left = _normalize_entity_id(left_id)
+    right = _normalize_entity_id(right_id)
+
+    if not left or not right:
+        return False
+    if left == right:
+        return True
+    return _entity_suffix(left) == _entity_suffix(right)
+
 # ============================================================================
 # POST /notify/price-change - Price change webhook
 # ============================================================================
@@ -94,6 +127,18 @@ def notify_price_change():
                 entity_type='InventoryItem',
                 query=f"refProduct=='{product_id}'"
             )
+
+            # Fallback for environments where query filtering can miss relationship matches.
+            if not inventory_items:
+                all_inventory_items = orion.get_entities(entity_type='InventoryItem')
+                inventory_items = [
+                    item for item in all_inventory_items
+                    if isinstance(item, dict) and _same_entity_id(
+                        item.get('refProduct', {}).get('value'),
+                        product_id
+                    )
+                ]
+
             impacted_store_ids = sorted({
                 item.get('refStore', {}).get('value')
                 for item in inventory_items
@@ -102,6 +147,7 @@ def notify_price_change():
 
             event_payload = {
                 'product_id': product_id,
+                'product_name': _entity_name(product_id),
                 'new_price': price,
                 'store_ids': impacted_store_ids,
                 'timestamp': datetime.now(timezone.utc).isoformat()
