@@ -896,13 +896,13 @@ function initializeRealtimeNotifications() {
 
     socket.on('price_change', (data) => {
         const productId = data?.product_id;
+        const productName = data?.product_name || productId || '-';
         const newPrice = data?.new_price;
         const affectedStoreIds = Array.isArray(data?.store_ids) ? data.store_ids : [];
-        const storeNotifications = document.getElementById('store-notifications-list');
-        const currentStoreId = storeNotifications?.getAttribute('data-store-id');
+        const currentStoreId = getCurrentStoreId();
         const title = t('notifications.price_change_title');
         const message = interpolate(t('notifications.price_change_message'), {
-            product: productId || '-',
+            product: productName,
             price: formatPriceValue(newPrice)
         });
 
@@ -911,7 +911,7 @@ function initializeRealtimeNotifications() {
         updateProductPriceUI(productId, newPrice);
         showNotification({ title, message, level: 'info', icon: 'tag' });
 
-        if (currentStoreId && affectedStoreIds.includes(currentStoreId)) {
+        if (currentStoreId && affectedStoreIds.some((storeId) => isSameStoreId(storeId, currentStoreId))) {
             appendStoreRealtimeNotification(title, message, 'info');
         }
     });

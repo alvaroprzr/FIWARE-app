@@ -102,6 +102,7 @@ def notify_price_change():
 
             event_payload = {
                 'product_id': product_id,
+                'product_name': _entity_name(product_id),
                 'new_price': price,
                 'store_ids': impacted_store_ids,
                 'timestamp': datetime.now(timezone.utc).isoformat()
