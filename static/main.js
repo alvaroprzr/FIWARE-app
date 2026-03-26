@@ -919,6 +919,8 @@ function initializeRealtimeNotifications() {
         const productName = data?.product_name || productId || '-';
         const newPrice = data?.new_price;
         const affectedStoreIds = Array.isArray(data?.store_ids) ? data.store_ids : [];
+        const storeNotifications = document.getElementById('store-notifications-list');
+        const isStoreDetailPage = Boolean(storeNotifications);
         const currentStoreId = getCurrentStoreId();
         const currentStoreHasProduct = hasProductInCurrentStore(productId);
         const title = t('notifications.price_change_title');
@@ -932,8 +934,10 @@ function initializeRealtimeNotifications() {
         updateProductPriceUI(productId, newPrice);
         showNotification({ title, message, level: 'info', icon: 'tag' });
 
-        const isCurrentStoreImpacted = affectedStoreIds.some((storeId) => isSameStoreId(storeId, currentStoreId));
-        if (currentStoreId && (isCurrentStoreImpacted || currentStoreHasProduct)) {
+        const isCurrentStoreImpacted = Boolean(currentStoreId) &&
+            affectedStoreIds.some((storeId) => isSameStoreId(storeId, currentStoreId));
+
+        if (isStoreDetailPage && (isCurrentStoreImpacted || currentStoreHasProduct)) {
             appendStoreRealtimeNotification(title, message, 'info');
         }
     });
