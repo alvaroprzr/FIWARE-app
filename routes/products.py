@@ -18,6 +18,19 @@ def _safe_number(value, default=0):
     except (TypeError, ValueError):
         return default
 
+
+def _normalize_size(raw_size):
+    """
+    Normalize Product size value and enforce non-empty values.
+    Accepts standard sizes and custom sizes.
+    """
+    size = (raw_size or '').strip()
+    if not size:
+        raise ValueError('size is required')
+    if len(size) > 30:
+        raise ValueError('size must be 30 characters or fewer')
+    return size
+
 # ============================================================================
 # GET /products - List all products
 # ============================================================================
@@ -181,17 +194,22 @@ def create_product():
     Body: {name, price, size, color, image}
     """
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         
         if not data or not data.get('id'):
             return {'error': 'Missing required fields'}, 400
+
+        try:
+            normalized_size = _normalize_size(data.get('size', ''))
+        except ValueError as validation_error:
+            return {'error': str(validation_error)}, 400
         
         product = {
             'id': data['id'] if data['id'].startswith('urn:') else f"urn:ngsi-ld:Product:{data['id']}",
             'type': 'Product',
             'name': orion.build_attr(data.get('name', ''), 'Text'),
             'price': orion.build_attr(float(data.get('price', 0)), 'Number'),
-            'size': orion.build_attr(data.get('size', ''), 'Text'),
+            'size': orion.build_attr(normalized_size, 'Text'),
             'color': orion.build_attr(data.get('color', '#000000'), 'Text'),
             'image': orion.build_attr(data.get('image', ''), 'Text')
         }
@@ -216,7 +234,7 @@ def update_product(product_id):
         if not product_id.startswith('urn:'):
             product_id = f"urn:ngsi-ld:Product:{product_id}"
         
-        data = request.get_json()
+        data = request.get_json() or {}
         attrs = {}
         
         if 'name' in data:
@@ -224,7 +242,10 @@ def update_product(product_id):
         if 'price' in data:
             attrs['price'] = orion.build_attr(float(data['price']), 'Number')
         if 'size' in data:
-            attrs['size'] = orion.build_attr(data['size'], 'Text')
+            try:
+                attrs['size'] = orion.build_attr(_normalize_size(data['size']), 'Text')
+            except ValueError as validation_error:
+                return {'error': str(validation_error)}, 400
         if 'color' in data:
             attrs['color'] = orion.build_attr(data['color'], 'Text')
         if 'image' in data:

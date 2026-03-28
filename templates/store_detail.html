@@ -106,7 +106,7 @@
                                 <div class="shelf-group-actions">
                                     <button
                                         type="button"
-                                        class="btn btn-secondary btn-small"
+                                        class="btn-link-action"
                                         data-open-modal="edit-shelf-modal"
                                         data-shelf-id="{{ shelf.id }}"
                                         data-shelf-name="{{ shelf.name.value if shelf.name else '' }}"
@@ -117,7 +117,7 @@
                                     </button>
                                     <button
                                         type="button"
-                                        class="btn btn-primary btn-small"
+                                        class="btn-link-action"
                                         data-open-modal="add-product-modal"
                                         data-shelf-id="{{ shelf.id }}"
                                         data-shelf-name="{{ shelf.name.value if shelf.name else '' }}"
@@ -152,16 +152,37 @@
                                 <span>{{ color_hex }}</span>
                             </td>
                             <td class="inventory-stock-cell" data-product-id="{{ product_id }}">{{ item.displayStockCount if item.displayStockCount is defined else (item.stockCount.value if item.stockCount else 0) }}</td>
-                            <td class="inventory-shelf-cell">{{ item.shelfCount.value if item.shelfCount else 0 }}</td>
+                            <td class="inventory-shelf-cell" data-inventoryitem-id="{{ item.id }}" data-current-shelf-count="{{ item.shelfCount.value if item.shelfCount else 0 }}">
+                                <span class="shelf-count-display">{{ item.shelfCount.value if item.shelfCount else 0 }}</span>
+                                <form class="inline-quantity-form hidden" data-inventoryitem-id="{{ item.id }}">
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        class="inline-quantity-input"
+                                        value="{{ item.shelfCount.value if item.shelfCount else 0 }}"
+                                        aria-label="Nueva cantidad"
+                                    >
+                                    <button type="submit" class="btn-link-action">Guardar</button>
+                                    <button type="button" class="btn-link-action btn-cancel-quantity">Cancelar</button>
+                                </form>
+                            </td>
                             <td>
                                 <a href="#"
                                     role="button"
-                                    class="btn-buy btn-buy-link{% if (item.shelfCount.value if item.shelfCount else 0) <= 0 %} disabled{% endif %}"
+                                    class="btn-buy btn-link-action{% if (item.shelfCount.value if item.shelfCount else 0) <= 0 %} disabled{% endif %}"
                                     aria-disabled="{{ 'true' if (item.shelfCount.value if item.shelfCount else 0) <= 0 else 'false' }}"
                                     data-inventoryitem-id="{{ item.id }}"
                                     data-shelf-count="{{ item.shelfCount.value if item.shelfCount else 0 }}"
                                     data-stock-count="{{ item.stockCount.value if item.stockCount else 0 }}">
                                     <span data-i18n="store.buy">Comprar</span>
+                                </a>
+                                <a
+                                    href="#"
+                                    role="button"
+                                    class="btn-link-action btn-edit-quantity"
+                                    data-inventoryitem-id="{{ item.id }}"
+                                    data-i18n="store.edit_quantity">
+                                    Modificar cantidad
                                 </a>
                             </td>
                         </tr>
@@ -177,7 +198,7 @@
         </div>
 
         <div class="inventory-footer-actions">
-            <button type="button" class="btn btn-primary" data-open-modal="add-shelf-modal" data-i18n="store.add_shelf">Añadir Shelf</button>
+            <button type="button" class="btn-link-action" data-open-modal="add-shelf-modal" data-i18n="store.add_shelf">Añadir Shelf</button>
         </div>
     </div>
 

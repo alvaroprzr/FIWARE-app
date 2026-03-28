@@ -58,11 +58,25 @@
 
       <div class="form-group">
         <label data-i18n="form.size">Tamaño</label>
-        <div class="size-radio-group">
-          <label><input type="radio" name="size" value="S" {% if product and product.size and product.size.value == 'S' %}checked{% endif %} required> S</label>
-          <label><input type="radio" name="size" value="M" {% if product and product.size and product.size.value == 'M' %}checked{% endif %} required> M</label>
-          <label><input type="radio" name="size" value="L" {% if product and product.size and product.size.value == 'L' %}checked{% endif %} required> L</label>
-          <label><input type="radio" name="size" value="XL" {% if product and product.size and product.size.value == 'XL' %}checked{% endif %} required> XL</label>
+        {% set current_size = product.size.value if product and product.size and product.size.value else '' %}
+        {% set standard_sizes = ['S', 'M', 'L', 'XL'] %}
+        <div class="size-radio-group" id="size-radio-group">
+          <label><input type="radio" name="size" value="S" {% if current_size == 'S' %}checked{% endif %} required> S</label>
+          <label><input type="radio" name="size" value="M" {% if current_size == 'M' %}checked{% endif %} required> M</label>
+          <label><input type="radio" name="size" value="L" {% if current_size == 'L' %}checked{% endif %} required> L</label>
+          <label><input type="radio" name="size" value="XL" {% if current_size == 'XL' %}checked{% endif %} required> XL</label>
+          <label><input type="radio" name="size" value="OTHER" {% if current_size and current_size not in standard_sizes %}checked{% endif %} required> Otro</label>
+          <div class="size-other-input-wrapper">
+            <label for="product-size-other">Especifica el tamaño</label>
+            <input
+              type="text"
+              id="product-size-other"
+              name="sizeOther"
+              maxlength="30"
+              placeholder="ej: 42, XXL, personalizado"
+              value="{% if current_size and current_size not in standard_sizes %}{{ current_size }}{% endif %}"
+            >
+          </div>
         </div>
         <span class="field-error" data-error-for="size"></span>
       </div>
@@ -149,6 +163,15 @@
   gap: 0.35rem;
 }
 
+.size-other-input-wrapper {
+  display: none;
+  width: 100%;
+}
+
+.size-radio-group:has(input[name="size"][value="OTHER"]:checked) .size-other-input-wrapper {
+  display: block;
+}
+
 .field-error {
   display: block;
   min-height: 1rem;
@@ -209,6 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('product-form');
   const messageDiv = document.getElementById('form-message');
   const productIdInput = document.getElementById('product-id');
+  const sizeOtherInput = document.getElementById('product-size-other');
   const isEditMode = productIdInput.hasAttribute('readonly');
 
   form.addEventListener('submit', async (e) => {
@@ -218,11 +242,20 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const selectedSize = (document.querySelector('input[name="size"]:checked') || {}).value || '';
+    const sizeOtherValue = (sizeOtherInput?.value || '').trim();
+
+    if (selectedSize === 'OTHER' && !sizeOtherValue) {
+      messageDiv.className = 'form-message error';
+      messageDiv.textContent = 'Debes indicar un tamaño cuando seleccionas Otro.';
+      return;
+    }
+
     const payload = {
       id: productIdInput.value,
       name: document.getElementById('product-name').value,
       price: parseFloat(document.getElementById('product-price').value),
-      size: (document.querySelector('input[name="size"]:checked') || {}).value || '',
+      size: selectedSize === 'OTHER' ? sizeOtherValue : selectedSize,
       color: document.getElementById('product-color').value,
       image: document.getElementById('product-image').value
     };

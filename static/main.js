@@ -1185,6 +1185,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     });
+
+    initializeInventoryQuantityEditors();
 });
 
 /**
@@ -1259,6 +1261,112 @@ async function buyInventoryItem(inventoryItemId, currentShelfCount, currentStock
             'error'
         );
         return { success: false, outOfStock: false };
+    }
+}
+
+function initializeInventoryQuantityEditors() {
+    const rows = document.querySelectorAll('.inventory-product-row[data-inventoryitem-id]');
+    if (!rows.length) {
+        return;
+    }
+
+    rows.forEach((row) => {
+        const inventoryItemId = row.getAttribute('data-inventoryitem-id');
+        const shelfCell = row.querySelector('.inventory-shelf-cell');
+        const form = row.querySelector('.inline-quantity-form');
+        const input = row.querySelector('.inline-quantity-input');
+        const editButton = row.querySelector('.btn-edit-quantity');
+        const cancelButton = row.querySelector('.btn-cancel-quantity');
+
+        if (!inventoryItemId || !shelfCell || !form || !input || !editButton || !cancelButton) {
+            return;
+        }
+
+        editButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            const currentValue = parseInt(shelfCell.getAttribute('data-current-shelf-count') || '0', 10);
+            input.value = String(Number.isNaN(currentValue) ? 0 : Math.max(0, currentValue));
+            setQuantityEditMode(shelfCell, true);
+            input.focus();
+            input.select();
+        });
+
+        cancelButton.addEventListener('click', () => {
+            const currentValue = parseInt(shelfCell.getAttribute('data-current-shelf-count') || '0', 10);
+            input.value = String(Number.isNaN(currentValue) ? 0 : Math.max(0, currentValue));
+            setQuantityEditMode(shelfCell, false);
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (form.dataset.pending === 'true') {
+                return;
+            }
+
+            const parsedValue = parseInt(input.value, 10);
+            if (Number.isNaN(parsedValue) || parsedValue < 0) {
+                showNotification(t('notifications.error_title'), 'La cantidad debe ser un numero mayor o igual a 0', 'error');
+                return;
+            }
+
+            form.dataset.pending = 'true';
+
+            try {
+                const result = await updateInventoryItemQuantity(inventoryItemId, parsedValue);
+                if (result.success) {
+                    updateInventoryItemUI(inventoryItemId, result.newShelfCount, result.newStockCount);
+                    setQuantityEditMode(shelfCell, false);
+                    showNotification(t('notifications.purchase_success_title'), 'Cantidad actualizada correctamente', 'success');
+                } else {
+                    showNotification(
+                        t('notifications.error_title'),
+                        result.error || 'No se pudo actualizar la cantidad',
+                        'error'
+                    );
+                }
+            } finally {
+                form.dataset.pending = 'false';
+            }
+        });
+    });
+}
+
+function setQuantityEditMode(shelfCell, isEditing) {
+    if (!shelfCell) {
+        return;
+    }
+    shelfCell.classList.toggle('is-editing', !!isEditing);
+}
+
+async function updateInventoryItemQuantity(inventoryItemId, newShelfCount) {
+    try {
+        const response = await fetch(`/api/inventory-items/${encodeURIComponent(inventoryItemId)}/quantity`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ newShelfCount })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            return {
+                success: false,
+                error: payload?.error || `HTTP ${response.status}`
+            };
+        }
+
+        return {
+            success: true,
+            newShelfCount: payload?.newShelfCount ?? newShelfCount,
+            newStockCount: payload?.newStockCount ?? 0
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
     }
 }
 
@@ -1717,21 +1825,38 @@ function updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount) {
     // Update the Shelf Quantity column (7th column, index 6)
     const shelfCell = tr.querySelector('.inventory-shelf-cell') || tr.querySelector('td:nth-child(7)');
     if (shelfCell) {
-        shelfCell.textContent = Math.max(0, newShelfCount);
+        const display = shelfCell.querySelector('.shelf-count-display');
+        const input = shelfCell.querySelector('.inline-quantity-input');
+        const safeShelfCount = Math.max(0, newShelfCount);
+        if (display) {
+            display.textContent = safeShelfCount;
+        } else {
+            shelfCell.textContent = safeShelfCount;
+        }
+        if (input) {
+            input.value = String(safeShelfCount);
+        }
+        shelfCell.setAttribute('data-current-shelf-count', String(safeShelfCount));
+        shelfCell.classList.remove('is-editing');
     }
 
     if (productId) {
         const rowsForProduct = document.querySelectorAll(`.inventory-product-row[data-product-id="${productId}"]`);
         const aggregatedStock = Array.from(rowsForProduct).reduce((acc, row) => {
             const rowShelf = row.querySelector('.inventory-shelf-cell');
-            const shelfValue = parseInt(rowShelf?.textContent || '0', 10);
+            const shelfDisplay = rowShelf?.querySelector('.shelf-count-display');
+            const shelfValue = parseInt((shelfDisplay?.textContent || rowShelf?.textContent || '0'), 10);
             return acc + (Number.isFinite(shelfValue) ? Math.max(0, shelfValue) : 0);
         }, 0);
 
         rowsForProduct.forEach((row) => {
             const rowStockCell = row.querySelector('.inventory-stock-cell');
+            const rowBuyButton = row.querySelector('.btn-buy');
             if (rowStockCell) {
                 rowStockCell.textContent = aggregatedStock;
+            }
+            if (rowBuyButton) {
+                rowBuyButton.setAttribute('data-stock-count', String(Math.max(0, aggregatedStock)));
             }
         });
     }

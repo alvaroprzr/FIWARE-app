@@ -6,7 +6,7 @@
 <div class="container">
     <div class="page-header">
         <h1 data-i18n="employees.title">Equipo de Trabajo</h1>
-        <a href="/employees/new" class="btn btn-primary" data-i18n="employees.add">+ Añadir Empleado</a>
+        <a href="/employees/new" class="btn-link-action" data-i18n="employees.add">+ Añadir Empleado</a>
     </div>
     
     {% if error %}
@@ -60,11 +60,11 @@
                         <a href="/employees/{{ emp.id.split(':')[-1] }}" class="btn btn-sm btn-info" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="/employees/{{ emp.id.split(':')[-1] }}/edit" class="btn btn-sm btn-warning" title="Editar">
-                            <i class="fas fa-edit"></i>
+                        <a href="/employees/{{ emp.id.split(':')[-1] }}/edit" class="btn-link-action" title="Editar">
+                            Editar
                         </a>
-                        <button class="btn btn-sm btn-danger btn-delete" data-id="{{ emp.id }}" title="Borrar">
-                            <i class="fas fa-trash"></i>
+                        <button type="button" class="btn-link-action btn-delete" data-id="{{ emp.id }}" title="Borrar">
+                            Borrar
                         </button>
                     </td>
                 </tr>
