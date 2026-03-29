@@ -1267,3 +1267,41 @@ Cerrar incidencias criticas de CRUD en Product, Store y Employee, y completar fo
 - Formularios completos y consistentes con criterios de validacion y usabilidad definidos.
 
 ---
+
+## 23. Edicion de Cantidades en Shelf, Size Otro y Auditoria UI (Issue #23)
+
+### Objetivo funcional
+
+Completar mejoras de gestion operativa en Store detail y Product form sin alterar la identidad visual existente de botones:
+
+- Edicion de `shelfCount` por InventoryItem desde el flujo de "Modificar Shelf".
+- Opcion `Otro` en `size` de Product con entrada libre.
+- Auditoria de presencia/funcionamiento de botones requeridos en vistas clave.
+
+### Cambios de comportamiento
+
+- **Store detail / Modificar Shelf**
+  - El modal de edicion de Shelf incluye, ademas de `name` y `maxCapacity`, una seccion de InventoryItems de esa Shelf.
+  - Cada InventoryItem muestra nombre de producto e input numerico `min=0` para `shelfCount`.
+  - Al guardar, se ejecuta PATCH por cada InventoryItem modificado y se actualiza UI sin recarga.
+  - Al reabrir el modal, los valores se cargan desde el DOM actual de la tabla para evitar datos obsoletos.
+
+- **Product form / size**
+  - Se mantiene selector por radio y se anade opcion `Otro` despues de `XL`.
+  - Al seleccionar `Otro`, se muestra input de texto libre para tamano personalizado.
+  - El input libre se oculta para `S/M/L/XL` con CSS puro (`:has()`), sin JS para show/hide.
+
+- **Auditoria de botones tipo enlace**
+  - Se verifica existencia y funcionamiento de botones requeridos en:
+    - listas de Products, Stores, Employees,
+    - Product detail,
+    - Store detail.
+  - No se altera el estilo visual existente de botones.
+
+### Criterios de aceptacion cubiertos
+
+- Edicion de `shelfCount` en InventoryItem desde "Modificar Shelf" con actualizacion sin recarga.
+- Campo `size` soporta `S/M/L/XL` y `Otro` con input condicional por CSS.
+- Botones requeridos auditados y operativos sin regresion visual.
+
+---

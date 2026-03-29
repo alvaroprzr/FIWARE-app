@@ -1168,3 +1168,46 @@ Patron mixto validacion HTML5 + validacion inline JS:
 - Mejor trazabilidad de fallos de borrado y menor riesgo de regresiones visuales por huerfanos.
 
 ---
+
+## 23. Ajustes Arquitectonicos de Edicion de Cantidades y Product Size (Issue #23)
+
+### Ampliacion del flujo Store detail -> Modificar Shelf
+
+Se extiende la arquitectura del modal `edit-shelf-modal` para incluir edicion de cantidades de InventoryItem sin crear acciones adicionales por fila en tabla:
+
+1. Usuario abre "Modificar Shelf" desde cabecera de grupo Shelf.
+2. Frontend rellena formulario base (`name`, `maxCapacity`).
+3. Frontend reconstruye la seccion de InventoryItems leyendo las filas actuales del DOM de la tabla de esa Shelf.
+4. Usuario modifica uno o varios `shelfCount`.
+5. Submit ejecuta:
+  - `PATCH /api/shelves/<shelf_id>` para atributos de Shelf.
+  - `PATCH /api/inventory-items/<inventory_item_id>/quantity` por cada InventoryItem modificado.
+6. Frontend actualiza celdas de inventario, totales agregados por producto y resumen de ocupacion de Shelf sin `window.location.reload()`.
+
+### Endpoint nuevo para cantidades explicitas
+
+Se incorpora endpoint backend:
+
+- `PATCH /api/inventory-items/<inventory_item_id>/quantity`
+
+Responsabilidades:
+
+- Validar `newShelfCount >= 0`.
+- Validar capacidad efectiva de Shelf respecto a ocupacion total.
+- Recalcular `stockCount` por `(Product, Store)`.
+- Persistir `shelfCount` del item objetivo y sincronizar `stockCount` en items hermanos del mismo producto/tienda.
+
+### Product form: opcion Otro en size
+
+Se mantiene el contrato de formulario y se amplia la captura de tamano:
+
+- Radios: `S`, `M`, `L`, `XL`, `Otro`.
+- Campo libre visible solo cuando `Otro` esta seleccionado, con CSS `:has()`.
+- El payload final de `size` se resuelve en cliente al valor estandar o personalizado.
+
+### Capa de presentacion y estilo
+
+- No se redefine el sistema visual de botones existente.
+- La auditoria de Issue #23 confirma existencia y funcionamiento de acciones requeridas sin cambios de look & feel.
+
+---

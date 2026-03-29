@@ -1420,3 +1420,35 @@ Los formularios add/edit de Product, Store, Employee y Shelf consumen los mismos
 Los cambios de Issue #19 son de validacion, mapeo y normalizacion de valores, no de estructura del modelo.
 
 ---
+
+## Nota de Integracion - Edicion de Cantidades y Size Personalizado (Issue #23)
+
+### Alcance de modelo
+
+Issue #23 no introduce nuevas entidades NGSIv2 ni nuevos atributos persistentes.
+Se reutilizan los campos existentes:
+
+- `InventoryItem.shelfCount`
+- `InventoryItem.stockCount`
+- `Product.size`
+
+### Reglas de consistencia reforzadas
+
+- Edicion explicita de `shelfCount` desde flujo de "Modificar Shelf".
+- Validacion de no negatividad (`shelfCount >= 0`).
+- Validacion de ocupacion total de Shelf contra `maxCapacity`.
+- Recalculo de `stockCount` por producto en la tienda como suma de `shelfCount` en todas las Shelves de ese Store.
+
+### Semantica de `Product.size`
+
+- Se mantienen valores estandar (`S`, `M`, `L`, `XL`).
+- Se permite valor personalizado cuando el usuario selecciona `Otro` en formulario.
+- El almacenamiento permanece en `Product.size` (`Text`), sin atributos adicionales.
+
+### Impacto de compatibilidad
+
+- Compatible con datos existentes en Orion.
+- Sin migraciones de esquema.
+- Cambios centrados en flujo de actualizacion y validacion, no en estructura de entidades.
+
+---
