@@ -1349,6 +1349,7 @@ function initializeStoreDetailForms() {
             e.preventDefault();
             const formData = new FormData(editShelfForm);
             const shelfId = formData.get('shelfId');
+            const shelfName = (formData.get('name') || '').trim();
             const maxCapacity = parseInt(formData.get('maxCapacity'), 10);
             if (Number.isNaN(maxCapacity) || maxCapacity <= 0) {
                 showNotification(t('notifications.error_title'), t('notifications.validation_positive_counts'), 'error');
@@ -1364,9 +1365,11 @@ function initializeStoreDetailForms() {
             }
 
             const payload = {
-                name: formData.get('name'),
+                name: shelfName,
                 maxCapacity
             };
+
+            const quantityUpdates = collectShelfQuantityUpdates();
 
             try {
                 const response = await fetch(`/api/shelves/${encodeURIComponent(shelfId)}`, {
@@ -1380,9 +1383,23 @@ function initializeStoreDetailForms() {
                     throw new Error(errorData.error || `HTTP ${response.status}`);
                 }
 
+                for (const update of quantityUpdates) {
+                    const quantityResult = await updateInventoryItemQuantity(update.inventoryItemId, update.newShelfCount);
+                    if (!quantityResult.success) {
+                        throw new Error(quantityResult.error || 'Could not update inventory item quantity');
+                    }
+                    updateInventoryItemUI(
+                        quantityResult.inventoryItemId,
+                        quantityResult.newShelfCount,
+                        quantityResult.newStockCount
+                    );
+                }
+
+                updateShelfHeaderMeta(shelfId, shelfName, maxCapacity);
+                updateShelfGroupSummary(shelfId);
+
                 showNotification(t('notifications.shelf_updated_title'), t('notifications.shelf_updated_message'), 'success');
                 closeModal('edit-shelf-modal');
-                window.location.reload();
             } catch (error) {
                 showNotification(
                     t('notifications.error_title'),
@@ -1596,8 +1613,9 @@ function fillEditShelfForm(button) {
     const shelfIdField = document.getElementById('edit-shelf-id');
     const shelfNameField = document.getElementById('edit-shelf-name');
     const shelfCapacityField = document.getElementById('edit-shelf-capacity');
+    const editShelfItemsList = document.getElementById('edit-shelf-items-list');
 
-    if (!shelfIdField || !shelfNameField || !shelfCapacityField) {
+    if (!shelfIdField || !shelfNameField || !shelfCapacityField || !editShelfItemsList) {
         return;
     }
 
@@ -1607,6 +1625,194 @@ function fillEditShelfForm(button) {
     shelfCapacityField.value = button.getAttribute('data-shelf-capacity') || 1;
     shelfCapacityField.min = String(Number.isNaN(currentUnits) ? 1 : Math.max(1, currentUnits));
     shelfCapacityField.max = '32';
+
+    renderEditShelfInventoryItems(shelfIdField.value, editShelfItemsList);
+}
+
+function renderEditShelfInventoryItems(shelfId, container) {
+    if (!container) {
+        return;
+    }
+
+    const shelfGroupRow = document.querySelector(`.shelf-group-row[data-shelf-id="${shelfId}"]`);
+    if (!shelfGroupRow) {
+        container.innerHTML = `<p class="muted">No hay InventoryItems en esta Shelf.</p>`;
+        return;
+    }
+
+    const shelfRows = [];
+    let currentRow = shelfGroupRow.nextElementSibling;
+    while (currentRow && !currentRow.classList.contains('shelf-group-row')) {
+        if (currentRow.classList.contains('inventory-product-row')) {
+            shelfRows.push(currentRow);
+        }
+        currentRow = currentRow.nextElementSibling;
+    }
+
+    if (!shelfRows.length) {
+        container.innerHTML = `<p class="muted">No hay InventoryItems en esta Shelf.</p>`;
+        return;
+    }
+
+    container.innerHTML = '';
+    shelfRows.forEach((rowElement) => {
+        const inventoryItemId = rowElement.getAttribute('data-inventoryitem-id') || '';
+        const productName = rowElement.querySelector('td:nth-child(2)')?.textContent?.trim() || 'Producto';
+        const shelfCount = parseInt(rowElement.querySelector('.inventory-shelf-cell')?.textContent || '0', 10) || 0;
+
+        if (!inventoryItemId) {
+            return;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'edit-shelf-item-row';
+
+        const label = document.createElement('label');
+        label.textContent = productName;
+        label.setAttribute('for', `edit-shelf-item-${inventoryItemId}`);
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.min = '0';
+        input.value = String(Math.max(0, shelfCount));
+        input.id = `edit-shelf-item-${inventoryItemId}`;
+        input.className = 'edit-shelf-item-input';
+        input.setAttribute('data-inventoryitem-id', inventoryItemId);
+        input.setAttribute('data-original-count', String(Math.max(0, shelfCount)));
+
+        row.appendChild(label);
+        row.appendChild(input);
+        container.appendChild(row);
+    });
+}
+
+function collectShelfQuantityUpdates() {
+    const inputs = document.querySelectorAll('#edit-shelf-items-list .edit-shelf-item-input[data-inventoryitem-id]');
+    const updates = [];
+
+    inputs.forEach((input) => {
+        const inventoryItemId = input.getAttribute('data-inventoryitem-id');
+        const originalCount = parseInt(input.getAttribute('data-original-count') || '0', 10);
+        const newShelfCount = parseInt(input.value, 10);
+
+        if (!inventoryItemId) {
+            return;
+        }
+
+        if (Number.isNaN(newShelfCount) || newShelfCount < 0) {
+            throw new Error('Las cantidades deben ser numeros mayores o iguales a 0');
+        }
+
+        if (newShelfCount !== (Number.isNaN(originalCount) ? 0 : originalCount)) {
+            updates.push({
+                inventoryItemId,
+                newShelfCount
+            });
+        }
+    });
+
+    return updates;
+}
+
+async function updateInventoryItemQuantity(inventoryItemId, newShelfCount) {
+    try {
+        const response = await fetch(`/api/inventory-items/${encodeURIComponent(inventoryItemId)}/quantity`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ newShelfCount })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            return {
+                success: false,
+                error: payload?.error || `HTTP ${response.status}`
+            };
+        }
+
+        return {
+            success: true,
+            inventoryItemId: payload.inventoryItemId || inventoryItemId,
+            newShelfCount: payload.newShelfCount,
+            newStockCount: payload.newStockCount
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+function updateShelfHeaderMeta(shelfId, shelfName, maxCapacity) {
+    const shelfGroupRow = document.querySelector(`.shelf-group-row[data-shelf-id="${shelfId}"]`);
+    if (!shelfGroupRow) {
+        return;
+    }
+
+    const shelfNameElement = shelfGroupRow.querySelector('.shelf-group-info h4');
+    const maxCapacityElement = shelfGroupRow.querySelector('.shelf-max-capacity');
+
+    if (shelfNameElement) {
+        shelfNameElement.textContent = shelfName;
+    }
+    if (maxCapacityElement) {
+        maxCapacityElement.textContent = String(maxCapacity);
+    }
+
+    shelfGroupRow.setAttribute('data-shelf-capacity', String(maxCapacity));
+
+    shelfGroupRow.querySelectorAll('[data-shelf-name]').forEach((button) => {
+        button.setAttribute('data-shelf-name', shelfName);
+    });
+    shelfGroupRow.querySelectorAll('[data-shelf-capacity]').forEach((button) => {
+        button.setAttribute('data-shelf-capacity', String(maxCapacity));
+    });
+}
+
+function updateShelfGroupSummary(shelfId) {
+    const shelfGroupRow = document.querySelector(`.shelf-group-row[data-shelf-id="${shelfId}"]`);
+    if (!shelfGroupRow) {
+        return;
+    }
+
+    let currentRow = shelfGroupRow.nextElementSibling;
+    let shelfUnits = 0;
+
+    while (currentRow && !currentRow.classList.contains('shelf-group-row')) {
+        if (currentRow.classList.contains('inventory-product-row')) {
+            const shelfCell = currentRow.querySelector('.inventory-shelf-cell');
+            const shelfValue = parseInt(shelfCell?.textContent || '0', 10);
+            shelfUnits += Number.isNaN(shelfValue) ? 0 : Math.max(0, shelfValue);
+        }
+        currentRow = currentRow.nextElementSibling;
+    }
+
+    const currentCountElement = shelfGroupRow.querySelector('.shelf-current-count');
+    if (currentCountElement) {
+        currentCountElement.textContent = String(shelfUnits);
+    }
+
+    shelfGroupRow.querySelectorAll('[data-shelf-current]').forEach((button) => {
+        button.setAttribute('data-shelf-current', String(shelfUnits));
+    });
+
+    const maxCapacity = parseInt(shelfGroupRow.getAttribute('data-shelf-capacity') || '0', 10);
+    const fillPercent = maxCapacity > 0 ? Math.min(100, Math.round((shelfUnits / maxCapacity) * 100)) : 0;
+    const progressElement = shelfGroupRow.querySelector('.group-progress-fill');
+    if (progressElement) {
+        progressElement.style.width = `${fillPercent}%`;
+        progressElement.classList.remove('low', 'medium', 'high');
+        if (fillPercent < 50) {
+            progressElement.classList.add('low');
+        } else if (fillPercent < 80) {
+            progressElement.classList.add('medium');
+        } else {
+            progressElement.classList.add('high');
+        }
+    }
 }
 
 async function prepareAddProductForm(button) {
