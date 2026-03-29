@@ -1305,3 +1305,40 @@ Completar mejoras de gestion operativa en Store detail y Product form sin altera
 - Botones requeridos auditados y operativos sin regresion visual.
 
 ---
+
+## 24. Correcciones finales: Stores Map, i18n, README y documentacion (Issue #24)
+
+### Objetivo funcional
+
+Completar ajustes finales de entrega para cumplimiento estricto del enunciado en vista de mapa global, cobertura i18n de textos visibles, URL real del repositorio en README y consistencia documental de estado de issues.
+
+### Stores Map (cumplimiento de enunciado)
+
+- Marcadores del mapa global muestran la imagen del Store.
+- Al hacer hover sobre un Store se muestra tarjeta con formato:
+  - Imagen del Store
+  - Nombre del Store
+  - Ciudad/Localidad
+  - `Capacidad: <valor> m³`
+  - Teléfono
+- La tarjeta de hover no muestra `temperature` ni `relativeHumidity`.
+- Al hacer click sobre un Store se navega directamente a su detalle (`/stores/<id>`).
+
+### i18n
+
+- Auditoria de textos visibles en listas y vistas principales.
+- Cabeceras de tabla y tooltips de acciones conectados al sistema i18n.
+- Claves nuevas añadidas para mapa global y textos comunes en ES/EN.
+
+### README y documentacion
+
+- README actualizado con URL real de clonacion del repositorio.
+- Documentacion interna de estado de issues normalizada para reflejar estado real del repositorio.
+
+### Resultado esperado
+
+- Vista `/stores/map` alineada con el comportamiento solicitado.
+- Interfaz bilingue (ES/EN) con mayor cobertura de traducciones visibles.
+- Referencias documentales coherentes con el estado real de `main`.
+
+---

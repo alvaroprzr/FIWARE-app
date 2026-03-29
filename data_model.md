@@ -1452,3 +1452,31 @@ Se reutilizan los campos existentes:
 - Cambios centrados en flujo de actualizacion y validacion, no en estructura de entidades.
 
 ---
+
+## Nota de Integracion - Stores Map e i18n Final (Issue #24)
+
+### Alcance de modelo
+
+Issue #24 no introduce nuevas entidades NGSIv2 ni nuevos atributos persistentes.
+Se reutilizan atributos existentes de `Store` para la tarjeta hover del mapa global:
+
+- `image`
+- `name`
+- `address.addressLocality`
+- `capacity`
+- `telephone`
+
+### Seleccion de atributos para UI de mapa
+
+Para la vista de mapa global, la tarjeta hover excluye atributos climaticos y prioriza atributos de identificacion y contacto.
+
+- Se muestra localidad (no temperatura/humedad).
+- Se muestra capacidad con unidad `m³` en presentacion.
+
+### Compatibilidad
+
+- Sin migraciones de esquema.
+- Sin cambios en relaciones entre entidades.
+- Ajuste enfocado en capa de presentacion e internacionalizacion.
+
+---

@@ -1211,3 +1211,43 @@ Se mantiene el contrato de formulario y se amplia la captura de tamano:
 - La auditoria de Issue #23 confirma existencia y funcionamiento de acciones requeridas sin cambios de look & feel.
 
 ---
+
+## 24. Ajustes Arquitectonicos Finales de Mapa, i18n y Documentacion (Issue #24)
+
+### Mapa global de Stores
+
+Se refuerza la arquitectura del cliente en `static/maps.js` para separar responsabilidades:
+
+- Construccion de marcador visual con imagen de Store.
+- Construccion de tarjeta hover con datos principales de presentacion.
+- Enrutado directo a detalle de Store en evento click de marcador.
+
+La tarjeta hover queda estandarizada al contrato final de UI:
+
+- Imagen
+- Nombre
+- Localidad (`addressLocality`)
+- Capacidad en `m³`
+- Telefono
+
+### Integracion i18n en cliente
+
+Se amplian claves ES/EN y utilidades de actualizacion para:
+
+- textos de cabeceras de tabla,
+- tooltips de acciones,
+- etiquetas de mapa global.
+
+El mapa resuelve textos mediante helper de traduccion en runtime, con fallback seguro cuando no exista clave.
+
+### Coherencia documental
+
+Se alinea la documentacion auxiliar de flujo GitHub con el estado real del repositorio para evitar contradicciones entre estado de issue y ramas/merges ya integrados.
+
+### Impacto de arquitectura
+
+- Mejora la trazabilidad de interacciones en `/stores/map`.
+- Reduce ambiguedad de salida visual al centralizar formato de tarjeta hover.
+- Mantiene compatibilidad con el stack y sin cambios en contratos backend NGSIv2.
+
+---
