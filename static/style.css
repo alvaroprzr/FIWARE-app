@@ -336,44 +336,6 @@ code {
     opacity: 0.6;
 }
 
-.btn-link-action {
-    background: none !important;
-    border: none !important;
-    color: var(--primary) !important;
-    padding: 0 !important;
-    margin-left: 0;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    transform: none !important;
-}
-
-.btn-link-action + .btn-link-action {
-    margin-left: var(--spacing-sm);
-}
-
-.btn-link-action:hover,
-.btn-link-action:focus-visible {
-    color: #1765cc !important;
-}
-
-.btn-link-action:focus-visible {
-    outline: 2px solid color-mix(in srgb, var(--primary) 35%, transparent);
-    outline-offset: 2px;
-}
-
-.btn-link-action.disabled,
-.btn-link-action[aria-disabled='true'] {
-    color: var(--text-secondary) !important;
-    cursor: not-allowed;
-    text-decoration: none;
-    opacity: 0.7;
-}
-
 /* ============================================================================
    Forms
    ============================================================================ */
@@ -1171,38 +1133,6 @@ body.dark-theme .home-mermaid svg .label {
 
 .inventory-product-row td {
     vertical-align: middle;
-}
-
-.inventory-shelf-cell .inline-quantity-form {
-    display: none;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.inventory-shelf-cell.is-editing .shelf-count-display {
-    display: none;
-}
-
-.inventory-shelf-cell.is-editing .inline-quantity-form {
-    display: inline-flex;
-}
-
-.inline-quantity-input {
-    width: 84px;
-    padding: 0.25rem 0.4rem;
-}
-
-.btn-inline-link {
-    background: none !important;
-    border: none !important;
-    color: var(--primary) !important;
-    padding: 0 !important;
-    margin-left: 0;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
 }
 
 .inventory-empty-row td {
