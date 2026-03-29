@@ -28,7 +28,7 @@
             <div class="form-group">
                 <label for="product-size" data-i18n="form.size">Tamaño</label>
                 <select id="product-size" name="size" required>
-                    <option value="">-- Seleccionar tamaño --</option>
+                    <option value="" data-i18n="form.select_size">-- Seleccionar tamaño --</option>
                     <option value="XS">XS (Extra Pequeño)</option>
                     <option value="S">S (Pequeño)</option>
                     <option value="M">M (Mediano)</option>
@@ -256,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             messageDiv.className = 'form-message';
-            messageDiv.textContent = 'Creando producto...';
+            messageDiv.textContent = (window.t ? window.t('form.creating_product') : 'Creando producto...');
             messageDiv.classList.add('success');
             messageDiv.style.display = 'block';
 
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (response.ok && data.success) {
                 messageDiv.className = 'form-message success';
-                messageDiv.textContent = 'Producto creado exitosamente. Redirigiendo...';
+                messageDiv.textContent = (window.t ? window.t('form.product_created_redirect') : 'Producto creado exitosamente. Redirigiendo...');
                 messageDiv.style.display = 'block';
                 
                 setTimeout(() => {

@@ -17,12 +17,12 @@
         <table class="employees-table">
             <thead>
                 <tr>
-                    <th scope="col">Imagen</th>
-                    <th scope="col">Nombre</th>
-                    <th scope="col">Correo</th>
-                    <th scope="col">Categoría</th>
-                    <th scope="col">Competencias</th>
-                    <th scope="col">Almacén</th>
+                    <th scope="col" data-i18n="table.image">Imagen</th>
+                    <th scope="col" data-i18n="table.name">Nombre</th>
+                    <th scope="col" data-i18n="table.email">Correo</th>
+                    <th scope="col" data-i18n="table.category">Categoría</th>
+                    <th scope="col" data-i18n="table.skills">Competencias</th>
+                    <th scope="col" data-i18n="table.store">Almacén</th>
                     <th scope="col" data-i18n="employees.actions">Acciones</th>
                 </tr>
             </thead>
@@ -30,14 +30,14 @@
                 {% for emp in employees %}
                 <tr>
                     <td class="img-cell">
-                        <img src="{{ emp.image.value if emp and emp.image else 'https://via.placeholder.com/50x50' }}" alt="{{ emp.name.value if emp and emp.name else 'Unknown' }}" class="employee-thumb">
+                        <img src="{{ emp.image.value if emp and emp.image else 'https://via.placeholder.com/50x50' }}" alt="{{ emp.name.value if emp and emp.name else '-' }}" class="employee-thumb">
                     </td>
                     <td class="name-cell">
-                        <a href="/employees/{{ emp.id.split(':')[-1] }}">{{ emp.name.value if emp and emp.name else 'Sin nombre' }}</a>
+                        <a href="/employees/{{ emp.id.split(':')[-1] }}">{{ emp.name.value if emp and emp.name else '-' }}</a>
                     </td>
                     <td class="email-cell">{{ emp.email.value if emp and emp.email else '-' }}</td>
                     <td class="category-cell">
-                        <span class="category-badge" data-category="{{ emp.category.value if emp and emp.category else 'Unknown' }}">
+                        <span class="category-badge" data-category="{{ emp.category.value if emp and emp.category else '-' }}">
                             <i class="fas fa-tag"></i>
                             {{ emp.category.value if emp and emp.category else '-' }}
                         </span>
@@ -57,13 +57,13 @@
                     </td>
                     <td class="store-cell">{{ emp.store_name if emp.store_name else '-' }}</td>
                     <td class="actions-cell">
-                        <a href="/employees/{{ emp.id.split(':')[-1] }}" class="btn btn-sm btn-info" title="Ver detalles">
+                        <a href="/employees/{{ emp.id.split(':')[-1] }}" class="btn btn-sm btn-info" data-i18n-title="actions.view_details" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="/employees/{{ emp.id.split(':')[-1] }}/edit" class="btn btn-sm btn-warning" title="Editar">
+                        <a href="/employees/{{ emp.id.split(':')[-1] }}/edit" class="btn btn-sm btn-warning" data-i18n-title="actions.edit" title="Editar">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <button class="btn btn-sm btn-danger btn-delete" data-id="{{ emp.id }}" title="Borrar">
+                        <button class="btn btn-sm btn-danger btn-delete" data-id="{{ emp.id }}" data-i18n-title="actions.delete" title="Borrar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>

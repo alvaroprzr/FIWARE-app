@@ -36,7 +36,7 @@ Sistema de gestión de inventario basado en **FIWARE NGSIv2 Context Broker** con
 
 ### 1. Clonar el repositorio
 ```bash
-git clone <repository-url>
+git clone https://github.com/alvaroprzr/FIWARE-app.git
 cd FIWARE-app
 ```
 

@@ -6,15 +6,15 @@
 <div class="container">
     <div class="employee-detail">
         <div class="employee-hero">
-            <img src="{{ employee.image.value if employee and employee.image else 'https://via.placeholder.com/300x300' }}" alt="{{ employee.name.value if employee and employee.name else 'Unknown' }}" class="employee-photo">
+            <img src="{{ employee.image.value if employee and employee.image else 'https://via.placeholder.com/300x300' }}" alt="{{ employee.name.value if employee and employee.name else '-' }}" class="employee-photo">
             <div class="employee-info">
-                <h1>{{ employee.name.value if employee and employee.name else 'Unknown' }}</h1>
+                <h1>{{ employee.name.value if employee and employee.name else '-' }}</h1>
                 <p class="category">{{ employee.category.value if employee and employee.category else '-' }}</p>
                 <p class="username"><i class="fas fa-user"></i> {{ employee.username.value if employee and employee.username else '-' }}</p>
                 <p class="email"><i class="fas fa-envelope"></i> {{ employee.email.value if employee and employee.email else '-' }}</p>
                 {% if store %}
                 <p class="store"><i class="fas fa-warehouse"></i> 
-                    <a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value if store and store.name else 'Unknown' }}</a>
+                    <a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value if store and store.name else '-' }}</a>
                 </p>
                 {% endif %}
             </div>
@@ -41,7 +41,7 @@
             <div class="details-grid">
                 <div class="detail-item">
                     <span class="label" data-i18n="employee.hire_date">Fecha de Contratación</span>
-                    <span class="value">{{ employee.dateOfContract.value if employee and employee.dateOfContract else 'N/A' }}</span>
+                    <span class="value">{{ employee.dateOfContract.value if employee and employee.dateOfContract else '-' }}</span>
                 </div>
                 <div class="detail-item">
                     <span class="label" data-i18n="employee.category">Categoría</span>

@@ -6,14 +6,14 @@
 <div class="container">
     <div class="product-detail-page" id="product-detail-root" data-product-id="{{ product.id }}">
         <div class="product-hero">
-            <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/400x300' }}" alt="{{ product.name.value if product and product.name else 'Unknown' }}">
+            <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/400x300' }}" alt="{{ product.name.value if product and product.name else '-' }}">
             <div class="product-header">
-                <h1>{{ product.name.value if product and product.name else 'Sin nombre' }}</h1>
+                <h1>{{ product.name.value if product and product.name else '-' }}</h1>
                 <p class="price product-price-cell" data-product-id="{{ product.id }}">€{{ '%.2f' | format(product.price.value) if product and product.price and product.price.value else '-' }}</p>
                 <p class="specs">
-                    <span class="size">Tamaño: {{ product.size.value if product and product.size else '-' }}</span>
+                    <span class="size"><span data-i18n="table.size">Tamaño</span>: {{ product.size.value if product and product.size else '-' }}</span>
                     <span class="color">
-                        Color:
+                        <span data-i18n="table.color">Color</span>:
                         <span class="swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}"></span>
                         <span class="color-hex">{{ product.color.value if product and product.color else '#cccccc' }}</span>
                     </span>
@@ -37,7 +37,7 @@
                                                 <tr class="store-header">
                             <td colspan="3">
                                                                 <strong>{{ store_data.store_name }}</strong>
-                                                                <span class="badge">Unidades en Stock: {{ store_data.stockCount }}</span>
+                                                                <span class="badge"><span data-i18n="product.units_in_stock">Unidades en Stock</span>: {{ store_data.stockCount }}</span>
                                                                 <button
                                                                     type="button"
                                                                     class="btn-store-link"
@@ -51,7 +51,7 @@
                         {% for item in store_data.shelves %}
                         <tr class="shelf-row">
                             <td></td>
-                            <td>{{ item.shelfName if item.shelfName else 'Unknown' }}</td>
+                            <td>{{ item.shelfName if item.shelfName else '-' }}</td>
                             <td><span class="badge">{{ item.shelfCount.value if item.shelfCount else 0 }}</span></td>
                         </tr>
                         {% endfor %}
