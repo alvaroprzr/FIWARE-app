@@ -1252,6 +1252,28 @@ body.dark-theme .home-mermaid svg .label {
     margin-top: var(--spacing-md);
 }
 
+.edit-shelf-items-section {
+    margin-top: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--border);
+}
+
+.edit-shelf-items-section h4 {
+    margin: 0 0 var(--spacing-xs) 0;
+}
+
+.edit-shelf-items-list {
+    display: grid;
+    gap: var(--spacing-sm);
+}
+
+.edit-shelf-item-row {
+    display: grid;
+    grid-template-columns: 1fr 110px;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
 .product-image {
     width: 40px;
     height: 40px;

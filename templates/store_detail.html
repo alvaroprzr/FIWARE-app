@@ -90,17 +90,17 @@
                 <tbody>
                     {% for shelf in shelves %}
                     {% set shelf_items = inventory_by_shelf.get(shelf.id, []) %}
-                    <tr class="shelf-group-row">
+                    <tr class="shelf-group-row" data-shelf-id="{{ shelf.id }}" data-shelf-capacity="{{ shelf.maxCapacity.value if shelf.maxCapacity else 0 }}">
                         <td colspan="8">
                             <div class="shelf-group-header">
                                 <div class="shelf-group-info">
                                     <h4>{{ shelf.name.value if shelf.name else 'Sin nombre' }}</h4>
                                     <p>
-                                        {{ shelf.calculated_item_count }} / {{ shelf.maxCapacity.value if shelf.maxCapacity else 0 }}
+                                        <span class="shelf-current-count">{{ shelf.calculated_item_count }}</span> / <span class="shelf-max-capacity">{{ shelf.maxCapacity.value if shelf.maxCapacity else 0 }}</span>
                                         <span data-i18n="store.units_on_shelf">unidades en shelf</span>
                                     </p>
                                     <div class="group-progress-track">
-                                        <div class="group-progress-fill {{ shelf.capacity_fill.status }}" style="width: {{ shelf.capacity_fill.percent }}%;"></div>
+                                        <div class="group-progress-fill {{ shelf.capacity_fill.status }}" data-shelf-progress="{{ shelf.id }}" style="width: {{ shelf.capacity_fill.percent }}%;"></div>
                                     </div>
                                 </div>
                                 <div class="shelf-group-actions">
@@ -263,6 +263,12 @@
             <label for="edit-shelf-capacity" data-i18n="store.shelf_capacity">Capacidad máxima</label>
             <input id="edit-shelf-capacity" name="maxCapacity" type="number" min="1" max="32" required>
             <span class="field-error" data-error-for="edit-shelf-capacity"></span>
+
+            <div class="edit-shelf-items-section">
+                <h4>Inventario en esta Shelf</h4>
+                <p class="muted">Puedes ajustar el shelfCount por producto.</p>
+                <div id="edit-shelf-items-list" class="edit-shelf-items-list"></div>
+            </div>
 
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" data-close-modal="edit-shelf-modal" data-i18n="store.cancel">Cancelar</button>
