@@ -1634,22 +1634,35 @@ function renderEditShelfInventoryItems(shelfId, container) {
         return;
     }
 
-    const inventoryByShelf = window.inventoryData?.inventory_by_shelf || {};
-    const productsById = window.inventoryData?.products_dict || {};
-    const shelfItems = inventoryByShelf[shelfId] || [];
+    const shelfGroupRow = document.querySelector(`.shelf-group-row[data-shelf-id="${shelfId}"]`);
+    if (!shelfGroupRow) {
+        container.innerHTML = `<p class="muted">No hay InventoryItems en esta Shelf.</p>`;
+        return;
+    }
 
-    if (!shelfItems.length) {
+    const shelfRows = [];
+    let currentRow = shelfGroupRow.nextElementSibling;
+    while (currentRow && !currentRow.classList.contains('shelf-group-row')) {
+        if (currentRow.classList.contains('inventory-product-row')) {
+            shelfRows.push(currentRow);
+        }
+        currentRow = currentRow.nextElementSibling;
+    }
+
+    if (!shelfRows.length) {
         container.innerHTML = `<p class="muted">No hay InventoryItems en esta Shelf.</p>`;
         return;
     }
 
     container.innerHTML = '';
-    shelfItems.forEach((item) => {
-        const inventoryItemId = item?.id;
-        const productId = item?.refProduct?.value;
-        const shelfCount = parseInt(item?.shelfCount?.value, 10) || 0;
-        const product = productsById[productId] || {};
-        const productName = product?.name?.value || (productId ? productId.split(':').pop() : 'Producto');
+    shelfRows.forEach((rowElement) => {
+        const inventoryItemId = rowElement.getAttribute('data-inventoryitem-id') || '';
+        const productName = rowElement.querySelector('td:nth-child(2)')?.textContent?.trim() || 'Producto';
+        const shelfCount = parseInt(rowElement.querySelector('.inventory-shelf-cell')?.textContent || '0', 10) || 0;
+
+        if (!inventoryItemId) {
+            return;
+        }
 
         const row = document.createElement('div');
         row.className = 'edit-shelf-item-row';
