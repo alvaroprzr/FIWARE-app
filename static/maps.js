@@ -50,9 +50,12 @@ function buildMarkerImageIcon(storeImage) {
 
 function buildStoreHoverCard(store) {
     const storeName = store.name?.value || mapT('map.unknown_store', 'Unknown store');
-    const countryCode = store.countryCode?.value || mapT('common.not_available', 'N/A');
-    const temperature = toClimateValue(store.temperature?.value, '°C');
-    const humidity = toClimateValue(store.relativeHumidity?.value, '%');
+    const locality = store.address?.value?.addressLocality || mapT('map.unknown_locality', 'Localidad desconocida');
+    const capacityRaw = store.capacity?.value;
+    const capacity = (capacityRaw === undefined || capacityRaw === null || capacityRaw === '')
+        ? mapT('common.not_available', 'N/A')
+        : `${capacityRaw} m³`;
+    const phone = store.telephone?.value || mapT('common.not_available', 'N/A');
     const image = store.image?.value || 'https://via.placeholder.com/260x140';
 
     return `
@@ -60,9 +63,9 @@ function buildStoreHoverCard(store) {
             <img src="${escapeHtml(image)}" alt="${escapeHtml(storeName)}" class="store-hover-card-image">
             <div class="store-hover-card-body">
                 <h4 class="store-hover-card-title">${escapeHtml(storeName)}</h4>
-                <p><strong>${escapeHtml(mapT('map.country_code', 'Country'))}:</strong> ${escapeHtml(countryCode)}</p>
-                <p><strong>${escapeHtml(mapT('map.temperature', 'Temperature'))}:</strong> ${escapeHtml(temperature)}</p>
-                <p><strong>${escapeHtml(mapT('map.relative_humidity', 'Relative humidity'))}:</strong> ${escapeHtml(humidity)}</p>
+                <p>${escapeHtml(locality)}</p>
+                <p><strong>${escapeHtml(mapT('map.capacity_label', 'Capacidad'))}:</strong> ${escapeHtml(capacity)}</p>
+                <p>${escapeHtml(phone)}</p>
             </div>
         </div>
     `;
