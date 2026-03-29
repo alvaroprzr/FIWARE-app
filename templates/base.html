@@ -34,7 +34,7 @@
             <div class="navbar-brand">
                 <a href="/" class="logo">
                     <i class="fas fa-warehouse"></i>
-                    <span>FIWARE Almacén</span>
+                    <span data-i18n="brand.title">FIWARE Almacén</span>
                 </a>
             </div>
             
@@ -50,7 +50,7 @@
             <!-- Right side controls -->
             <div class="navbar-controls">
                 <!-- Notification badge -->
-                <button id="notification-toggle" class="notification-badge" aria-label="Abrir notificaciones" aria-controls="notifications-panel" aria-expanded="false" type="button">
+                <button id="notification-toggle" class="notification-badge" data-i18n-aria-label="notifications.title" aria-label="Notificaciones" aria-controls="notifications-panel" aria-expanded="false" type="button">
                     <i class="fas fa-bell"></i>
                     <span class="badge-count" id="notification-count">0</span>
                 </button>
@@ -62,7 +62,7 @@
                 </select>
                 
                 <!-- Dark/Light mode toggle -->
-                <button id="theme-toggle" class="theme-toggle" title="Toggle dark/light mode">
+                <button id="theme-toggle" class="theme-toggle" data-i18n-title="theme.toggle" title="Toggle dark/light mode">
                     <i class="fas fa-moon"></i>
                 </button>
             </div>
@@ -115,7 +115,11 @@
         socket.on('connect', () => {
             console.log('Connected to server');
             document.getElementById('orion-status').className = 'status-indicator connected';
-            document.querySelector('#orion-status span').textContent = 'Conectado';
+            if (typeof window.t === 'function') {
+                document.querySelector('#orion-status span').textContent = window.t('status.connected');
+            } else {
+                document.querySelector('#orion-status span').textContent = 'Conectado';
+            }
         });
         
         socket.on('disconnect', () => {

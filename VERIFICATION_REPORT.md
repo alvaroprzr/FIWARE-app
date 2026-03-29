@@ -4,6 +4,9 @@
 **Application:** FIWARE NGSIv2 Smart Warehouse  
 **Status:** ✅ READY FOR DEPLOYMENT
 
+> Timeline note (29 March 2026): This report validates the post-Issue #1 baseline.
+> Additional fixes and enhancements from Issues #2 to #23 were merged afterwards.
+
 ---
 
 ## Executive Summary

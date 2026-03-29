@@ -17,12 +17,12 @@
         <table class="products-table">
             <thead>
                 <tr>
-                    <th scope="col">Imagen</th>
-                    <th scope="col">Nombre</th>
-                    <th scope="col">Precio</th>
-                    <th scope="col">Tamaño</th>
-                    <th scope="col">Color</th>
-                    <th scope="col"># Ubicaciones</th>
+                    <th scope="col" data-i18n="table.image">Imagen</th>
+                    <th scope="col" data-i18n="table.name">Nombre</th>
+                    <th scope="col" data-i18n="table.price">Precio</th>
+                    <th scope="col" data-i18n="table.size">Tamaño</th>
+                    <th scope="col" data-i18n="table.color">Color</th>
+                    <th scope="col" data-i18n="table.locations_count"># Ubicaciones</th>
                     <th scope="col" data-i18n="products.actions">Acciones</th>
                 </tr>
             </thead>
@@ -30,25 +30,25 @@
                 {% for product in products %}
                 <tr>
                     <td class="img-cell">
-                        <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/50x40' }}" alt="{{ product.name.value if product and product.name else 'Unknown' }}" class="product-thumb">
+                        <img src="{{ product.image.value if product and product.image else 'https://via.placeholder.com/50x40' }}" alt="{{ product.name.value if product and product.name else '-' }}" class="product-thumb">
                     </td>
                     <td class="name-cell">
-                        <a href="/products/{{ product.id.split(':')[-1] }}">{{ product.name.value if product and product.name else 'Sin nombre' }}</a>
+                        <a href="/products/{{ product.id.split(':')[-1] }}">{{ product.name.value if product and product.name else '-' }}</a>
                     </td>
                     <td class="product-price-cell" data-product-id="{{ product.id }}">€{{ product.price.value if product and product.price else '-' }}</td>
                     <td>{{ product.size.value if product and product.size else '-' }}</td>
                     <td class="color-cell">
-                        <div class="color-swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}" title="{{ product.color.value if product and product.color else 'N/A' }}"></div>
+                        <div class="color-swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}" title="{{ product.color.value if product and product.color else '-' }}"></div>
                     </td>
-                    <td class="inventory-cell">{{ product.inventory_count }} ubicaciones</td>
+                    <td class="inventory-cell">{{ product.inventory_count }} <span data-i18n="table.locations_count">ubicaciones</span></td>
                     <td class="actions-cell">
-                        <a href="/products/{{ product.id.split(':')[-1] }}" class="btn btn-sm btn-info" title="Ver detalles">
+                        <a href="/products/{{ product.id.split(':')[-1] }}" class="btn btn-sm btn-info" data-i18n-title="actions.view_details" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="/products/{{ product.id.split(':')[-1] }}/edit" class="btn btn-sm btn-warning" title="Editar">
+                        <a href="/products/{{ product.id.split(':')[-1] }}/edit" class="btn btn-sm btn-warning" data-i18n-title="actions.edit" title="Editar">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <button class="btn btn-sm btn-danger btn-delete" data-id="{{ product.id }}" title="Borrar">
+                        <button class="btn btn-sm btn-danger btn-delete" data-id="{{ product.id }}" data-i18n-title="actions.delete" title="Borrar">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>

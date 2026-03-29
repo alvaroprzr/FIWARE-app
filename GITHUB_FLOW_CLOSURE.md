@@ -4,6 +4,11 @@
 **Status:** ✅ CLOSED  
 **URL:** https://github.com/alvaroprzr/FIWARE-app/issues/1
 
+> Nota de estado actual del repositorio (29 Marzo 2026):
+> - Issue #1 permanece cerrado correctamente.
+> - El flujo continuó con issues #2 a #23 ya integrados en `main`.
+> - Issue #24 está creado en GitHub y en rama `feature/issue-24-stores-map-i18n-readme`.
+
 ---
 
 ## ✅ Verificación del GitHub Flow

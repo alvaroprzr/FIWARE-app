@@ -7,7 +7,7 @@
     <div class="store-detail-hero">
         <img src="{{ store.image.value if store and store.image and store.image.value else 'https://via.placeholder.com/400x300' }}" alt="{{ store.name.value if store and store.name and store.name.value else 'Almacén' }}">
         <div class="store-hero-info">
-            <h1>{{ store.name.value if store and store.name and store.name.value else 'Sin nombre' }}</h1>
+            <h1>{{ store.name.value if store and store.name and store.name.value else '-' }}</h1>
             <p class="description">{{ store.description.value if store and store.description and store.description.value else '-' }}</p>
             <div class="store-meta">
                 <span class="meta-item">
@@ -37,7 +37,7 @@
                     {% if store.temperature and store.temperature.value is not none %}
                         {{ store.temperature.value }}°C
                     {% else %}
-                        No disponible
+                        <span data-i18n="common.not_available">N/A</span>
                     {% endif %}
                 </p>
             </div>
@@ -49,7 +49,7 @@
                     {% if store.relativeHumidity and store.relativeHumidity.value is not none %}
                         {{ store.relativeHumidity.value }}%
                     {% else %}
-                        No disponible
+                        <span data-i18n="common.not_available">N/A</span>
                     {% endif %}
                 </p>
             </div>
@@ -94,7 +94,7 @@
                         <td colspan="8">
                             <div class="shelf-group-header">
                                 <div class="shelf-group-info">
-                                    <h4>{{ shelf.name.value if shelf.name else 'Sin nombre' }}</h4>
+                                    <h4>{{ shelf.name.value if shelf.name else '-' }}</h4>
                                     <p>
                                         <span class="shelf-current-count">{{ shelf.calculated_item_count }}</span> / <span class="shelf-max-capacity">{{ shelf.maxCapacity.value if shelf.maxCapacity else 0 }}</span>
                                         <span data-i18n="store.units_on_shelf">unidades en shelf</span>
@@ -214,7 +214,7 @@
             <div class="employee-item">
                 <img src="{{ emp.image.value if emp.image else 'https://via.placeholder.com/100x100' }}" alt="{{ emp.name.value if emp.name else 'Empleado' }}">
                 <div>
-                    <h4><a href="/employees/{{ emp.id.split(':')[-1] }}">{{ emp.name.value if emp.name else 'Sin nombre' }}</a></h4>
+                    <h4><a href="/employees/{{ emp.id.split(':')[-1] }}">{{ emp.name.value if emp.name else '-' }}</a></h4>
                     <p>{{ emp.category.value if emp.category else '-' }}</p>
                     <p class="email">{{ emp.email.value if emp.email else '-' }}</p>
                 </div>
@@ -265,8 +265,8 @@
             <span class="field-error" data-error-for="edit-shelf-capacity"></span>
 
             <div class="edit-shelf-items-section">
-                <h4>Inventario en esta Shelf</h4>
-                <p class="muted">Puedes ajustar el shelfCount por producto.</p>
+                <h4 data-i18n="store.edit_inventory_title">Inventario en esta Shelf</h4>
+                <p class="muted" data-i18n="store.edit_inventory_help">Puedes ajustar el shelfCount por producto.</p>
                 <div id="edit-shelf-items-list" class="edit-shelf-items-list"></div>
             </div>
 

@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (selectedSize === 'OTHER' && !customSizeValue) {
       messageDiv.className = 'form-message error';
-      messageDiv.textContent = 'Debes indicar un tamaño cuando seleccionas Otro.';
+      messageDiv.textContent = (window.t ? window.t('form.size_other_required') : 'Debes indicar un tamaño cuando seleccionas Otro.');
       return;
     }
 
@@ -279,8 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (response.ok && data.success) {
         messageDiv.className = 'form-message success';
         messageDiv.textContent = isEditMode
-          ? 'Producto actualizado correctamente. Redirigiendo...'
-          : 'Producto creado correctamente. Redirigiendo...';
+          ? (window.t ? window.t('form.product_updated_redirect') : 'Producto actualizado correctamente. Redirigiendo...')
+          : (window.t ? window.t('form.product_created_redirect_short') : 'Producto creado correctamente. Redirigiendo...');
         setTimeout(() => {
           window.location.href = '/products';
         }, 1200);
@@ -290,7 +290,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (error) {
       messageDiv.className = 'form-message error';
-      messageDiv.textContent = `Error de conexion: ${error.message}`;
+      messageDiv.textContent = window.t
+        ? window.t('form.connection_error').replace('{error}', error.message)
+        : `Error de conexion: ${error.message}`;
     }
   });
 });
