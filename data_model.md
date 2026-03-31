@@ -236,7 +236,7 @@ Control granular: qué producto, en qué estantería, en qué tienda, cantidades
 
 **Interacción Cliente - Botón Comprar (Issue #10):**
 - La interfaz proporciona botón "Comprar" en vista store_detail para cada InventoryItem
-- Al clickear: realiza PATCH directo a Orion decrementando shelfCount y stockCount en -1
+- Al clickear: llama a `PATCH /api/inventory-items/<inventory_item_id>/buy`; el backend ejecuta PATCH a Orion decrementando shelfCount y stockCount en -1
 - Cliente actualiza UI sin recargar página
 - Botón deshabilitado si shelfCount ≤ 0
 
@@ -452,7 +452,7 @@ Validación lógica en backend:
 
 ### Compra InventoryItem (decremento)
 
-Para compra de una unidad se usa PATCH directo a Orion con decremento atómico en ambos atributos:
+Para compra de una unidad, el frontend llama al endpoint backend `PATCH /api/inventory-items/<inventory_item_id>/buy`, y Flask aplica en Orion el decremento atomico en ambos atributos:
 
 ```json
 {
@@ -464,6 +464,12 @@ Para compra de una unidad se usa PATCH directo a Orion con decremento atómico e
 Tras respuesta exitosa, la UI actualiza contadores sin recargar la página.
 
 En la vista Store detail, cada InventoryItem expone esta operación mediante un control tipo enlace por fila.
+
+### Sincronizacion de referencia (Issue #27)
+
+- Ruta de mapa global de la aplicacion: `/stores/map`.
+- Convencion de tema oscuro de la UI: `dark-theme` en `<body>`.
+- Regla de higiene de repositorio para metadatos Windows: `**/*:Zone.Identifier`.
 
 ### Llenado de Shelf en UI
 

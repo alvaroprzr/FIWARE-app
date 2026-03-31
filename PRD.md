@@ -61,7 +61,7 @@ Conjunto de vistas HTML + CSS + JavaScript que proporcionan:
   - Lista tabular con foto, nombre, país, temperatura y humedad con códigos de color.
   - Detalle exhaustivo: foto del store, sensores ambientales, mapa Leaflet.js, recorrido virtual 3D (Three.js), inventario agrupado por shelf con barras de progreso, tweets, panel de notificaciones.
   - Inventario con tabla detallada: imagen, nombre, precio, tamaño, color, stock, cantidad en estantería, y botón "Comprar" para cada InventoryItem.
-  - Botón "Comprar" realiza PATCH directo a Orion (NGSIv2) para decrementar shelfCount y stockCount, con actualización UI en tiempo real sin recargar página.
+  - Botón "Comprar" llama endpoint Flask same-origin (`PATCH /api/inventory-items/<inventory_item_id>/buy`), y el backend ejecuta PATCH NGSIv2 en Orion para decrementar `shelfCount` y `stockCount`, con actualización UI sin recargar página.
   - Formulario para añadir shelves.
 - **Employees:**
   - Lista con foto, nombre, categoría, skills con iconografía.
@@ -865,7 +865,7 @@ store = orion.get_entity(store_id, include_attrs='name,address,telephone,capacit
 
 ### Problema 4: Botón "Comprar" en InventoryItems
 
-**Requisito:** Cada InventoryItem debe permitir compra con PATCH directo a Orion
+**Requisito:** Cada InventoryItem debe permitir compra desde UI via endpoint backend (`PATCH /api/inventory-items/<inventory_item_id>/buy`) con decremento atomico en Orion
 
 **Solución:**
 - Nueva columna "Acciones" en tabla de inventario
@@ -885,7 +885,7 @@ store = orion.get_entity(store_id, include_attrs='name,address,telephone,capacit
 #### JavaScript (static/main.js)
 - Función `buyInventoryItem(inventoryItemId, currentShelfCount, currentStockCount)`
   - Valida shelfCount > 0
-  - Realiza PATCH directo a Orion
+  - Llama al endpoint backend de compra y recibe nuevo conteo para actualizar UI
   - Maneja errores de red con notificaciones
   
 - Función `updateInventoryItemUI(inventoryItemId, newShelfCount, newStockCount)`
@@ -1445,5 +1445,26 @@ Corregir inconsistencias de presentacion en vistas de Stores y Products, y mejor
 - Mejora de foco visual del dashboard principal.
 - Mejora de mantenibilidad operativa en Store detail al permitir baja directa de Shelves.
 - Sin cambios en entidades NGSIv2 ni en contratos de datos persistidos.
+
+---
+
+## 27. Sincronizacion documental y limpieza del repositorio (Issue #27)
+
+### Ajustes documentales consolidados
+
+- Ruta de mapa global oficial: `/stores/map`.
+- Estructura static oficial: `static/style.css`, `static/main.js`, `static/maps.js`, `static/store_3d.js`.
+- Flujo de compra oficial: frontend -> Flask (`/api/inventory-items/<id>/buy`) -> PATCH Orion.
+- Tema visual oficial: clase `dark-theme` aplicada en `<body>`.
+
+### Alcance de limpieza
+
+- Se retiran reportes de trabajo obsoletos de la raiz del repositorio.
+- Se agrega regla de bloqueo de metadatos Windows en `.gitignore`:
+  - `**/*:Zone.Identifier`
+
+### Estado esperado
+
+- PRD coherente con la implementacion real en rutas Flask, templates y assets JS/CSS.
 
 ---

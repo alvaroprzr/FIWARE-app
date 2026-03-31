@@ -1330,3 +1330,19 @@ Click en "Borrar" (modal edit shelf)
 - No modifica contratos NGSIv2 de entidades ni proveedores/suscripciones.
 
 ---
+
+## 27. Sincronizacion documental y limpieza (Issue #27)
+
+### Alineaciones de arquitectura oficial
+
+- Ruta de mapa global confirmada en backend y navbar: `/stores/map`.
+- Estructura de assets estaticos en raiz de `static/` (sin subcarpetas `css/` ni `js/`).
+- Flujo de compra oficial: cliente llama `PATCH /api/inventory-items/<inventory_item_id>/buy`, backend Flask aplica PATCH a Orion.
+- Convencion de tema oscuro en UI: `dark-theme` sobre `<body>`.
+
+### Efecto de repositorio
+
+- Se elimina documentacion transitoria obsoleta para reducir ruido.
+- Se bloquea subida de metadatos alternos de Windows con `**/*:Zone.Identifier`.
+
+---
