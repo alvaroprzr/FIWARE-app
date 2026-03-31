@@ -1385,3 +1385,65 @@ Corregir inconsistencias de presentacion en vistas de Stores y Products, y mejor
 - Sin cambios en contratos API ni en entidades NGSIv2 persistentes.
 
 ---
+
+## 26. Home simplificada y borrado de Shelf en cascada (Issue #26)
+
+### Objetivo funcional
+
+- Simplificar el dashboard Home para mostrar solo las tarjetas de:
+  - Stores
+  - Products
+  - Employees
+- Incorporar borrado de Shelf desde el modal de "Modificar Shelf" en Store detail, con confirmacion explicita y borrado en cascada de InventoryItems relacionados.
+
+### Cambios implementados
+
+- **Home (`/`)**
+  - Se eliminan de la vista las tarjetas de:
+    - Shelves
+    - Inventory Items
+    - Total Entities
+  - Se mantienen visibles y navegables unicamente:
+    - Stores
+    - Products
+    - Employees
+
+- **Store detail (`/stores/<id>`)**
+  - En el modal de edicion de Shelf se agrega boton **Borrar** (rojo).
+  - Distribucion de acciones en pie del modal:
+    - Izquierda: Borrar
+    - Derecha: Cancelar y Guardar
+  - Al pulsar Borrar:
+    1. Se solicita confirmacion al usuario.
+    2. Si confirma, se ejecuta borrado en backend.
+    3. Se cierra el modal y se actualiza la tabla de inventario sin recarga.
+
+- **Backend de borrado en cascada**
+  - Nuevo endpoint de aplicacion:
+    - `DELETE /api/shelves/<shelf_id>`
+  - Flujo de borrado:
+    1. Buscar `InventoryItem` con `refShelf == shelf_id`.
+    2. Borrar InventoryItems uno a uno.
+    3. Borrar la entidad Shelf.
+  - Si falla un borrado parcial de InventoryItems, la operacion retorna error y no se considera completada.
+
+- **Actualizacion UI sin recarga**
+  - Tras borrado exitoso, la vista elimina en DOM:
+    - la fila cabecera del grupo de Shelf,
+    - y todas sus filas hijas de inventario (incluyendo fila vacia si aplica).
+
+### Criterios de aceptacion cubiertos
+
+- Home muestra solo Stores, Products y Employees.
+- Modal "Modificar Shelf" incluye boton Borrar rojo alineado a la izquierda.
+- Existe confirmacion previa al borrado.
+- El borrado elimina Shelf e InventoryItems relacionados.
+- La tabla se actualiza sin `window.location.reload()`.
+
+### Impacto
+
+- Mejora de foco visual del dashboard principal.
+- Mejora de mantenibilidad operativa en Store detail al permitir baja directa de Shelves.
+- Sin cambios en entidades NGSIv2 ni en contratos de datos persistidos.
+
+---

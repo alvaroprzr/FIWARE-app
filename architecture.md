@@ -1281,3 +1281,55 @@ Esto desplaza el significado de conteo desde "filas InventoryItem" a "Stores act
 - Sin cambios en estructura de entidades; solo cambia interpretacion de un agregado para visualizacion.
 
 ---
+
+## 26. Home simplificada y borrado de Shelf con cascada (Issue #26)
+
+### Cambios de capa de presentacion
+
+- En `home.html` se reduce el dashboard a 3 tarjetas operativas:
+  - Stores
+  - Products
+  - Employees
+- Se elimina visibilidad de tarjetas de Shelves, Inventory Items y Total Entities en Home.
+
+### Cambios de capa de interaccion cliente
+
+- En `store_detail.html` + `main.js` se extiende el modal de edicion de Shelf:
+  - nuevo boton destructivo "Borrar" en el pie,
+  - confirmacion previa,
+  - feedback de exito/error por notificaciones i18n.
+- Tras exito de borrado, el frontend elimina el bloque de Shelf directamente en DOM sin recargar pagina.
+
+### Cambios de capa de aplicacion (Flask)
+
+- Se incorpora endpoint:
+  - `DELETE /api/shelves/<shelf_id>`
+- Patrón de ejecucion:
+  1. Normalizar `shelf_id` a URN.
+  2. Validar existencia de Shelf.
+  3. Consultar `InventoryItem` por `refShelf`.
+  4. Borrar InventoryItems relacionados.
+  5. Borrar Shelf.
+  6. Devolver resultado estructurado con control de fallos parciales.
+
+### Flujo actualizado (Store detail -> borrado shelf)
+
+```text
+Click en "Borrar" (modal edit shelf)
+  -> confirmacion usuario
+  -> DELETE /api/shelves/<shelf_id>
+      -> GET InventoryItems refShelf == shelf_id
+      -> DELETE InventoryItem (loop)
+      -> DELETE Shelf
+  -> respuesta OK
+  -> closeModal + removeShelfGroupFromTable()
+  -> UI actualizada sin reload
+```
+
+### Impacto arquitectonico
+
+- Incrementa cobertura CRUD de Shelves con operacion de borrado dedicada.
+- Reutiliza el patron de cascada ya usado en borrado de Store.
+- No modifica contratos NGSIv2 de entidades ni proveedores/suscripciones.
+
+---

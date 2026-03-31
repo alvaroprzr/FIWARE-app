@@ -1448,6 +1448,45 @@ Se reutilizan los campos existentes:
 ### Impacto de compatibilidad
 
 - Compatible con datos existentes en Orion.
+
+---
+
+## Nota de Integracion - Home y borrado de Shelf (Issue #26)
+
+### Alcance de modelo
+
+Issue #26 no introduce nuevas entidades NGSIv2 ni nuevos atributos persistentes.
+El esquema de `Store`, `Product`, `Employee`, `Shelf` e `InventoryItem` se mantiene sin cambios.
+
+### Operacion de borrado de Shelf en aplicacion
+
+Se formaliza operacion de dominio en capa de aplicacion:
+
+- `DELETE /api/shelves/<shelf_id>`
+
+Regla operativa de integridad:
+
+1. Borrar primero todos los `InventoryItem` con `refShelf == shelf_id`.
+2. Borrar despues la entidad `Shelf`.
+
+Esto evita referencias huerfanas y mantiene coherencia entre relaciones:
+
+- `Shelf ||--o{ InventoryItem`
+
+### Semantica de presentacion (Home)
+
+El ajuste de Home (mostrar solo Stores, Products y Employees) es un cambio de presentacion.
+No altera:
+
+- modelo de entidades,
+- cardinalidades,
+- ni reglas de negocio de `Shelf`/`InventoryItem`.
+
+### Compatibilidad
+
+- Compatible con datos existentes en Orion.
+- Sin migraciones.
+- Sin cambios en el contrato NGSIv2 de atributos.
 - Sin migraciones de esquema.
 - Cambios centrados en flujo de actualizacion y validacion, no en estructura de entidades.
 
