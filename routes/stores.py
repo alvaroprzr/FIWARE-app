@@ -560,6 +560,58 @@ def update_shelf(shelf_id):
         return {'error': str(e)}, 500
 
 # ============================================================================
+# DELETE /api/shelves/<shelf_id> - Delete shelf with cascade
+# ============================================================================
+
+@bp.route('/api/shelves/<shelf_id>', methods=['DELETE'])
+def delete_shelf(shelf_id):
+    """
+    API endpoint to delete a shelf and all InventoryItems referencing it.
+    """
+    try:
+        shelf_id = _normalize_urn(shelf_id, 'Shelf')
+
+        shelf = orion.get_entity(shelf_id)
+        if not shelf:
+            return {'error': 'Shelf not found'}, 404
+
+        inventory_items = orion.get_entities(
+            entity_type='InventoryItem',
+            query=f"refShelf=='{shelf_id}'"
+        )
+
+        failed_inventory_deletes = []
+        for item in inventory_items:
+            item_id = item.get('id')
+            if not item_id:
+                continue
+            if not orion.delete_entity(item_id):
+                failed_inventory_deletes.append(item_id)
+
+        if failed_inventory_deletes:
+            logger.error(
+                "Error deleting InventoryItems for Shelf %s: %s",
+                shelf_id,
+                failed_inventory_deletes
+            )
+            return {
+                'error': 'Could not delete related InventoryItems',
+                'failedInventoryItems': failed_inventory_deletes
+            }, 500
+
+        success = orion.delete_entity(shelf_id)
+        if not success:
+            return {'error': 'Could not delete shelf'}, 400
+
+        return {
+            'success': True,
+            'deletedInventoryItems': len(inventory_items)
+        }, 200
+    except Exception as e:
+        logger.error(f"Error deleting shelf {shelf_id}: {e}")
+        return {'error': str(e)}, 500
+
+# ============================================================================
 # POST /api/shelves/<shelf_id>/inventory-items - Add product to shelf
 # ============================================================================
 

@@ -270,9 +270,12 @@
                 <div id="edit-shelf-items-list" class="edit-shelf-items-list"></div>
             </div>
 
-            <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" data-close-modal="edit-shelf-modal" data-i18n="store.cancel">Cancelar</button>
-                <button type="submit" class="btn btn-primary" data-i18n="store.save">Guardar</button>
+            <div class="modal-actions modal-actions-split">
+                <button type="button" id="delete-shelf-btn" class="btn btn-danger" data-i18n="store.delete_shelf">Borrar</button>
+                <div class="modal-actions-right">
+                    <button type="button" class="btn btn-secondary" data-close-modal="edit-shelf-modal" data-i18n="store.cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="store.save">Guardar</button>
+                </div>
             </div>
         </form>
     </div>
