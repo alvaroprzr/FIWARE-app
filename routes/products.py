@@ -41,7 +41,7 @@ def list_products():
             store_ids = {
                 item.get('refStore', {}).get('value')
                 for item in inventory
-                if item.get('refStore', {}).get('value')
+                if item.get('refStore', {}).get('value') and _safe_number(item.get('shelfCount', {}).get('value'), 0) > 0
             }
             product['inventory_count'] = len(store_ids)
         
