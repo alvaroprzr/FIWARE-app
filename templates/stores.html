@@ -27,7 +27,7 @@
                     <th scope="col" data-i18n="table.country">País</th>
                     <th scope="col" data-i18n="table.temperature">Temperatura</th>
                     <th scope="col" data-i18n="table.humidity">Humedad</th>
-                    <th scope="col" data-i18n="table.shelves_count"># Estanterías</th>
+                    <th scope="col" data-i18n="table.shelves_count">Estanterías</th>
                     <th scope="col" data-i18n="stores.actions">Acciones</th>
                 </tr>
             </thead>
@@ -44,7 +44,13 @@
                     <td class="country-cell">
                         {% if country_code %}
                         <span class="country-display">
-                            <span class="flag-emoji" data-country="{{ country_code }}" aria-hidden="true"></span>
+                            <img
+                                src="https://flagcdn.com/24x18/{{ country_code | lower }}.png"
+                                alt=""
+                                class="country-flag"
+                                loading="lazy"
+                                width="24"
+                                height="18">
                             <span class="country-code">{{ country_code }}</span>
                         </span>
                         {% else %}
@@ -171,7 +177,11 @@
     font-weight: 600;
 }
 
-.flag-emoji {
+.country-flag {
+    width: 24px;
+    height: 18px;
+    border-radius: 2px;
+    object-fit: cover;
     line-height: 1;
 }
 
