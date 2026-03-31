@@ -298,6 +298,17 @@ code {
     background: var(--border);
 }
 
+.btn-danger {
+    background: #c62828;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #b71c1c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(183, 28, 28, 0.3);
+}
+
 .btn-small {
     padding: var(--spacing-xs) var(--spacing-md);
     font-size: 0.9rem;
@@ -1250,6 +1261,16 @@ body.dark-theme .home-mermaid svg .label {
     justify-content: flex-end;
     gap: var(--spacing-sm);
     margin-top: var(--spacing-md);
+}
+
+.modal-actions-split {
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-actions-right {
+    display: flex;
+    gap: var(--spacing-sm);
 }
 
 .edit-shelf-items-section {

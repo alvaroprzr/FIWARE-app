@@ -44,6 +44,10 @@ const i18n = {
         'notifications.shelf_updated_title': 'Shelf actualizada',
         'notifications.shelf_updated_message': 'Cambios guardados correctamente',
         'notifications.shelf_update_error_message': 'No se pudo actualizar la shelf: {error}',
+        'notifications.shelf_delete_confirm_message': '¿Seguro que deseas borrar la shelf "{name}"? También se borrarán sus InventoryItems asociados. Esta acción no se puede deshacer.',
+        'notifications.shelf_deleted_title': 'Shelf eliminada',
+        'notifications.shelf_deleted_message': 'La shelf y sus InventoryItems se eliminaron correctamente',
+        'notifications.shelf_delete_error_message': 'No se pudo borrar la shelf: {error}',
         'notifications.product_added_title': 'Producto anadido',
         'notifications.product_added_message': 'InventoryItem creado correctamente',
         'notifications.product_add_error_message': 'No se pudo anadir el producto: {error}',
@@ -118,6 +122,7 @@ const i18n = {
         'store.buy': 'Comprar',
         'store.add_shelf': 'Añadir Shelf',
         'store.edit_shelf': 'Modificar',
+        'store.delete_shelf': 'Borrar',
         'store.add_product': 'Añadir producto',
         'store.shelf_name': 'Nombre',
         'store.shelf_capacity': 'Capacidad máxima',
@@ -232,6 +237,10 @@ const i18n = {
         'notifications.shelf_updated_title': 'Shelf updated',
         'notifications.shelf_updated_message': 'Changes saved successfully',
         'notifications.shelf_update_error_message': 'Could not update shelf: {error}',
+        'notifications.shelf_delete_confirm_message': 'Are you sure you want to delete shelf "{name}"? Its related InventoryItems will also be deleted. This action cannot be undone.',
+        'notifications.shelf_deleted_title': 'Shelf deleted',
+        'notifications.shelf_deleted_message': 'Shelf and related InventoryItems were deleted successfully',
+        'notifications.shelf_delete_error_message': 'Could not delete shelf: {error}',
         'notifications.product_added_title': 'Product added',
         'notifications.product_added_message': 'Inventory item created successfully',
         'notifications.product_add_error_message': 'Could not add product: {error}',
@@ -306,6 +315,7 @@ const i18n = {
         'store.buy': 'Buy',
         'store.add_shelf': 'Add Shelf',
         'store.edit_shelf': 'Edit',
+        'store.delete_shelf': 'Delete',
         'store.add_product': 'Add product',
         'store.shelf_name': 'Name',
         'store.shelf_capacity': 'Max capacity',
@@ -1518,6 +1528,59 @@ function initializeStoreDetailForms() {
         });
     }
 
+    const deleteShelfButton = document.getElementById('delete-shelf-btn');
+    if (deleteShelfButton) {
+        deleteShelfButton.addEventListener('click', async () => {
+            const shelfId = document.getElementById('edit-shelf-id')?.value || '';
+            const shelfName = (document.getElementById('edit-shelf-name')?.value || '').trim();
+
+            if (!shelfId) {
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.shelf_delete_error_message'), { error: 'Invalid shelf id' }),
+                    'error'
+                );
+                return;
+            }
+
+            const displayName = shelfName || shelfId.split(':').pop();
+            const confirmMessage = interpolate(t('notifications.shelf_delete_confirm_message'), {
+                name: displayName
+            });
+
+            if (!window.confirm(confirmMessage)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/shelves/${encodeURIComponent(shelfId)}`, {
+                    method: 'DELETE'
+                });
+
+                const payload = await response.json().catch(() => ({}));
+                if (!response.ok) {
+                    throw new Error(payload.error || `HTTP ${response.status}`);
+                }
+
+                removeShelfGroupFromTable(shelfId);
+                resetEditShelfForm();
+                closeModal('edit-shelf-modal');
+
+                showNotification(
+                    t('notifications.shelf_deleted_title'),
+                    t('notifications.shelf_deleted_message'),
+                    'success'
+                );
+            } catch (error) {
+                showNotification(
+                    t('notifications.error_title'),
+                    interpolate(t('notifications.shelf_delete_error_message'), { error: error.message }),
+                    'error'
+                );
+            }
+        });
+    }
+
     const addProductForm = document.getElementById('add-product-form');
     if (addProductForm) {
         addProductForm.addEventListener('submit', async (e) => {
@@ -1589,6 +1652,34 @@ function closeModal(modalId) {
     if (modal) {
         modal.classList.add('hidden');
     }
+}
+
+function resetEditShelfForm() {
+    const shelfIdField = document.getElementById('edit-shelf-id');
+    const shelfNameField = document.getElementById('edit-shelf-name');
+    const shelfCapacityField = document.getElementById('edit-shelf-capacity');
+    const editShelfItemsList = document.getElementById('edit-shelf-items-list');
+
+    if (shelfIdField) shelfIdField.value = '';
+    if (shelfNameField) shelfNameField.value = '';
+    if (shelfCapacityField) shelfCapacityField.value = '';
+    if (editShelfItemsList) editShelfItemsList.innerHTML = '';
+}
+
+function removeShelfGroupFromTable(shelfId) {
+    const shelfGroupRow = document.querySelector(`.shelf-group-row[data-shelf-id="${shelfId}"]`);
+    if (!shelfGroupRow) {
+        return;
+    }
+
+    let currentRow = shelfGroupRow.nextElementSibling;
+    while (currentRow && !currentRow.classList.contains('shelf-group-row')) {
+        const rowToRemove = currentRow;
+        currentRow = currentRow.nextElementSibling;
+        rowToRemove.remove();
+    }
+
+    shelfGroupRow.remove();
 }
 
 function initializeProductDetailForms() {
