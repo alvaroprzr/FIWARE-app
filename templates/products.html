@@ -40,7 +40,7 @@
                     <td class="color-cell">
                         <div class="color-swatch" style="background-color: {{ product.color.value if product and product.color else '#cccccc' }}" title="{{ product.color.value if product and product.color else '-' }}"></div>
                     </td>
-                    <td class="inventory-cell">{{ product.inventory_count }} <span data-i18n="table.locations_count">ubicaciones</span></td>
+                    <td class="inventory-cell">{{ product.inventory_count }}</td>
                     <td class="actions-cell">
                         <a href="/products/{{ product.id.split(':')[-1] }}" class="btn btn-sm btn-info" data-i18n-title="actions.view_details" title="Ver detalles">
                             <i class="fas fa-eye"></i>

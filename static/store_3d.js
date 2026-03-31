@@ -245,8 +245,8 @@ function buildShelfDetails(shelfMesh, shelfIndex) {
 function populateShelfWithProducts(shelfMesh, productRows) {
   const shelfSurfaceY = [-1.15, -0.32, 0.52, 1.28];
   const xSlots = [-1.18, -0.4, 0.4, 1.18];
-  const zSlots = [0.6, -0.1];
-  const productYOffset = 0.22;
+  const zSlots = [0.34, -0.34];
+  const productYOffset = 0.24;
   const units = [];
 
   productRows.forEach((row, rowIndex) => {
@@ -275,7 +275,7 @@ function populateShelfWithProducts(shelfMesh, productRows) {
       units[index].colorHex,
       index + units[index].fallbackIndex
     );
-    visual.scale.set(0.86, 0.86, 0.86);
+    visual.scale.set(1, 1, 1);
     visual.position.set(
       xSlots[column],
       shelfSurfaceY[level] + productYOffset,
@@ -287,7 +287,7 @@ function populateShelfWithProducts(shelfMesh, productRows) {
 }
 
 function createProductVisual(productId, imageUrl, colorHex, index) {
-  const geometry = new THREE.BoxGeometry(0.34, 0.28, 0.28);
+  const geometry = new THREE.BoxGeometry(0.42, 0.34, 0.34);
   const material = getProductBoxMaterial(productId, imageUrl, colorHex, index);
   const mesh = new THREE.Mesh(geometry, material);
   mesh.castShadow = true;
@@ -479,6 +479,10 @@ function createOverlayCard(shelfId, shelfName, rows) {
     if (mesh) {
       focusShelf(mesh);
     }
+  });
+
+  card.addEventListener('wheel', (event) => {
+    event.stopPropagation();
   });
 
   return card;
