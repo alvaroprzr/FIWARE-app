@@ -69,7 +69,7 @@ Patrón: `<Entity>-<action>.html` o `<Entity>.html`
 - Indentación: 2 espacios
 - Variables CSS con `--variable-name`
 - Mobile-first, media queries desktop
-- Clase `.dark` en `<html>` para tema oscuro
+- Clase `dark-theme` en `<body>` para tema oscuro
 
 ### JavaScript
 - Indentación: 2 espacios

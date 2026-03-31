@@ -96,7 +96,7 @@ Reglas funcionales asociadas:
 
 ### 3.2 Dark / Light Mode (Tema Visual)
 - **Implementación:** Variables CSS personalizadas (custom properties) con dos conjuntos de valores.
-- **Toggle:** Switch en navbar que añade/quita clase `.dark` en `<html>`.
+- **Toggle:** Switch en navbar que añade/quita clase `dark-theme` en `<body>`.
 - **Persistencia:** Preferencia guardada en `localStorage`.
 - **Colores CSS variables:**
   - `--bg`: color de fondo.

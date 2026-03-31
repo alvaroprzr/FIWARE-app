@@ -68,7 +68,7 @@
   - Gestionar i18n y Dark/Light mode.
   - Interacciones de formularios y validaciones.
   - Renderización de mapas (Leaflet.js) y vistas 3D (Three.js).
-  - **PATCH directo a Orion:** Botón "Comprar" en InventoryItems ejecuta actualización directa sin pasar por Flask.
+  - **Compra via backend Flask:** Botón "Comprar" en InventoryItems llama endpoint same-origin y el backend ejecuta PATCH a Orion.
   - Actualización de DOM sin recarga de página.
 
 **Detalle arquitectura 3D (Issue #22):**
@@ -85,12 +85,10 @@
 
 ```
 static/
-├── css/
-│   └── style.css          # Variables CSS, animaciones, temas, .btn-buy
-├── js/
-│   ├── main.js            # Socket.IO, i18n, dark/light, navbar, buyInventoryItem()
-│   ├── store_3d.js        # Three.js scene
-│   └── maps.js            # Leaflet.js maps
+├── style.css              # Variables CSS, animaciones, temas, .btn-buy
+├── main.js                # Socket.IO, i18n, dark/light, navbar, buyInventoryItem()
+├── store_3d.js            # Three.js scene
+├── maps.js                # Leaflet.js maps
 └── images/                # Assets (opcional)
 ```
 
@@ -101,7 +99,7 @@ static/
 **Rutas principales:**
 - GET  / → home
 - GET  /products, /products/<id>
-- GET  /stores, /stores/<id>, /stores-map
+- GET  /stores, /stores/<id>, /stores/map
 - GET  /employees, /employees/<id>
 - POST /notify/price-change → webhook Orion
 - POST /notify/low-stock → webhook Orion
@@ -170,17 +168,18 @@ store = orion.get_entity(store_id, include_attrs='name,temperature,relativeHumid
 
 ```
 Usuario compra producto en store_detail (botón "Comprar")
-  → JS hace PATCH directo a Orion: /v2/entities/urn:ngsi-ld:InventoryItem:item123/attrs
-    → Orion actualiza shelfCount, stockCount en MongoDB
-      → Orion dispara suscripción "stock bajo" (si shelfCount < 3)
-        → Orion POST /notify/low-stock (webhook Flask)
-          → Flask emite Socket.IO 'low_stock'
-            → Clientes reciben evento y actualizan UI
-      → JS recibe respuesta 200 OK
+  → JS hace PATCH same-origin a Flask: /api/inventory-items/<inventory_item_id>/buy
+    → Flask ejecuta PATCH a Orion (/v2/entities/<inventory_item_id>/attrs)
+      → Orion actualiza shelfCount, stockCount en MongoDB
+        → Orion dispara suscripción "stock bajo" (si shelfCount < 3)
+          → Orion POST /notify/low-stock (webhook Flask)
+            → Flask emite Socket.IO 'low_stock'
+              → Clientes reciben evento y actualizan UI
+      → Flask responde 200 al frontend
         → updateInventoryItemUI() actualiza tabla sin recargar página
 ```
 
-**Nota:** A diferencia de otras operaciones, la compra es un PATCH directo desde cliente a Orion, sin intermediación de Flask. Flask solo recibe notificaciones posteriores si se triggerean suscripciones.
+**Nota:** La compra usa intermediación de Flask para mantener llamadas same-origin y encapsular la integración NGSIv2 con Orion.
 
 ## 4. Flujo de Notificaciones en Tiempo Real
 
@@ -228,12 +227,10 @@ FIWARE-app/
 │   ├── employee_detail.html
 │   └── stores_map.html
 ├── static/
-│   ├── css/
-│   │   └── style.css
-│   ├── js/
-│   │   ├── main.js
-│   │   ├── store_3d.js
-│   │   └── maps.js
+│   ├── style.css
+│   ├── main.js
+│   ├── store_3d.js
+│   └── maps.js
 │   └── images/
 ├── import-data.sh
 ├── docker-compose.yml
