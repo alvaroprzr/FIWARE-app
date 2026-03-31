@@ -77,12 +77,7 @@ EOF
 
 ### Paso 1: Iniciar contenedores FIWARE
 ```bash
-docker-compose up -d
-```
-
-Esperar ~30 segundos a que Orion Context Broker esté listo:
-```bash
-curl http://localhost:1026/version
+docker compose up -d
 ```
 
 ### Paso 2: Importar datos iniciales
@@ -90,21 +85,9 @@ curl http://localhost:1026/version
 bash import-data.sh
 ```
 
-Verificar que se cargaron correctamente:
+### Paso 3: Arrancar aplicación Flask
 ```bash
-curl http://localhost:1026/v2/entities
-```
-
-### Paso 3: Instalar y ejecutar aplicación Flask
-```bash
-source venv/bin/activate  # Si no está activado
-
-# Opción A: Desarrollo
-python app.py
-
-# Opción B: Producción con gunicorn
-pip install gunicorn
-gunicorn --worker-class eventlet -w 1 app:app
+python3 app.py
 ```
 
 La aplicación estará disponible en **http://localhost:5000**
