@@ -1480,3 +1480,34 @@ Para la vista de mapa global, la tarjeta hover excluye atributos climaticos y pr
 - Ajuste enfocado en capa de presentacion e internacionalizacion.
 
 ---
+
+## Nota de Integracion - Correcciones Visuales y Semantica de Ubicaciones (Issue #25)
+
+### Alcance de modelo
+
+Issue #25 no introduce entidades nuevas ni atributos NGSIv2 adicionales.
+No requiere migraciones ni alteraciones de relaciones entre `Product`, `InventoryItem`, `Store` o `Shelf`.
+
+### Ajuste semantico en metrica derivada
+
+Se redefine el calculo de `inventory_count` usado en la tabla de productos como metrica de **Stores activos**:
+
+- Unidad de agregacion: `refStore` unico por producto.
+- Regla de inclusion: contar Store solo si existe al menos un `InventoryItem` con `shelfCount > 0`.
+- Regla de exclusion: no contar Stores con `shelfCount = 0` en todos los InventoryItems del producto.
+
+Este cambio no modifica datos persistidos; modifica unicamente la lectura/interpretacion para visualizacion.
+
+### Cambios de presentacion relacionados
+
+- Cabeceras de columnas en tablas ajustadas para eliminar prefijos visuales no semanticos (`#`).
+- Visualizacion de pais en Stores consolidada en unica representacion (bandera + codigo).
+- Overlay 3D con scroll limitado a 4 filas visibles sin JS de paginacion.
+
+### Compatibilidad
+
+- 100% compatible con dataset existente.
+- Sin cambios en validaciones de capacidad fisica de `Shelf`.
+- Sin cambios en contratos de eventos realtime.
+
+---

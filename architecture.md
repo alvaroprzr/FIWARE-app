@@ -1251,3 +1251,33 @@ Se alinea la documentacion auxiliar de flujo GitHub con el estado real del repos
 - Mantiene compatibilidad con el stack y sin cambios en contratos backend NGSIv2.
 
 ---
+
+## 25. Ajustes Arquitectonicos de Correcciones Visuales y Overlay 3D (Issue #25)
+
+### Capa de presentacion (templates)
+
+- Se corrigen etiquetas de cabecera en tablas (`Stores`, `Products`) eliminando prefijo `#` para mantener semantica visual consistente.
+- Se estabiliza el render de pais en `stores.html` para evitar duplicaciones visuales y asegurar salida unica en formato bandera + codigo.
+
+### Capa de aplicacion (routes/products.py)
+
+- Se ajusta el agregado de `inventory_count` en listado de productos para representar ubicaciones activas por Store:
+  - agregacion por `refStore` unico,
+  - filtro por disponibilidad efectiva (`shelfCount > 0`).
+
+Esto desplaza el significado de conteo desde "filas InventoryItem" a "Stores activos", mejor alineado con la UX esperada.
+
+### Capa de experiencia 3D (store_3d.js + style.css)
+
+- Se incrementa escala/tamano de visuales de producto para mejorar percepcion en escena.
+- Se recentra distribucion en eje Z para simetria espacial de baldas.
+- Se introduce limite visual de 4 filas en overlay con scroll CSS nativo.
+- Se encapsula evento `wheel` del overlay con `stopPropagation` para aislar scroll de tarjeta frente a OrbitControls.
+
+### Impacto arquitectonico
+
+- Cambios acotados a frontend y agregacion de vista.
+- Sin impacto en contratos HTTP ni suscripciones Orion.
+- Sin cambios en estructura de entidades; solo cambia interpretacion de un agregado para visualizacion.
+
+---

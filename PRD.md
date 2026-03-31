@@ -1342,3 +1342,46 @@ Completar ajustes finales de entrega para cumplimiento estricto del enunciado en
 - Referencias documentales coherentes con el estado real de `main`.
 
 ---
+
+## 25. Correcciones visuales menores en tablas y escena 3D (Issue #25)
+
+### Objetivo funcional
+
+Corregir inconsistencias de presentacion en vistas de Stores y Products, y mejorar legibilidad/interaccion en la escena 3D de Store detail sin modificar logica de negocio base.
+
+### Cambios implementados
+
+- **Store detail**
+  - Unidad de capacidad mostrada en `m³`.
+
+- **Vista Almacenes (`/stores`)**
+  - Cabecera de columna de estanterias sin prefijo `#`.
+  - Celda de pais normalizada para mostrar una unica salida visual: bandera + codigo.
+
+- **Vista Productos (`/products`)**
+  - Cabecera de columna de ubicaciones sin prefijo `#`.
+  - Valor de la columna de ubicaciones como numero limpio.
+  - Conteo de ubicaciones ajustado a **Stores activos unicos** por producto:
+    - cuenta solo Stores con al menos un `InventoryItem` del producto con `shelfCount > 0`.
+    - excluye Stores con presencia nominal pero sin unidades disponibles en balda.
+
+- **Escena 3D (`store_3d.js` + CSS overlay)**
+  - Productos representados con mayor tamano para mejorar visibilidad.
+  - Distribucion de profundidad en eje Z centrada/simetrica respecto al centro local de la estanteria.
+  - Overlay de estanteria limitado a 4 productos visibles con scroll vertical CSS.
+  - Evento `wheel` del overlay aislado con `stopPropagation` para no disparar zoom de OrbitControls al hacer scroll en la tarjeta.
+
+### Criterios de aceptacion cubiertos
+
+- Cabeceras sin simbolo `#` en columnas afectadas.
+- Pais en Stores sin duplicidad visual.
+- Ubicaciones en Products alineadas con Stores activos (no con filas de InventoryItem).
+- Overlay 3D usable con listas largas sin degradar navegacion de la camara.
+
+### Impacto
+
+- Mejora de claridad visual y coherencia semantica de tablas.
+- Mejora de usabilidad del recorrido 3D en densidad de informacion.
+- Sin cambios en contratos API ni en entidades NGSIv2 persistentes.
+
+---
