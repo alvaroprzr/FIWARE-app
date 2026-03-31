@@ -1336,6 +1336,7 @@ body.dark-theme .home-mermaid svg .label {
 
 .shelf-overlay-card {
     position: absolute;
+    --overlay-row-height: 1.3rem;
     min-width: 210px;
     max-width: 290px;
     background: color-mix(in srgb, var(--surface) 88%, transparent);
@@ -1373,6 +1374,23 @@ body.dark-theme .home-mermaid svg .label {
     padding: 0;
     display: grid;
     gap: 0.28rem;
+    max-height: calc(var(--overlay-row-height) * 4 + 0.28rem * 3);
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.shelf-overlay-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.shelf-overlay-list::-webkit-scrollbar-track {
+    background: color-mix(in srgb, var(--border) 55%, transparent);
+    border-radius: 999px;
+}
+
+.shelf-overlay-list::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--primary) 72%, var(--text));
+    border-radius: 999px;
 }
 
 .shelf-overlay-item {
@@ -1380,6 +1398,7 @@ body.dark-theme .home-mermaid svg .label {
     grid-template-columns: 1fr auto auto;
     gap: 0.55rem;
     align-items: center;
+    min-height: var(--overlay-row-height);
     font-size: 0.78rem;
     color: var(--text);
 }

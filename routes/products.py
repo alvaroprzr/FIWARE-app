@@ -38,7 +38,12 @@ def list_products():
                 entity_type='InventoryItem',
                 query=f"refProduct=='{product_id}'"
             )
-            product['inventory_count'] = len(inventory)
+            store_ids = {
+                item.get('refStore', {}).get('value')
+                for item in inventory
+                if item.get('refStore', {}).get('value') and _safe_number(item.get('shelfCount', {}).get('value'), 0) > 0
+            }
+            product['inventory_count'] = len(store_ids)
         
         return render_template('products.html', products=products)
     except Exception as e:

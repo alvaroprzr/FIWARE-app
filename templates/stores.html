@@ -27,7 +27,7 @@
                     <th scope="col" data-i18n="table.country">País</th>
                     <th scope="col" data-i18n="table.temperature">Temperatura</th>
                     <th scope="col" data-i18n="table.humidity">Humedad</th>
-                    <th scope="col" data-i18n="table.shelves_count"># Estanterías</th>
+                    <th scope="col" data-i18n="table.shelves_count">Estanterías</th>
                     <th scope="col" data-i18n="stores.actions">Acciones</th>
                 </tr>
             </thead>
@@ -40,9 +40,22 @@
                     <td class="name-cell">
                         <a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value if store and store.name else '-' }}</a>
                     </td>
+                    {% set country_code = (store.address.value.addressCountry | upper) if store and store.address and store.address.value and store.address.value.addressCountry else '' %}
                     <td class="country-cell">
-                        <span class="flag-emoji" data-country="{{ store.address.value.addressCountry if store and store.address and store.address.value and store.address.value.addressCountry else 'XX' }}"></span>
-                        {{ store.address.value.addressCountry if store and store.address and store.address.value and store.address.value.addressCountry else '-' }}
+                        {% if country_code %}
+                        <span class="country-display">
+                            <img
+                                src="https://flagcdn.com/24x18/{{ country_code | lower }}.png"
+                                alt=""
+                                class="country-flag"
+                                loading="lazy"
+                                width="24"
+                                height="18">
+                            <span class="country-code">{{ country_code }}</span>
+                        </span>
+                        {% else %}
+                        <span class="na">—</span>
+                        {% endif %}
                     </td>
                     <td class="temp-cell">
                         {% if store.temperature and store.temperature.value is not none %}
@@ -153,8 +166,23 @@
     width: 80px;
 }
 
-.flag-emoji {
-    margin-right: 0.5rem;
+.country-display {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.country-code {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.country-flag {
+    width: 24px;
+    height: 18px;
+    border-radius: 2px;
+    object-fit: cover;
+    line-height: 1;
 }
 
 .temp-cell,
