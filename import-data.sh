@@ -123,7 +123,7 @@ STORE1='{
   "description": {"type": "Text", "value": "Almacen principal en el centro de Madrid, equipado con sistemas de climatizacion modernos. Punto de distribucion hacia la zona central de Espana."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Calle Mayor 123", "postalCode": "28001", "addressLocality": "Madrid", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [-3.7038, 40.4168]}},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/1043/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Amazon_Espa%C3%B1a_por_dentro_%2816%29.jpg"}
 }'
 post_entity "$STORE1"
 
@@ -139,7 +139,7 @@ STORE2='{
   "description": {"type": "Text", "value": "Almacen logistico en zona portuaria de Barcelona. Especializado en distribucion mediterranea con acceso directo a vias de transporte."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Avenida Diagonal 456", "postalCode": "08009", "addressLocality": "Barcelona", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [2.1734, 41.3851]}},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/1031/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://upload.wikimedia.org/wikipedia/commons/8/87/343_Coberts_del_moll_de_Sant_Bertran%2C_port_de_Barcelona%2C_des_de_les_escales_de_Forestier.jpg"}
 }'
 post_entity "$STORE2"
 
@@ -269,7 +269,7 @@ PROD2='{
   "price": {"type": "Number", "value": 499.99},
   "size": {"type": "Text", "value": "27"},
   "color": {"type": "Text", "value": "#000000"},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/180/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://upload.wikimedia.org/wikipedia/commons/8/83/LG_Monitor.jpg"}
 }'
 post_entity "$PROD2"
 
@@ -291,7 +291,7 @@ PROD4='{
   "price": {"type": "Number", "value": 129.99},
   "size": {"type": "Text", "value": "L"},
   "color": {"type": "Text", "value": "#0099FF"},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/1/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://upload.wikimedia.org/wikipedia/commons/d/df/Mechanical_keyboard_example.jpg"}
 }'
 post_entity "$PROD4"
 
@@ -313,7 +313,7 @@ PROD6='{
   "price": {"type": "Number", "value": 199.99},
   "size": {"type": "Text", "value": "M"},
   "color": {"type": "Text", "value": "#333333"},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/250/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://upload.wikimedia.org/wikipedia/commons/6/63/USB_webcam_for_PC.jpg"}
 }'
 post_entity "$PROD6"
 
@@ -324,7 +324,7 @@ PROD7='{
   "price": {"type": "Number", "value": 79.99},
   "size": {"type": "Text", "value": "S"},
   "color": {"type": "Text", "value": "#AAAAAA"},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/48/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://upload.wikimedia.org/wikipedia/commons/5/5b/USB_C_Hub.png"}
 }'
 post_entity "$PROD7"
 
@@ -335,7 +335,7 @@ PROD8='{
   "price": {"type": "Number", "value": 249.99},
   "size": {"type": "Text", "value": "L"},
   "color": {"type": "Text", "value": "#FF0000"},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/1011/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://upload.wikimedia.org/wikipedia/commons/7/75/Samsung_980_PRO_PCIe_4.0_NVMe_SSD_1TB-top_PNr%C2%B00915.jpg"}
 }'
 post_entity "$PROD8"
 
@@ -346,7 +346,7 @@ PROD9='{
   "price": {"type": "Number", "value": 179.99},
   "size": {"type": "Text", "value": "M"},
   "color": {"type": "Text", "value": "#00DD00"},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/1039/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://upload.wikimedia.org/wikipedia/commons/9/93/SK_Hynix_DDR5_form_factors.jpg"}
 }'
 post_entity "$PROD9"
 

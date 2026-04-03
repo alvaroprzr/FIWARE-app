@@ -18,7 +18,7 @@ Información de personal con autenticación, cualificaciones y asignación a un 
 | `password` | `Text` | Hash bcrypt (costo mínimo 12) |
 | `category` | `Text` | Categoría/rol |
 | `refStore` | `Relationship` | Referencia a Store (URN) |
-| `image` | `Text` | URL foto pública |
+| `image` | `Text` | URL foto pública definida en el seed inicial, con referencia visual coherente al empleado |
 
 **Restricciones:**
 - Cada Employee pertenece a UN único Store (1:N Store→Employee)
@@ -123,7 +123,7 @@ Ubicación física de almacén con datos de contacto e integración con proveedo
 | `temperature` | `Number` | °C [PROVEEDOR EXTERNO] |
 | `relativeHumidity` | `Number` | Porcentaje [PROVEEDOR EXTERNO] |
 | `tweets` | `Array` | Array cadenas [PROVEEDOR EXTERNO] |
-| `image` | `Text` | URL foto almacén |
+| `image` | `Text` | URL foto almacén definida en el seed inicial, con referencia visual coherente al store |
 
 **Restricciones:**
 - countryCode EXACTAMENTE 2 caracteres [A-Za-z]
@@ -161,7 +161,7 @@ Artículo disponible para venta y distribución.
 | `price` | `Number` | Precio euros (decimal) |
 | `size` | `Text` | Talla (S, M, L, XL) |
 | `color` | `Text` | Hexadecimal #RRGGBB |
-| `image` | `Text` | URL imagen producto |
+| `image` | `Text` | URL imagen producto definida en el seed inicial, con referencia visual coherente al producto |
 
 **Restricciones:**
 - price POSITIVO y > 0
