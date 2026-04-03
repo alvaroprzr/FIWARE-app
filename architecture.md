@@ -70,6 +70,7 @@
   - Renderización de mapas (Leaflet.js) y vistas 3D (Three.js).
   - **Compra via backend Flask:** Botón "Comprar" en InventoryItems llama endpoint same-origin y el backend ejecuta PATCH a Orion.
   - Actualización de DOM sin recarga de página.
+- Consume directamente el atributo `image` de cada entidad NGSIv2 para mostrar fotos de producto, store y employee; el seed inicial usa URLs públicas semánticamente relacionadas con la entidad.
 
 **Detalle arquitectura 3D (Issue #22):**
 

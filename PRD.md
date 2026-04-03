@@ -57,6 +57,7 @@ Conjunto de vistas HTML + CSS + JavaScript que proporcionan:
   - Detalle de producto con tabla de InventoryItems agrupada por Store/Shelf.
   - Formulario para añadir productos a shelves.
   - Actualización en tiempo real de precios (Socket.IO).
+  - Las imágenes de productos, stores y employees se cargan desde URLs públicas definidas en `import-data.sh` y se eligen para ser coherentes con el nombre de la entidad.
 - **Stores:**
   - Lista tabular con foto, nombre, país, temperatura y humedad con códigos de color.
   - Detalle exhaustivo: foto del store, sensores ambientales, mapa Leaflet.js, recorrido virtual 3D (Three.js), inventario agrupado por shelf con barras de progreso, tweets, panel de notificaciones.
