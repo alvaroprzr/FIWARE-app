@@ -123,7 +123,7 @@ STORE1='{
   "description": {"type": "Text", "value": "Almacen principal en el centro de Madrid, equipado con sistemas de climatizacion modernos. Punto de distribucion hacia la zona central de Espana."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Calle Mayor 123", "postalCode": "28001", "addressLocality": "Madrid", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [-3.7038, 40.4168]}},
-  "image": {"type": "Text", "value": "https://placehold.co/900x560/334155/f8fafc.png"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/1068/900/560.jpg"}
 }'
 post_entity "$STORE1"
 
@@ -139,7 +139,7 @@ STORE2='{
   "description": {"type": "Text", "value": "Almacen logistico en zona portuaria de Barcelona. Especializado en distribucion mediterranea con acceso directo a vias de transporte."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Avenida Diagonal 456", "postalCode": "08009", "addressLocality": "Barcelona", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [2.1734, 41.3851]}},
-  "image": {"type": "Text", "value": "https://placehold.co/900x560/0f766e/f8fafc.png"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/1031/900/560.jpg"}
 }'
 post_entity "$STORE2"
 
@@ -241,7 +241,7 @@ EMP4='{
   "password": {"type": "Text", "value": "$2b$12$abcdefghijklmnopqrstuvwxyz123456789"},
   "category": {"type": "Text", "value": "Staff"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:milano-sud"},
-  "image": {"type": "Text", "value": "https://placehold.co/700x700/7c3aed/f8fafc.png"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/1027/700/700.jpg"}
 }'
 post_entity "$EMP4"
 
@@ -269,7 +269,7 @@ PROD2='{
   "price": {"type": "Number", "value": 499.99},
   "size": {"type": "Text", "value": "27"},
   "color": {"type": "Text", "value": "#000000"},
-  "image": {"type": "Text", "value": "https://placehold.co/900x560/1d4ed8/f8fafc.png"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/180/900/560.jpg"}
 }'
 post_entity "$PROD2"
 
@@ -291,7 +291,7 @@ PROD4='{
   "price": {"type": "Number", "value": 129.99},
   "size": {"type": "Text", "value": "L"},
   "color": {"type": "Text", "value": "#0099FF"},
-  "image": {"type": "Text", "value": "https://placehold.co/900x560/7c3aed/f8fafc.png"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/1/900/560.jpg"}
 }'
 post_entity "$PROD4"
 
@@ -313,7 +313,7 @@ PROD6='{
   "price": {"type": "Number", "value": 199.99},
   "size": {"type": "Text", "value": "M"},
   "color": {"type": "Text", "value": "#333333"},
-  "image": {"type": "Text", "value": "https://placehold.co/900x560/0891b2/f8fafc.png"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/250/900/560.jpg"}
 }'
 post_entity "$PROD6"
 
@@ -324,7 +324,7 @@ PROD7='{
   "price": {"type": "Number", "value": 79.99},
   "size": {"type": "Text", "value": "S"},
   "color": {"type": "Text", "value": "#AAAAAA"},
-  "image": {"type": "Text", "value": "https://placehold.co/900x560/ea580c/f8fafc.png"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/48/900/560.jpg"}
 }'
 post_entity "$PROD7"
 
@@ -335,7 +335,7 @@ PROD8='{
   "price": {"type": "Number", "value": 249.99},
   "size": {"type": "Text", "value": "L"},
   "color": {"type": "Text", "value": "#FF0000"},
-  "image": {"type": "Text", "value": "https://placehold.co/900x560/16a34a/f8fafc.png"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/20/900/560.jpg"}
 }'
 post_entity "$PROD8"
 
@@ -346,7 +346,7 @@ PROD9='{
   "price": {"type": "Number", "value": 179.99},
   "size": {"type": "Text", "value": "M"},
   "color": {"type": "Text", "value": "#00DD00"},
-  "image": {"type": "Text", "value": "https://placehold.co/900x560/dc2626/f8fafc.png"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/160/900/560.jpg"}
 }'
 post_entity "$PROD9"
 
