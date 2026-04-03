@@ -123,7 +123,7 @@ STORE1='{
   "description": {"type": "Text", "value": "Almacen principal en el centro de Madrid, equipado con sistemas de climatizacion modernos. Punto de distribucion hacia la zona central de Espana."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Calle Mayor 123", "postalCode": "28001", "addressLocality": "Madrid", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [-3.7038, 40.4168]}},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/1068/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/1043/900/560.jpg"}
 }'
 post_entity "$STORE1"
 
@@ -335,7 +335,7 @@ PROD8='{
   "price": {"type": "Number", "value": 249.99},
   "size": {"type": "Text", "value": "L"},
   "color": {"type": "Text", "value": "#FF0000"},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/20/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/1011/900/560.jpg"}
 }'
 post_entity "$PROD8"
 
@@ -346,7 +346,7 @@ PROD9='{
   "price": {"type": "Number", "value": 179.99},
   "size": {"type": "Text", "value": "M"},
   "color": {"type": "Text", "value": "#00DD00"},
-  "image": {"type": "Text", "value": "https://picsum.photos/id/160/900/560.jpg"}
+  "image": {"type": "Text", "value": "https://picsum.photos/id/1039/900/560.jpg"}
 }'
 post_entity "$PROD9"
 
