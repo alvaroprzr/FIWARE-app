@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Almacén Madrid">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7c2d12"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" rx="36" fill="url(#bg)"/>
+  <rect x="170" y="140" width="460" height="230" rx="20" fill="#1f2937" stroke="#fde68a" stroke-width="8"/>
+  <rect x="220" y="190" width="90" height="160" rx="10" fill="#3b82f6"/>
+  <rect x="330" y="190" width="90" height="160" rx="10" fill="#facc15"/>
+  <rect x="440" y="190" width="90" height="160" rx="10" fill="#ef4444"/>
+  <text x="400" y="414" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" text-anchor="middle">Madrid Centro</text>
+  <text x="400" y="450" fill="#ffedd5" font-family="Arial, Helvetica, sans-serif" font-size="22" text-anchor="middle">Almacén / Warehouse</text>
+</svg>

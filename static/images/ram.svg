@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" role="img" aria-label="Memoria RAM">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3f1d0d"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" rx="36" fill="url(#bg)"/>
+  <rect x="140" y="180" width="520" height="110" rx="22" fill="#111827" stroke="#fca5a5" stroke-width="8"/>
+  <rect x="180" y="205" width="60" height="60" rx="10" fill="#7f1d1d"/>
+  <rect x="260" y="205" width="60" height="60" rx="10" fill="#991b1b"/>
+  <rect x="340" y="205" width="60" height="60" rx="10" fill="#b91c1c"/>
+  <rect x="420" y="205" width="60" height="60" rx="10" fill="#dc2626"/>
+  <rect x="500" y="205" width="60" height="60" rx="10" fill="#ef4444"/>
+  <text x="400" y="360" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="44" font-weight="700" text-anchor="middle">RAM DDR5</text>
+  <text x="400" y="404" fill="#fecaca" font-family="Arial, Helvetica, sans-serif" font-size="22" text-anchor="middle">Corsair VENGEANCE</text>
+</svg>
