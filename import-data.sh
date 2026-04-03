@@ -123,7 +123,7 @@ STORE1='{
   "description": {"type": "Text", "value": "Almacen principal en el centro de Madrid, equipado con sistemas de climatizacion modernos. Punto de distribucion hacia la zona central de Espana."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Calle Mayor 123", "postalCode": "28001", "addressLocality": "Madrid", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [-3.7038, 40.4168]}},
-  "image": {"type": "Text", "value": "http://localhost:5000/static/images/madrid.svg"}
+  "image": {"type": "Text", "value": "/static/images/madrid.svg"}
 }'
 post_entity "$STORE1"
 
@@ -139,7 +139,7 @@ STORE2='{
   "description": {"type": "Text", "value": "Almacen logistico en zona portuaria de Barcelona. Especializado en distribucion mediterranea con acceso directo a vias de transporte."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Avenida Diagonal 456", "postalCode": "08009", "addressLocality": "Barcelona", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [2.1734, 41.3851]}},
-  "image": {"type": "Text", "value": "http://localhost:5000/static/images/barcelona.svg"}
+  "image": {"type": "Text", "value": "/static/images/barcelona.svg"}
 }'
 post_entity "$STORE2"
 
@@ -241,7 +241,7 @@ EMP4='{
   "password": {"type": "Text", "value": "$2b$12$abcdefghijklmnopqrstuvwxyz123456789"},
   "category": {"type": "Text", "value": "Staff"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:milano-sud"},
-  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1517841905240-74dec5e0f472"}
+  "image": {"type": "Text", "value": "/static/images/alessandra.svg"}
 }'
 post_entity "$EMP4"
 
@@ -269,7 +269,7 @@ PROD2='{
   "price": {"type": "Number", "value": 499.99},
   "size": {"type": "Text", "value": "27"},
   "color": {"type": "Text", "value": "#000000"},
-  "image": {"type": "Text", "value": "http://localhost:5000/static/images/monitor.svg"}
+  "image": {"type": "Text", "value": "/static/images/monitor.svg"}
 }'
 post_entity "$PROD2"
 
@@ -291,7 +291,7 @@ PROD4='{
   "price": {"type": "Number", "value": 129.99},
   "size": {"type": "Text", "value": "L"},
   "color": {"type": "Text", "value": "#0099FF"},
-  "image": {"type": "Text", "value": "http://localhost:5000/static/images/keyboard.svg"}
+  "image": {"type": "Text", "value": "/static/images/keyboard.svg"}
 }'
 post_entity "$PROD4"
 
@@ -313,7 +313,7 @@ PROD6='{
   "price": {"type": "Number", "value": 199.99},
   "size": {"type": "Text", "value": "M"},
   "color": {"type": "Text", "value": "#333333"},
-  "image": {"type": "Text", "value": "http://localhost:5000/static/images/camera.svg"}
+  "image": {"type": "Text", "value": "/static/images/camera.svg"}
 }'
 post_entity "$PROD6"
 
@@ -324,7 +324,7 @@ PROD7='{
   "price": {"type": "Number", "value": 79.99},
   "size": {"type": "Text", "value": "S"},
   "color": {"type": "Text", "value": "#AAAAAA"},
-  "image": {"type": "Text", "value": "http://localhost:5000/static/images/docking.svg"}
+  "image": {"type": "Text", "value": "/static/images/docking.svg"}
 }'
 post_entity "$PROD7"
 
@@ -335,7 +335,7 @@ PROD8='{
   "price": {"type": "Number", "value": 249.99},
   "size": {"type": "Text", "value": "L"},
   "color": {"type": "Text", "value": "#FF0000"},
-  "image": {"type": "Text", "value": "http://localhost:5000/static/images/ssd.svg"}
+  "image": {"type": "Text", "value": "/static/images/ssd.svg"}
 }'
 post_entity "$PROD8"
 
@@ -346,7 +346,7 @@ PROD9='{
   "price": {"type": "Number", "value": 179.99},
   "size": {"type": "Text", "value": "M"},
   "color": {"type": "Text", "value": "#00DD00"},
-  "image": {"type": "Text", "value": "http://localhost:5000/static/images/ram.svg"}
+  "image": {"type": "Text", "value": "/static/images/ram.svg"}
 }'
 post_entity "$PROD9"
 
