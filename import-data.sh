@@ -123,7 +123,7 @@ STORE1='{
   "description": {"type": "Text", "value": "Almacen principal en el centro de Madrid, equipado con sistemas de climatizacion modernos. Punto de distribucion hacia la zona central de Espana."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Calle Mayor 123", "postalCode": "28001", "addressLocality": "Madrid", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [-3.7038, 40.4168]}},
-  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1585421514675-dfd0956e38ee"}
+  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1578502494516-5c50e83e8f30"}
 }'
 post_entity "$STORE1"
 
@@ -139,7 +139,7 @@ STORE2='{
   "description": {"type": "Text", "value": "Almacen logistico en zona portuaria de Barcelona. Especializado en distribucion mediterranea con acceso directo a vias de transporte."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Avenida Diagonal 456", "postalCode": "08009", "addressLocality": "Barcelona", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [2.1734, 41.3851]}},
-  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1586964694712-1869d7e4f5b1"}
+  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1577720643272-265dc0b37a21"}
 }'
 post_entity "$STORE2"
 
@@ -155,7 +155,7 @@ STORE3='{
   "description": {"type": "Text", "value": "Centro logistico en las afueras de Paris, principal distribuidor para Francia y Benelux. Infraestructura de ultima generacion."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Route de Paris 789", "postalCode": "75018", "addressLocality": "Paris", "addressCountry": "FR"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [2.3522, 48.8566]}},
-  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1563621374235-f9e2e6e0a5f5"}
+  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d"}
 }'
 post_entity "$STORE3"
 
@@ -241,7 +241,7 @@ EMP4='{
   "password": {"type": "Text", "value": "$2b$12$abcdefghijklmnopqrstuvwxyz123456789"},
   "category": {"type": "Text", "value": "Staff"},
   "refStore": {"type": "Relationship", "value": "urn:ngsi-ld:Store:milano-sud"},
-  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1517841905240-74dec5e0f472"}
+  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1494790108377-be9c29b29330"}
 }'
 post_entity "$EMP4"
 
@@ -258,7 +258,7 @@ PROD1='{
   "price": {"type": "Number", "value": 1299.99},
   "size": {"type": "Text", "value": "15.6"},
   "color": {"type": "Text", "value": "#FF5733"},
-  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1588872657840-5e0b7b2f0eaa"}
+  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8"}
 }'
 post_entity "$PROD1"
 
@@ -269,7 +269,7 @@ PROD2='{
   "price": {"type": "Number", "value": 499.99},
   "size": {"type": "Text", "value": "27"},
   "color": {"type": "Text", "value": "#000000"},
-  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46"}
+  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1545459720-26a19c0a01bf"}
 }'
 post_entity "$PROD2"
 
@@ -313,7 +313,7 @@ PROD6='{
   "price": {"type": "Number", "value": 199.99},
   "size": {"type": "Text", "value": "M"},
   "color": {"type": "Text", "value": "#333333"},
-  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1611532736579-6b16e2b50449"}
+  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1598327105666-5b89351aff97"}
 }'
 post_entity "$PROD6"
 
@@ -335,7 +335,7 @@ PROD8='{
   "price": {"type": "Number", "value": 249.99},
   "size": {"type": "Text", "value": "L"},
   "color": {"type": "Text", "value": "#FF0000"},
-  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b"}
+  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1556656793-08538906a9f8"}
 }'
 post_entity "$PROD8"
 
@@ -346,7 +346,7 @@ PROD9='{
   "price": {"type": "Number", "value": 179.99},
   "size": {"type": "Text", "value": "M"},
   "color": {"type": "Text", "value": "#00DD00"},
-  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b"}
+  "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1621905167918-48416bd8575a"}
 }'
 post_entity "$PROD9"
 
