@@ -41,7 +41,7 @@
             <div class="details-grid">
                 <div class="detail-item">
                     <span class="label" data-i18n="employee.hire_date">Fecha de Contratación</span>
-                    <span class="value">{{ employee.dateOfContract.value if employee and employee.dateOfContract else '-' }}</span>
+                    <span class="value" data-hire-date="{{ employee.dateOfContract.value if employee and employee.dateOfContract else '-' }}">{{ employee.dateOfContract.value if employee and employee.dateOfContract else '-' }}</span>
                 </div>
                 <div class="detail-item">
                     <span class="label" data-i18n="employee.category">Categoría</span>

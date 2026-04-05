@@ -168,6 +168,7 @@ const i18n = {
         'table.locations_count': 'Ubicaciones',
         'table.email': 'Correo',
         'table.category': 'Categoría',
+        'table.hire_date': 'Fecha de contratación',
         'table.skills': 'Competencias',
         'table.store': 'Tienda',
         'actions.view_details': 'Ver detalles',
@@ -361,6 +362,7 @@ const i18n = {
         'table.locations_count': 'Locations',
         'table.email': 'Email',
         'table.category': 'Category',
+        'table.hire_date': 'Hire Date',
         'table.skills': 'Skills',
         'table.store': 'Store',
         'actions.view_details': 'View details',
@@ -450,6 +452,7 @@ function updateUIText() {
     });
 
     applySkillLabels();
+    applyHireDateFormatting();
 
     document.documentElement.lang = currentLanguage;
     document.dispatchEvent(new CustomEvent('app:language-changed', {
@@ -2284,6 +2287,31 @@ function applySkillPresentation() {
     applySkillLabels();
 }
 
+function formatDateForUI(dateString, lang = currentLanguage) {
+    if (!dateString || dateString === '-') {
+        return '-';
+    }
+
+    const normalized = String(dateString).split('T')[0];
+    const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) {
+        return normalized;
+    }
+
+    const [, year, month, day] = match;
+    if (lang === 'es') {
+        return `${day}/${month}/${year}`;
+    }
+    return `${year}-${month}-${day}`;
+}
+
+function applyHireDateFormatting() {
+    document.querySelectorAll('[data-hire-date]').forEach((el) => {
+        const rawDate = el.getAttribute('data-hire-date') || el.textContent || '-';
+        el.textContent = formatDateForUI(rawDate, currentLanguage);
+    });
+}
+
 // ============================================================================
 // Delete Button Handlers
 // ============================================================================
@@ -2471,6 +2499,7 @@ document.addEventListener('DOMContentLoaded', () => {
     convertCountryCodesToEmojis();
     applyCategoryIcons();
     applySkillPresentation();
+    applyHireDateFormatting();
     setupDeleteButtons();
     loadStoresForDatalist();
     setupFormValidation();

@@ -21,6 +21,7 @@
                     <th scope="col" data-i18n="table.name">Nombre</th>
                     <th scope="col" data-i18n="table.email">Correo</th>
                     <th scope="col" data-i18n="table.category">Categoría</th>
+                    <th scope="col" data-i18n="table.hire_date">Fecha de contratación</th>
                     <th scope="col" data-i18n="table.skills">Competencias</th>
                     <th scope="col" data-i18n="table.store">Tienda</th>
                     <th scope="col" data-i18n="employees.actions">Acciones</th>
@@ -40,6 +41,11 @@
                         <span class="category-badge" data-category="{{ emp.category.value if emp and emp.category else '-' }}">
                             <i class="fas fa-tag"></i>
                             {{ emp.category.value if emp and emp.category else '-' }}
+                        </span>
+                    </td>
+                    <td class="hire-date-cell">
+                        <span data-hire-date="{{ emp.dateOfContract.value if emp and emp.dateOfContract else '-' }}">
+                            {{ emp.dateOfContract.value if emp and emp.dateOfContract else '-' }}
                         </span>
                     </td>
                     <td class="skills-cell">
