@@ -106,7 +106,7 @@ const i18n = {
         'stores.add': '+ Añadir Tienda',
         'stores.view_map': 'Ver Mapa',
         'stores.actions': 'Acciones',
-        'store.climate': 'Clima del Tienda',
+        'store.climate': 'Clima de la Tienda',
         'store.temperature': 'Temperatura',
         'store.humidity': 'Humedad Relativa',
         'store.visualization': 'Visualización 3D',
