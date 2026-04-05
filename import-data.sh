@@ -152,7 +152,7 @@ STORE3='{
   "telephone": {"type": "Text", "value": "+33 1 42 34 56 78"},
   "countryCode": {"type": "Text", "value": "FR"},
   "capacity": {"type": "Number", "value": 6000.0},
-  "description": {"type": "Text", "value": "Magasin logístico en las afueras de París, principal distribuidor para Francia y Benelux. Infraestructura de última generación."},
+  "description": {"type": "Text", "value": "Tienda logística en las afueras de París, principal distribuidor para Francia y Benelux. Infraestructura de última generación."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Route de Paris 789", "postalCode": "75018", "addressLocality": "Paris", "addressCountry": "FR"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [2.3522, 48.8566]}},
   "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d"}
@@ -168,7 +168,7 @@ STORE4='{
   "telephone": {"type": "Text", "value": "+39 02 1234 5678"},
   "countryCode": {"type": "Text", "value": "IT"},
   "capacity": {"type": "Number", "value": 5500.0},
-  "description": {"type": "Text", "value": "Negozio de distribución en el sur de Milán, estratégicamente ubicado para servir Italia, Suiza y los Alpes. Especializado en logística farmacéutica y tecnológica."},
+  "description": {"type": "Text", "value": "Tienda de distribución en el sur de Milán, estratégicamente ubicado para servir Italia, Suiza y los Alpes. Especializado en logística farmacéutica y tecnológica."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Via Industria 234", "postalCode": "20090", "addressLocality": "Milano", "addressCountry": "IT"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [9.1900, 45.4642]}},
   "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"}
