@@ -9,7 +9,7 @@
             <img src="{{ employee.image.value if employee and employee.image else 'https://via.placeholder.com/300x300' }}" alt="{{ employee.name.value if employee and employee.name else '-' }}" class="employee-photo">
             <div class="employee-info">
                 <h1>{{ employee.name.value if employee and employee.name else '-' }}</h1>
-                <p class="category">{{ employee.category.value if employee and employee.category else '-' }}</p>
+                <p class="category" data-category-label="{{ employee.category.value if employee and employee.category else '-' }}">{{ employee.category.value if employee and employee.category else '-' }}</p>
                 <p class="username"><i class="fas fa-user"></i> {{ employee.username.value if employee and employee.username else '-' }}</p>
                 <p class="email"><i class="fas fa-envelope"></i> {{ employee.email.value if employee and employee.email else '-' }}</p>
                 {% if store %}
@@ -45,7 +45,7 @@
                 </div>
                 <div class="detail-item">
                     <span class="label" data-i18n="employee.category">Categoría</span>
-                    <span class="value">{{ employee.category.value if employee and employee.category else '-' }}</span>
+                    <span class="value" data-category-label="{{ employee.category.value if employee and employee.category else '-' }}">{{ employee.category.value if employee and employee.category else '-' }}</span>
                 </div>
             </div>
         </div>

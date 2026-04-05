@@ -115,7 +115,7 @@ log "=== CREANDO STORES ==="
 STORE1='{
   "id": "urn:ngsi-ld:Store:madrid-centro",
   "type": "Store",
-  "name": {"type": "Text", "value": "Almacen Madrid Centro"},
+  "name": {"type": "Text", "value": "Tienda Madrid Centro"},
   "url": {"type": "Text", "value": "https://store-madrid.example.com"},
   "telephone": {"type": "Text", "value": "+34 912 345 678"},
   "countryCode": {"type": "Text", "value": "ES"},
@@ -131,7 +131,7 @@ post_entity "$STORE1"
 STORE2='{
   "id": "urn:ngsi-ld:Store:barcelona-port",
   "type": "Store",
-  "name": {"type": "Text", "value": "Almacen Barcelona Puerto"},
+  "name": {"type": "Text", "value": "Tienda Barcelona Puerto"},
   "url": {"type": "Text", "value": "https://store-barcelona.example.com"},
   "telephone": {"type": "Text", "value": "+34 933 456 789"},
   "countryCode": {"type": "Text", "value": "ES"},
@@ -147,7 +147,7 @@ post_entity "$STORE2"
 STORE3='{
   "id": "urn:ngsi-ld:Store:paris-nord",
   "type": "Store",
-  "name": {"type": "Text", "value": "Entrepot Paris Nord"},
+  "name": {"type": "Text", "value": "Magasin Paris Nord"},
   "url": {"type": "Text", "value": "https://store-paris.example.com"},
   "telephone": {"type": "Text", "value": "+33 1 42 34 56 78"},
   "countryCode": {"type": "Text", "value": "FR"},
@@ -163,7 +163,7 @@ post_entity "$STORE3"
 STORE4='{
   "id": "urn:ngsi-ld:Store:milano-sud",
   "type": "Store",
-  "name": {"type": "Text", "value": "Magazzino Milano Sud"},
+  "name": {"type": "Text", "value": "Negozio Milano Sud"},
   "url": {"type": "Text", "value": "https://store-milano.example.com"},
   "telephone": {"type": "Text", "value": "+39 02 1234 5678"},
   "countryCode": {"type": "Text", "value": "IT"},

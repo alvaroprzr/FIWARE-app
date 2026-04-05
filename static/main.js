@@ -451,6 +451,7 @@ function updateUIText() {
         elem.setAttribute('aria-label', t(elem.getAttribute('data-i18n-aria-label')));
     });
 
+    applyCategoryLabels();
     applySkillLabels();
     applyHireDateFormatting();
 
@@ -2202,10 +2203,47 @@ function convertCountryCodesToEmojis() {
 
 const categoryIconMap = {
     'Manager': 'fa-crown',
+    'Seller': 'fa-store',
     'Assistant': 'fa-user-tie',
     'Operator': 'fa-industry',
-    'Supervisor': 'fa-clipboard-check'
+    'Supervisor': 'fa-clipboard-check',
+    'Staff': 'fa-users'
 };
+
+const categoryLabelMap = {
+    'Manager': {
+        en: 'Manager',
+        es: 'Gerente'
+    },
+    'Seller': {
+        en: 'Seller',
+        es: 'Vendedor'
+    },
+    'Assistant': {
+        en: 'Assistant',
+        es: 'Asistente'
+    },
+    'Operator': {
+        en: 'Operator',
+        es: 'Operario'
+    },
+    'Supervisor': {
+        en: 'Supervisor',
+        es: 'Supervisor'
+    },
+    'Staff': {
+        en: 'Staff',
+        es: 'Personal'
+    }
+};
+
+function formatCategoryLabel(categoryToken, lang = currentLanguage) {
+    const mapping = categoryLabelMap[categoryToken];
+    if (mapping) {
+        return mapping[lang] || mapping.en;
+    }
+    return splitCamelCase(categoryToken);
+}
 
 function applyCategoryIcons() {
     document.querySelectorAll('.category-badge[data-category]').forEach((el) => {
@@ -2216,6 +2254,18 @@ function applyCategoryIcons() {
             iconEl.className = `fas ${icon}`;
         }
     });
+}
+
+function applyCategoryLabels() {
+    document.querySelectorAll('[data-category-label]').forEach((el) => {
+        const category = el.getAttribute('data-category-label');
+        el.textContent = formatCategoryLabel(category);
+    });
+}
+
+function applyCategoryPresentation() {
+    applyCategoryIcons();
+    applyCategoryLabels();
 }
 
 // ============================================================================
@@ -2497,7 +2547,7 @@ function setupFormValidation() {
 
 document.addEventListener('DOMContentLoaded', () => {
     convertCountryCodesToEmojis();
-    applyCategoryIcons();
+    applyCategoryPresentation();
     applySkillPresentation();
     applyHireDateFormatting();
     setupDeleteButtons();

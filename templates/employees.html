@@ -40,7 +40,7 @@
                     <td class="category-cell">
                         <span class="category-badge" data-category="{{ emp.category.value if emp and emp.category else '-' }}">
                             <i class="fas fa-tag"></i>
-                            {{ emp.category.value if emp and emp.category else '-' }}
+                            <span data-category-label="{{ emp.category.value if emp and emp.category else '-' }}">{{ emp.category.value if emp and emp.category else '-' }}</span>
                         </span>
                     </td>
                     <td class="hire-date-cell">
