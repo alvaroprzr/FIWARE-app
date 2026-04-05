@@ -115,12 +115,12 @@ log "=== CREANDO STORES ==="
 STORE1='{
   "id": "urn:ngsi-ld:Store:madrid-centro",
   "type": "Store",
-  "name": {"type": "Text", "value": "Almacen Madrid Centro"},
+  "name": {"type": "Text", "value": "Tienda Madrid Centro"},
   "url": {"type": "Text", "value": "https://store-madrid.example.com"},
   "telephone": {"type": "Text", "value": "+34 912 345 678"},
   "countryCode": {"type": "Text", "value": "ES"},
   "capacity": {"type": "Number", "value": 5000.0},
-  "description": {"type": "Text", "value": "Almacen principal en el centro de Madrid, equipado con sistemas de climatizacion modernos. Punto de distribucion hacia la zona central de Espana."},
+  "description": {"type": "Text", "value": "Tienda principal en el centro de Madrid, equipada con sistemas de climatización modernos. Punto de distribución hacia la zona central de España."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Calle Mayor 123", "postalCode": "28001", "addressLocality": "Madrid", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [-3.7038, 40.4168]}},
   "image": {"type": "Text", "value": "https://upload.wikimedia.org/wikipedia/commons/5/5b/Amazon_Espa%C3%B1a_por_dentro_%2816%29.jpg"}
@@ -131,12 +131,12 @@ post_entity "$STORE1"
 STORE2='{
   "id": "urn:ngsi-ld:Store:barcelona-port",
   "type": "Store",
-  "name": {"type": "Text", "value": "Almacen Barcelona Puerto"},
+  "name": {"type": "Text", "value": "Tienda Barcelona Puerto"},
   "url": {"type": "Text", "value": "https://store-barcelona.example.com"},
   "telephone": {"type": "Text", "value": "+34 933 456 789"},
   "countryCode": {"type": "Text", "value": "ES"},
   "capacity": {"type": "Number", "value": 4500.0},
-  "description": {"type": "Text", "value": "Almacen logistico en zona portuaria de Barcelona. Especializado en distribucion mediterranea con acceso directo a vias de transporte."},
+  "description": {"type": "Text", "value": "Tienda logística en zona portuaria de Barcelona. Especializada en distribución mediterránea con acceso directo a vías de transporte."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Avenida Diagonal 456", "postalCode": "08009", "addressLocality": "Barcelona", "addressCountry": "ES"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [2.1734, 41.3851]}},
   "image": {"type": "Text", "value": "https://upload.wikimedia.org/wikipedia/commons/8/87/343_Coberts_del_moll_de_Sant_Bertran%2C_port_de_Barcelona%2C_des_de_les_escales_de_Forestier.jpg"}
@@ -147,12 +147,12 @@ post_entity "$STORE2"
 STORE3='{
   "id": "urn:ngsi-ld:Store:paris-nord",
   "type": "Store",
-  "name": {"type": "Text", "value": "Entrepot Paris Nord"},
+  "name": {"type": "Text", "value": "Magasin Paris Nord"},
   "url": {"type": "Text", "value": "https://store-paris.example.com"},
   "telephone": {"type": "Text", "value": "+33 1 42 34 56 78"},
   "countryCode": {"type": "Text", "value": "FR"},
   "capacity": {"type": "Number", "value": 6000.0},
-  "description": {"type": "Text", "value": "Centro logistico en las afueras de Paris, principal distribuidor para Francia y Benelux. Infraestructura de ultima generacion."},
+  "description": {"type": "Text", "value": "Tienda logística en las afueras de París, principal distribuidor para Francia y Benelux. Infraestructura de última generación."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Route de Paris 789", "postalCode": "75018", "addressLocality": "Paris", "addressCountry": "FR"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [2.3522, 48.8566]}},
   "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d"}
@@ -163,12 +163,12 @@ post_entity "$STORE3"
 STORE4='{
   "id": "urn:ngsi-ld:Store:milano-sud",
   "type": "Store",
-  "name": {"type": "Text", "value": "Magazzino Milano Sud"},
+  "name": {"type": "Text", "value": "Negozio Milano Sud"},
   "url": {"type": "Text", "value": "https://store-milano.example.com"},
   "telephone": {"type": "Text", "value": "+39 02 1234 5678"},
   "countryCode": {"type": "Text", "value": "IT"},
   "capacity": {"type": "Number", "value": 5500.0},
-  "description": {"type": "Text", "value": "Almacen de distribucion en el sur de Milan, estrategicamente ubicado para servir Italia, Suiza y los Alpes. Especializado en logistica farmaceutica y tecnologica."},
+  "description": {"type": "Text", "value": "Tienda de distribución en el sur de Milán, estratégicamente ubicado para servir Italia, Suiza y los Alpes. Especializado en logística farmacéutica y tecnológica."},
   "address": {"type": "StructuredValue", "value": {"streetAddress": "Via Industria 234", "postalCode": "20090", "addressLocality": "Milano", "addressCountry": "IT"}},
   "location": {"type": "geo:json", "value": {"type": "Point", "coordinates": [9.1900, 45.4642]}},
   "image": {"type": "Text", "value": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c"}

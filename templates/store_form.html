@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}{% if store %}Editar Almacén{% else %}Crear Almacén{% endif %} - FIWARE{% endblock %}
+{% block title %}{% if store %}Editar Tienda{% else %}Crear Tienda{% endif %} - FIWARE{% endblock %}
 
 {% block content %}
 <div class="container">
     <div class="form-container">
-        <h1>{% if store %}Editar Almacén{% else %}Nuevo Almacén{% endif %}</h1>
+        <h1>{% if store %}Editar Tienda{% else %}Nuevo Tienda{% endif %}</h1>
         
         {% if error %}
         <div class="alert alert-error">{{ error }}</div>
@@ -13,7 +13,7 @@
         
         <form id="store-form" data-validate-inline="true" novalidate>
             <fieldset>
-                <legend>Información del Almacén</legend>
+                <legend>Información de la Tienda</legend>
                 
                 <div class="form-group">
                     <label for="id">ID (único):</label>
@@ -29,7 +29,7 @@
                     <label for="name">Nombre:</label>
                     <input type="text" id="name" name="name" required minlength="2" maxlength="100"
                               value="{% if store and store.name %}{{ store.name.value }}{% endif %}"
-                           placeholder="ej: Almacén Madrid Centro">
+                           placeholder="ej: Tienda Madrid Centro">
                           <span class="field-error" data-error-for="name"></span>
                 </div>
                 
@@ -109,7 +109,7 @@
                 <div class="form-group">
                     <label for="description">Descripción:</label>
                     <textarea id="description" name="description" minlength="5" maxlength="500" rows="4"
-                              placeholder="Descripción detallada del almacén">{% if store and store.description %}{{ store.description.value }}{% endif %}</textarea>
+                              placeholder="Descripción detallada de la tienda">{% if store and store.description %}{{ store.description.value }}{% endif %}</textarea>
                     <span class="field-error" data-error-for="description"></span>
                 </div>
                 
@@ -124,7 +124,7 @@
             
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">
-                    {% if store %}Guardar Cambios{% else %}Crear Almacén{% endif %}
+                    {% if store %}Guardar Cambios{% else %}Crear Tienda{% endif %}
                 </button>
                 <a href="/stores" class="btn btn-secondary">Cancelar</a>
             </div>

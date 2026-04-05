@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}{{ store.name.value if store and store.name else 'Almacén' }} - FIWARE{% endblock %}
+{% block title %}{{ store.name.value if store and store.name else 'Tienda' }} - FIWARE{% endblock %}
 
 {% block content %}
 <div class="container" id="store-detail-root" data-store-id="{{ store.id }}">
     <div class="store-detail-hero">
-        <img src="{{ store.image.value if store and store.image and store.image.value else 'https://via.placeholder.com/400x300' }}" alt="{{ store.name.value if store and store.name and store.name.value else 'Almacén' }}">
+        <img src="{{ store.image.value if store and store.image and store.image.value else 'https://via.placeholder.com/400x300' }}" alt="{{ store.name.value if store and store.name and store.name.value else 'Tienda' }}">
         <div class="store-hero-info">
             <h1>{{ store.name.value if store and store.name and store.name.value else '-' }}</h1>
             <p class="description">{{ store.description.value if store and store.description and store.description.value else '-' }}</p>
@@ -27,7 +27,7 @@
     </div>
 
     <div class="climate-section">
-        <h2 data-i18n="store.climate">Clima del Almacén</h2>
+        <h2 data-i18n="store.climate">Clima de la Tienda</h2>
         <div class="climate-cards">
             <div class="climate-card temperature">
                 <i class="fas fa-thermometer-half"></i>
@@ -295,7 +295,7 @@
                 <option value="" data-i18n="store.select_product">Selecciona un producto</option>
             </select>
 
-            <label for="add-product-shelf-count" data-i18n="store.form.product_count">Numero de productos</label>
+            <label for="add-product-shelf-count" data-i18n="store.form.product_count">Número de productos</label>
             <input id="add-product-shelf-count" name="shelfCount" type="number" min="1" max="32" value="1" required>
 
             <div class="modal-actions">
@@ -326,7 +326,7 @@
 
   initializeStoreMap({
     center: {% if store and store.location and store.location.value %}{{ store.location.value.coordinates | tojson |safe }}{% else %}[-3.7038, 40.4168]{% endif %},
-    storeName: "{% if store and store.name %}{{ store.name.value }}{% else %}Almacén{% endif %}",
+    storeName: "{% if store and store.name %}{{ store.name.value }}{% else %}Tienda{% endif %}",
     storeImage: "{% if store and store.image %}{{ store.image.value }}{% else %}https://via.placeholder.com/400{% endif %}"
   });
 </script>

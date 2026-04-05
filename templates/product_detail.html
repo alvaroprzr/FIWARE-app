@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ product.name.value if product and product.name else 'Producto' }} - FIWARE Almacén{% endblock %}
+{% block title %}{{ product.name.value if product and product.name else 'Producto' }} - FIWARE Tienda{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -27,7 +27,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th data-i18n="product.store">Almacén</th>
+                            <th data-i18n="product.store">Tienda</th>
                             <th data-i18n="product.shelf">Estantería</th>
                             <th data-i18n="product.shelf_count">Cantidad Estante</th>
                         </tr>

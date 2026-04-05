@@ -13,33 +13,33 @@
 const i18n = {
     es: {
         'nav.home': 'Inicio',
-        'nav.stores': 'Almacenes',
+        'nav.stores': 'Tiendas',
         'nav.products': 'Productos',
         'nav.employees': 'Empleados',
-        'nav.stores_map': 'Mapa Stores',
-        'brand.title': 'FIWARE Almacén',
+        'nav.stores_map': 'Mapa de Tiendas',
+        'brand.title': 'FIWARE Tienda',
         'status.connected': 'Conectado',
         'theme.toggle': 'Alternar tema claro/oscuro',
         'lang.spanish': 'Español',
         'lang.english': 'English',
         'notifications.title': 'Notificaciones',
-        'notifications.dismiss': 'Cerrar notificacion',
+        'notifications.dismiss': 'Cerrar notificación',
         'notifications.clear_all': 'Borrar todas',
         'notifications.price_change_title': 'Cambio de Precio',
         'notifications.price_change_message': 'Producto {product} - Nuevo precio: €{price}',
-        'notifications.low_stock_title': 'Stock Bajo en Almacen',
-        'notifications.low_stock_message': 'Atencion: quedan {count} unidades de {product}',
-        'notifications.local_low_stock_message': 'Atencion: quedan {count} unidades de {product}',
+        'notifications.low_stock_title': 'Stock Bajo en Tienda',
+        'notifications.low_stock_message': 'Atención: quedan {count} unidades de {product}',
+        'notifications.local_low_stock_message': 'Atención: quedan {count} unidades de {product}',
         'notifications.no_stock_title': 'Sin Stock',
-        'notifications.no_stock_message': 'No hay disponible en esta ubicacion',
+        'notifications.no_stock_message': 'No hay disponible en esta ubicación',
         'notifications.purchase_success_title': 'Compra Exitosa',
         'notifications.purchase_success_message': 'Stock actualizado en tiempo real',
         'notifications.error_title': 'Error',
-        'notifications.connection_error_title': 'Error de Conexion',
+        'notifications.connection_error_title': 'Error de Conexión',
         'notifications.update_stock_error_message': 'No se pudo actualizar el stock ({error})',
         'notifications.connect_orion_error_message': 'No se pudo conectar a Orion: {error}',
         'notifications.shelf_created_title': 'Shelf creada',
-        'notifications.shelf_created_message': 'Nueva shelf anadida correctamente',
+        'notifications.shelf_created_message': 'Nueva shelf añadida correctamente',
         'notifications.shelf_create_error_message': 'No se pudo crear la shelf: {error}',
         'notifications.shelf_updated_title': 'Shelf actualizada',
         'notifications.shelf_updated_message': 'Cambios guardados correctamente',
@@ -48,45 +48,45 @@ const i18n = {
         'notifications.shelf_deleted_title': 'Shelf eliminada',
         'notifications.shelf_deleted_message': 'La shelf y sus InventoryItems se eliminaron correctamente',
         'notifications.shelf_delete_error_message': 'No se pudo borrar la shelf: {error}',
-        'notifications.product_added_title': 'Producto anadido',
+        'notifications.product_added_title': 'Producto añadido',
         'notifications.product_added_message': 'InventoryItem creado correctamente',
-        'notifications.product_add_error_message': 'No se pudo anadir el producto: {error}',
-        'notifications.capacity_exceeded_message': 'No caben mas unidades en la estanteria. Capacidad: {capacity}, actuales: {current}, intentadas: {requested}, maximo que puedes anadir ahora: {maximumAllowed}',
-        'notifications.shelf_absolute_limit_message': 'La capacidad maxima de una shelf no puede superar {limit} (4 columnas x 4 niveles x 2 profundidades).',
+        'notifications.product_add_error_message': 'No se pudo añadir el producto: {error}',
+        'notifications.capacity_exceeded_message': 'No caben más unidades en la estantería. Capacidad: {capacity}, actuales: {current}, intentadas: {requested}, máximo que puedes añadir ahora: {maximumAllowed}',
+        'notifications.shelf_absolute_limit_message': 'La capacidad máxima de una shelf no puede superar {limit} (4 columnas x 4 niveles x 2 profundidades).',
         'notifications.shelf_remaining_capacity_message': 'La shelf seleccionada solo admite {maximumAllowed} unidades adicionales en este momento.',
         'notifications.validation_positive_counts': 'Las cantidades deben ser mayores que 0',
         'notifications.validation_shelf_gt_stock': 'shelfCount no puede ser mayor que stockCount',
         'notifications.inventory_created_title': 'InventoryItem creado',
-        'notifications.inventory_created_message': 'El producto se anadio correctamente a la estanteria',
+        'notifications.inventory_created_message': 'El producto se añadió correctamente a la estantería',
         'notifications.inventory_create_error_message': 'No se pudo crear el InventoryItem: {error}',
-        'notifications.load_shelves_error_message': 'No se pudo cargar estanterias disponibles: {error}',
+        'notifications.load_shelves_error_message': 'No se pudo cargar estanterías disponibles: {error}',
         'notifications.load_products_error_message': 'No se pudo cargar productos disponibles: {error}',
         'notifications.deleted_title': 'Eliminado',
         'notifications.deleted_message': 'Entidad eliminada correctamente',
         'notifications.deleted_message_named': 'Elemento "{name}" eliminado correctamente',
         'notifications.delete_error_message': 'No se pudo eliminar la entidad',
         'notifications.server_connection_error_message': 'No se pudo conectar con el servidor.',
-        'footer.text': 'Almacén Inteligente FIWARE © 2024',
+        'footer.text': 'Tienda Inteligente FIWARE © 2024',
         'footer.connecting': 'Conectando...',
-        'home.title': 'Almacén Inteligente FIWARE',
+        'home.title': 'Tienda Inteligente FIWARE',
         'home.subtitle': 'Sistema de gestión de inventario basado en NGSIv2',
-        'home.stores': 'Almacenes',
+        'home.stores': 'Tiendas',
         'home.products': 'Productos',
         'home.shelves': 'Estanterías',
         'home.employees': 'Empleados',
         'home.inventory': 'Items de Inventario',
         'home.total': 'Total de Entidades',
         'home.data_model': 'Modelo de Datos',
-        'home.diagram_title': 'Diagrama de Entidad-Relacion',
+        'home.diagram_title': 'Diagrama de Entidad-Relación',
         'home.diagram_toggle': 'Mostrar u ocultar diagrama',
         'home.quick_links': 'Enlaces Rápidos',
-        'home.view_stores': 'Ver Almacenes',
+        'home.view_stores': 'Ver Tiendas',
         'home.global_map': 'Mapa Global',
         'home.view_products': 'Ver Productos',
         'home.view_employees': 'Ver Empleados',
         'home.api_docs': 'Documentación API',
         'home.api_stats': 'Obtener estadísticas del sistema',
-        'home.api_stores': 'Listar almacenes en JSON',
+        'home.api_stores': 'Listar tiendas en JSON',
         'home.api_products': 'Listar productos en JSON',
         'home.api_employees': 'Listar empleados en JSON',
         'products.title': 'Catálogo de Productos',
@@ -94,7 +94,7 @@ const i18n = {
         'products.view': 'Ver',
         'products.actions': 'Acciones',
         'product.inventory_distribution': 'Distribución de Inventario',
-        'product.store': 'Almacén',
+        'product.store': 'Tienda',
         'product.shelf': 'Estantería',
         'product.shelf_count': 'Cantidad Estante',
         'product.stock_count': 'Stock Total',
@@ -102,11 +102,11 @@ const i18n = {
         'product.available_shelf': 'Estantería disponible',
         'product.select_shelf': 'Selecciona una estantería',
         'product.no_available_shelves': 'No hay estanterías disponibles para este producto',
-        'stores.title': 'Almacenes',
-        'stores.add': '+ Añadir Almacén',
+        'stores.title': 'Tiendas',
+        'stores.add': '+ Añadir Tienda',
         'stores.view_map': 'Ver Mapa',
         'stores.actions': 'Acciones',
-        'store.climate': 'Clima del Almacén',
+        'store.climate': 'Clima de la Tienda',
         'store.temperature': 'Temperatura',
         'store.humidity': 'Humedad Relativa',
         'store.visualization': 'Visualización 3D',
@@ -129,7 +129,7 @@ const i18n = {
         'store.cancel': 'Cancelar',
         'store.save': 'Guardar',
         'store.product': 'Producto',
-        'store.form.product_count': 'Numero de productos',
+        'store.form.product_count': 'Número de productos',
         'store.select_product': 'Selecciona un producto',
         'store.no_products_in_shelf': 'No hay productos en esta shelf',
         'store.units_on_shelf': 'unidades en shelf',
@@ -149,7 +149,7 @@ const i18n = {
         'employee.details': 'Detalles de Empleo',
         'employee.hire_date': 'Fecha de Contratación',
         'employee.category': 'Categoría',
-        'map.title': 'Mapa de Stores',
+        'map.title': 'Mapa de Tiendas',
         'map.unknown_store': 'Store desconocido',
         'map.unknown_locality': 'Localidad desconocida',
         'map.capacity_label': 'Capacidad',
@@ -168,8 +168,9 @@ const i18n = {
         'table.locations_count': 'Ubicaciones',
         'table.email': 'Correo',
         'table.category': 'Categoría',
+        'table.hire_date': 'Fecha de contratación',
         'table.skills': 'Competencias',
-        'table.store': 'Almacén',
+        'table.store': 'Tienda',
         'actions.view_details': 'Ver detalles',
         'actions.edit': 'Editar',
         'actions.delete': 'Borrar',
@@ -361,6 +362,7 @@ const i18n = {
         'table.locations_count': 'Locations',
         'table.email': 'Email',
         'table.category': 'Category',
+        'table.hire_date': 'Hire Date',
         'table.skills': 'Skills',
         'table.store': 'Store',
         'actions.view_details': 'View details',
@@ -448,6 +450,10 @@ function updateUIText() {
     document.querySelectorAll('[data-i18n-aria-label]').forEach((elem) => {
         elem.setAttribute('aria-label', t(elem.getAttribute('data-i18n-aria-label')));
     });
+
+    applyCategoryLabels();
+    applySkillLabels();
+    applyHireDateFormatting();
 
     document.documentElement.lang = currentLanguage;
     document.dispatchEvent(new CustomEvent('app:language-changed', {
@@ -2197,10 +2203,47 @@ function convertCountryCodesToEmojis() {
 
 const categoryIconMap = {
     'Manager': 'fa-crown',
+    'Seller': 'fa-store',
     'Assistant': 'fa-user-tie',
     'Operator': 'fa-industry',
-    'Supervisor': 'fa-clipboard-check'
+    'Supervisor': 'fa-clipboard-check',
+    'Staff': 'fa-users'
 };
+
+const categoryLabelMap = {
+    'Manager': {
+        en: 'Manager',
+        es: 'Gerente'
+    },
+    'Seller': {
+        en: 'Seller',
+        es: 'Vendedor'
+    },
+    'Assistant': {
+        en: 'Assistant',
+        es: 'Asistente'
+    },
+    'Operator': {
+        en: 'Operator',
+        es: 'Operario'
+    },
+    'Supervisor': {
+        en: 'Supervisor',
+        es: 'Supervisor'
+    },
+    'Staff': {
+        en: 'Staff',
+        es: 'Personal'
+    }
+};
+
+function formatCategoryLabel(categoryToken, lang = currentLanguage) {
+    const mapping = categoryLabelMap[categoryToken];
+    if (mapping) {
+        return mapping[lang] || mapping.en;
+    }
+    return splitCamelCase(categoryToken);
+}
 
 function applyCategoryIcons() {
     document.querySelectorAll('.category-badge[data-category]').forEach((el) => {
@@ -2213,6 +2256,18 @@ function applyCategoryIcons() {
     });
 }
 
+function applyCategoryLabels() {
+    document.querySelectorAll('[data-category-label]').forEach((el) => {
+        const category = el.getAttribute('data-category-label');
+        el.textContent = formatCategoryLabel(category);
+    });
+}
+
+function applyCategoryPresentation() {
+    applyCategoryIcons();
+    applyCategoryLabels();
+}
+
 // ============================================================================
 // Employee Skills Icons Mapper
 // ============================================================================
@@ -2223,6 +2278,33 @@ const skillIconMap = {
     'CustomerRelationships': 'fa-handshake'
 };
 
+const skillLabelMap = {
+    'MachineryDriving': {
+        en: 'Machinery Driving',
+        es: 'Manejo de maquinaria'
+    },
+    'WritingReports': {
+        en: 'Writing Reports',
+        es: 'Redacción de informes'
+    },
+    'CustomerRelationships': {
+        en: 'Customer Relationships',
+        es: 'Relaciones con clientes'
+    }
+};
+
+function splitCamelCase(value) {
+    return (value || '').replace(/([a-z])([A-Z])/g, '$1 $2').trim();
+}
+
+function formatSkillLabel(skillToken, lang = currentLanguage) {
+    const mapping = skillLabelMap[skillToken];
+    if (mapping) {
+        return mapping[lang] || mapping.en;
+    }
+    return splitCamelCase(skillToken);
+}
+
 function applySkillIcons() {
     document.querySelectorAll('.skill-icon[data-skill]').forEach((el) => {
         const skill = el.getAttribute('data-skill');
@@ -2231,6 +2313,52 @@ function applySkillIcons() {
         if (iconEl) {
             iconEl.className = `fas ${icon}`;
         }
+    });
+}
+
+function applySkillLabels() {
+    document.querySelectorAll('.skill-icon[data-skill]').forEach((el) => {
+        const skill = el.getAttribute('data-skill');
+        const label = formatSkillLabel(skill);
+        if (label) {
+            el.setAttribute('title', label);
+            el.setAttribute('aria-label', label);
+        }
+    });
+
+    document.querySelectorAll('[data-skill-label]').forEach((el) => {
+        const skill = el.getAttribute('data-skill-label');
+        el.textContent = formatSkillLabel(skill);
+    });
+}
+
+function applySkillPresentation() {
+    applySkillIcons();
+    applySkillLabels();
+}
+
+function formatDateForUI(dateString, lang = currentLanguage) {
+    if (!dateString || dateString === '-') {
+        return '-';
+    }
+
+    const normalized = String(dateString).split('T')[0];
+    const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!match) {
+        return normalized;
+    }
+
+    const [, year, month, day] = match;
+    if (lang === 'es') {
+        return `${day}/${month}/${year}`;
+    }
+    return `${year}-${month}-${day}`;
+}
+
+function applyHireDateFormatting() {
+    document.querySelectorAll('[data-hire-date]').forEach((el) => {
+        const rawDate = el.getAttribute('data-hire-date') || el.textContent || '-';
+        el.textContent = formatDateForUI(rawDate, currentLanguage);
     });
 }
 
@@ -2419,8 +2547,9 @@ function setupFormValidation() {
 
 document.addEventListener('DOMContentLoaded', () => {
     convertCountryCodesToEmojis();
-    applyCategoryIcons();
-    applySkillIcons();
+    applyCategoryPresentation();
+    applySkillPresentation();
+    applyHireDateFormatting();
     setupDeleteButtons();
     loadStoresForDatalist();
     setupFormValidation();
