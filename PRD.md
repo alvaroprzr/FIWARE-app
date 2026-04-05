@@ -208,6 +208,41 @@ Corregir la entrega de notificaciones realtime para que los eventos lleguen tant
 
 ---
 
+## 21. Correcciones de Texto ES/EN y Presentacion UI (Issue #29)
+
+### Objetivo funcional
+
+Mejorar la legibilidad y consistencia de la interfaz sin alterar backend ni modelo de datos.
+
+### Cambios funcionales
+
+- Terminologia UI en espanol:
+  - Sustitucion de textos visibles de "almacen/almacenes" por "tienda/tiendas".
+  - Ajustes de concordancia gramatical (por ejemplo, "Clima de la Tienda").
+- i18n:
+  - Correccion de etiqueta de navegacion a "Mapa de Tiendas" en ES.
+  - Conservacion de la version EN ("Stores Map").
+- Branding:
+  - Actualizacion de marca en navbar a "FIWARE Smart Retail".
+- Employees:
+  - Formateo visual de `skills` en ES/EN mediante mapeo en frontend.
+  - Traduccion visual de `category` en ES/EN en lista y detalle.
+  - Formato de `dateOfContract` por idioma en UI:
+    - ES: DD/MM/YYYY
+    - EN: YYYY-MM-DD
+- Seed y consistencia visual:
+  - Nombres de Store por pais en `import-data.sh` (ES: Tienda, FR: Magasin, IT: Negozio).
+  - Descripciones normalizadas para usar "Tienda" en texto explicativo.
+
+### Alcance y restricciones
+
+- Cambios centrados en presentacion (templates + JavaScript de cliente).
+- Sin cambios de logica de negocio en backend.
+- Sin cambios de estructura de entidades NGSIv2.
+- Sin mutacion de datos persistidos al formatear skills/fechas/categorias en UI.
+
+---
+
 ## 15. Rediseño Recorrido Virtual 3D en Store Detail (Issue #14)
 
 ### Requisito funcional cubierto

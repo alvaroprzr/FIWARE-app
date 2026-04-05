@@ -26,6 +26,20 @@ Información de personal con autenticación, cualificaciones y asignación a un 
 - password SIEMPRE hasheada con bcrypt
 - dateOfContract es obligatoria, fecha válida pasada/presente
 
+### Nota de presentacion UI (Issue #29)
+
+Sin cambios de esquema NGSIv2 para Employee. Se aplican solo transformaciones de presentacion en frontend:
+
+- `skills`:
+  - Valor persistido se mantiene en tokens (`MachineryDriving`, `WritingReports`, `CustomerRelationships`).
+  - UI muestra etiquetas legibles por idioma (ES/EN).
+- `category`:
+  - Valor persistido (`Manager`, `Seller`, etc.) no se modifica.
+  - UI muestra traduccion por idioma en lista y detalle.
+- `dateOfContract`:
+  - Persistencia en ISO 8601 sin cambios.
+  - UI formatea por idioma (ES DD/MM/YYYY, EN YYYY-MM-DD).
+
 ---
 
 ## 12. Contrato de Eventos Realtime y Semantica de Identificadores (Issue #21)
@@ -124,6 +138,18 @@ Ubicación física de almacén con datos de contacto e integración con proveedo
 | `relativeHumidity` | `Number` | Porcentaje [PROVEEDOR EXTERNO] |
 | `tweets` | `Array` | Array cadenas [PROVEEDOR EXTERNO] |
 | `image` | `Text` | URL foto almacén definida en el seed inicial, con referencia visual coherente al store |
+
+### Nota de nomenclatura seed (Issue #29)
+
+Issue #29 no modifica el tipo ni atributos de Store, pero actualiza valores iniciales de carga para mejorar consistencia visual:
+
+- `name` por pais en seed:
+  - ES: prefijo "Tienda"
+  - FR: prefijo "Magasin"
+  - IT: prefijo "Negozio"
+- `description` en seed normalizada para usar "Tienda" en texto explicativo con ortografia corregida.
+
+Estas variaciones son de contenido semantico en datos iniciales; no alteran contrato NGSIv2.
 
 **Restricciones:**
 - countryCode EXACTAMENTE 2 caracteres [A-Za-z]

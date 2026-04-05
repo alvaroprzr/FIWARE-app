@@ -257,6 +257,40 @@ FIWARE-app/
      ```json
      // ❌ INCORRECTO en Orion 4.1.0
      "maxCapacity": {"type": "Integer", "value": 20}
+
+---
+
+## 6. Correcciones UI ES/EN y Presentacion (Issue #29)
+
+### Ambito arquitectonico
+
+Issue #29 introduce ajustes de presentacion en la capa cliente, sin cambios en rutas backend ni en estructura NGSIv2.
+
+### Componentes impactados
+
+- `templates/*.html`:
+  - Correcciones de textos visibles en ES.
+  - Ajustes de marca en navbar.
+  - Marcado `data-*` para formateo visual de skills, category y fechas.
+- `static/main.js`:
+  - Correcciones de i18n ES (incluyendo "Mapa de Tiendas").
+  - Mapeo visual de skills y category por idioma.
+  - Helper de formato de fecha para `dateOfContract` en lista/detalle.
+
+### Flujo cliente relevante
+
+- `updateUIText()` aplica traducciones base por `data-i18n`.
+- Tras cambio de idioma, se re-aplican transformaciones de presentacion:
+  - `applySkillLabels()`
+  - `applyCategoryLabels()`
+  - `applyHireDateFormatting()`
+
+Estas transformaciones afectan solo al render de DOM y no mutan datos en Orion.
+
+### Consistencia de datos seed/entorno
+
+- `import-data.sh` actualiza nombres base de Store por pais y descripciones normalizadas.
+- Para entorno ya levantado, se admite parcheo puntual de atributos `description` via PATCH NGSIv2 en Orion para evitar reinicializacion completa.
      
      // ✅ CORRECTO en Orion 4.1.0
      "maxCapacity": {"type": "Number", "value": 20}
