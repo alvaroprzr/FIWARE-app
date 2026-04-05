@@ -27,7 +27,7 @@
                     {% for skill in employee.skills.value %}
                     <div class="skill-item">
                         <i class="fas fa-check-circle"></i>
-                        <span>{{ skill }}</span>
+                        <span data-skill-label="{{ skill }}">{{ skill }}</span>
                     </div>
                     {% endfor %}
                 {% else %}

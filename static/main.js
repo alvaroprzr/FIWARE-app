@@ -449,6 +449,8 @@ function updateUIText() {
         elem.setAttribute('aria-label', t(elem.getAttribute('data-i18n-aria-label')));
     });
 
+    applySkillLabels();
+
     document.documentElement.lang = currentLanguage;
     document.dispatchEvent(new CustomEvent('app:language-changed', {
         detail: { language: currentLanguage }
@@ -2223,6 +2225,33 @@ const skillIconMap = {
     'CustomerRelationships': 'fa-handshake'
 };
 
+const skillLabelMap = {
+    'MachineryDriving': {
+        en: 'Machinery Driving',
+        es: 'Manejo de maquinaria'
+    },
+    'WritingReports': {
+        en: 'Writing Reports',
+        es: 'Redacción de informes'
+    },
+    'CustomerRelationships': {
+        en: 'Customer Relationships',
+        es: 'Relaciones con clientes'
+    }
+};
+
+function splitCamelCase(value) {
+    return (value || '').replace(/([a-z])([A-Z])/g, '$1 $2').trim();
+}
+
+function formatSkillLabel(skillToken, lang = currentLanguage) {
+    const mapping = skillLabelMap[skillToken];
+    if (mapping) {
+        return mapping[lang] || mapping.en;
+    }
+    return splitCamelCase(skillToken);
+}
+
 function applySkillIcons() {
     document.querySelectorAll('.skill-icon[data-skill]').forEach((el) => {
         const skill = el.getAttribute('data-skill');
@@ -2232,6 +2261,27 @@ function applySkillIcons() {
             iconEl.className = `fas ${icon}`;
         }
     });
+}
+
+function applySkillLabels() {
+    document.querySelectorAll('.skill-icon[data-skill]').forEach((el) => {
+        const skill = el.getAttribute('data-skill');
+        const label = formatSkillLabel(skill);
+        if (label) {
+            el.setAttribute('title', label);
+            el.setAttribute('aria-label', label);
+        }
+    });
+
+    document.querySelectorAll('[data-skill-label]').forEach((el) => {
+        const skill = el.getAttribute('data-skill-label');
+        el.textContent = formatSkillLabel(skill);
+    });
+}
+
+function applySkillPresentation() {
+    applySkillIcons();
+    applySkillLabels();
 }
 
 // ============================================================================
@@ -2420,7 +2470,7 @@ function setupFormValidation() {
 document.addEventListener('DOMContentLoaded', () => {
     convertCountryCodesToEmojis();
     applyCategoryIcons();
-    applySkillIcons();
+    applySkillPresentation();
     setupDeleteButtons();
     loadStoresForDatalist();
     setupFormValidation();
