@@ -1504,3 +1504,23 @@ Corregir inconsistencias de presentacion en vistas de Stores y Products, y mejor
 - PRD coherente con la implementacion real en rutas Flask, templates y assets JS/CSS.
 
 ---
+
+## 30. Sincronizacion final de documentacion (Issue #30)
+
+### Estado funcional validado para entrega
+
+- La tabla de Stores usa `countryCode` como fuente principal en UI (`store.countryCode.value`) en el listado.
+- `requirements.txt` se regenera con `pip freeze > requirements.txt` para congelar dependencias del entorno actual.
+- `.gitignore` bloquea artefactos de entorno y cache Python requeridos para entrega limpia:
+  - `venv/`
+  - `.venv/`
+  - `__pycache__/`
+  - `*.pyc`
+
+### Alcance
+
+- Sin cambios funcionales de backend.
+- Sin alteraciones de esquema NGSIv2.
+- Documentacion alineada al estado real del repositorio tras limpieza final.
+
+---

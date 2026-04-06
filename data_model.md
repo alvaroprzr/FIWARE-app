@@ -1582,3 +1582,18 @@ Este cambio no modifica datos persistidos; modifica unicamente la lectura/interp
 - Sin cambios en contratos de eventos realtime.
 
 ---
+
+## 30. Sincronizacion final de modelo y entrega (Issue #30)
+
+### Alineacion final con implementacion
+
+- `Store.countryCode` queda como atributo canonico de pais para visualizacion en tabla de Stores (lectura directa de `store.countryCode.value` en template).
+- `address.addressCountry` se conserva como dato estructurado de direccion, pero no reemplaza al atributo principal `countryCode` en la celda de pais del listado.
+- No se agregan ni eliminan atributos NGSIv2 en esta sincronizacion; solo se documenta el uso correcto del modelo existente.
+
+### Trazabilidad de entrega tecnica
+
+- Dependencias congeladas en `requirements.txt` con `pip freeze`.
+- Politica de limpieza en `.gitignore` para artefactos de entorno/cache Python: `venv/`, `.venv/`, `__pycache__/`, `*.pyc`.
+
+---

@@ -1381,3 +1381,19 @@ Click en "Borrar" (modal edit shelf)
 - Se bloquea subida de metadatos alternos de Windows con `**/*:Zone.Identifier`.
 
 ---
+
+## 30. Sincronizacion final de arquitectura documental (Issue #30)
+
+### Confirmaciones de arquitectura de entrega
+
+- Capa de presentacion Stores: el codigo de pais renderizado en tabla se toma del atributo de dominio `countryCode` (`store.countryCode.value`).
+- Capa de dependencias Python: el inventario ejecutable queda fijado en `requirements.txt` mediante `pip freeze > requirements.txt`.
+- Capa de higiene de repositorio: `.gitignore` mantiene bloqueo de entornos y cache (`venv/`, `.venv/`, `__pycache__/`, `*.pyc`).
+
+### Impacto
+
+- No hay cambios en topologia ni flujos backend.
+- No cambian endpoints ni contratos NGSIv2.
+- Se consolida trazabilidad documental con el estado final publicado.
+
+---

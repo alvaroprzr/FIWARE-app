@@ -241,3 +241,5 @@ Listeners globales DEBEN estar en `base.html` (template padre):
 - [ ] Issue enlazado en commits
 
 ---
+
+Revision y sincronizacion final de PRD.md, architecture.md, data_model.md y AGENTS.md completada en Issue #30 para alinear documentacion con limpieza de repo y estado final de entrega.
