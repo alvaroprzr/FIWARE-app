@@ -40,7 +40,7 @@
                     <td class="name-cell">
                         <a href="/stores/{{ store.id.split(':')[-1] }}">{{ store.name.value if store and store.name else '-' }}</a>
                     </td>
-                    {% set country_code = (store.address.value.addressCountry | upper) if store and store.address and store.address.value and store.address.value.addressCountry else '' %}
+                    {% set country_code = (store.countryCode.value | upper) if store and store.countryCode and store.countryCode.value else '' %}
                     <td class="country-cell">
                         {% if country_code %}
                         <span class="country-display">
